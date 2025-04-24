@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.db.models import Q
 from django.utils import timezone
 import json
@@ -10,10 +10,12 @@ from .models import Customer, Prescription
 from pharmacy.models import Pharmacy, Medicine
 from .forms import PrescriptionForm
 
+@ensure_csrf_cookie
 def home(request):
     """Home page view with search functionality"""
     return render(request, 'home.html')
 
+@ensure_csrf_cookie
 def search_medicines(request):
     """Search medicines and return results sorted by pharmacy proximity"""
     query = request.GET.get('query', '')
@@ -83,6 +85,7 @@ def search_medicines(request):
         'query': query
     })
 
+@ensure_csrf_cookie
 def upload_prescription(request):
     """View for customers to upload prescriptions via modal forms"""
     if request.method == 'POST':
@@ -129,6 +132,7 @@ def upload_prescription(request):
     # For non-POST requests, redirect to home
     return redirect('home')
 
+@ensure_csrf_cookie
 def prescription_success(request):
     """Success page after prescription submission"""
     return render(request, 'prescription_success.html')

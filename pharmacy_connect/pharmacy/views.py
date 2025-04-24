@@ -101,6 +101,7 @@ def medicine_list(request):
     })
 
 @login_required
+@ensure_csrf_cookie
 def add_medicine(request):
     """Add a new medicine"""
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
@@ -122,6 +123,7 @@ def add_medicine(request):
     })
 
 @login_required
+@ensure_csrf_cookie
 def edit_medicine(request, medicine_id):
     """Edit an existing medicine"""
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
@@ -143,6 +145,7 @@ def edit_medicine(request, medicine_id):
     })
 
 @login_required
+@ensure_csrf_cookie
 def delete_medicine(request, medicine_id):
     """Delete a medicine"""
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
@@ -158,6 +161,7 @@ def delete_medicine(request, medicine_id):
     })
 
 @login_required
+@ensure_csrf_cookie
 def pharmacy_profile(request):
     """Edit pharmacy profile"""
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
@@ -202,6 +206,7 @@ def prescription_list(request):
     })
 
 @login_required
+@ensure_csrf_cookie
 def update_prescription_status(request, prescription_id):
     """Update prescription status"""
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
