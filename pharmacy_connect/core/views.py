@@ -84,7 +84,7 @@ def search_medicines(request):
     })
 
 def upload_prescription(request):
-    """View for customers to upload prescriptions"""
+    """View for customers to upload prescriptions via modal forms"""
     if request.method == 'POST':
         form = PrescriptionForm(request.POST, request.FILES)
         if form.is_valid():
@@ -100,29 +100,34 @@ def upload_prescription(request):
             )
             
             prescription.customer = customer
+            
+            # Set customer location if provided
+            lat = request.POST.get('latitude')
+            lng = request.POST.get('longitude')
+            if lat and lng:
+                try:
+                    customer.latitude = float(lat)
+                    customer.longitude = float(lng)
+                    customer.save()
+                except (ValueError, TypeError):
+                    pass
+            
             prescription.save()
             
             # If pharmacy is specified, assign it
             pharmacy_id = request.POST.get('pharmacy_id')
             if pharmacy_id:
-                pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
-                prescription.pharmacy = pharmacy
-                prescription.save()
+                try:
+                    pharmacy = Pharmacy.objects.get(id=pharmacy_id)
+                    prescription.pharmacy = pharmacy
+                    prescription.save()
+                except (Pharmacy.DoesNotExist, ValueError):
+                    pass
                 
             return redirect('prescription_success')
-    else:
-        form = PrescriptionForm()
-        
-    # Get pharmacy ID from query parameters if available
-    pharmacy_id = request.GET.get('pharmacy_id')
-    pharmacy = None
-    if pharmacy_id:
-        pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
-        
-    return render(request, 'prescription_upload.html', {
-        'form': form,
-        'pharmacy': pharmacy
-    })
+    
+    # For non-POST requests, redirect to home
+    return redirect('home')
 
 def prescription_success(request):
     """Success page after prescription submission"""

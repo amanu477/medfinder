@@ -1,6 +1,32 @@
 // Common JS functionality for the platform
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle prescription upload buttons
+    const uploadRxButtons = document.querySelectorAll('.upload-rx-btn');
+    if (uploadRxButtons.length > 0) {
+        const selectedPharmacyId = document.getElementById('selected-pharmacy-id');
+        const selectedPharmacyName = document.getElementById('selected-pharmacy-name');
+        const pharmacyInfo = document.getElementById('pharmacy-info');
+        
+        uploadRxButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const pharmacyId = this.getAttribute('data-pharmacy-id');
+                const pharmacyName = this.getAttribute('data-pharmacy-name');
+                
+                if (pharmacyId && selectedPharmacyId) {
+                    // Set the pharmacy info in the modal
+                    selectedPharmacyId.value = pharmacyId;
+                    
+                    if (selectedPharmacyName && pharmacyName) {
+                        selectedPharmacyName.textContent = pharmacyName;
+                        if (pharmacyInfo) {
+                            pharmacyInfo.classList.remove('d-none');
+                        }
+                    }
+                }
+            });
+        });
+    }
     // Handle mobile navigation toggle
     const navbarToggler = document.querySelector('.navbar-toggler');
     if (navbarToggler) {

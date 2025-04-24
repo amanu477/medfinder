@@ -21,7 +21,7 @@
                     </form>
                 </div>
                 <div class="col-md-4">
-                    <button type="button" class="btn btn-primary upload-rx-btn" data-bs-toggle="modal" data-bs-target="#prescriptionModal">
+                    <button type="button" class="btn btn-primary upload-rx-btn" data-bs-toggle="modal" data-bs-target="#prescriptionModal" data-pharmacy-id="" data-pharmacy-name="">
                         <i class="fas fa-file-prescription me-2"></i> Upload Prescription
                     </button>
                 </div>
@@ -136,8 +136,16 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <div id="pharmacy-info" class="alert alert-info mb-4 d-none">
+                    <p class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i> You are sending this prescription to:
+                    </p>
+                    <h5 class="mt-2" id="selected-pharmacy-name"></h5>
+                </div>
+                
                 <form method="post" action="{% url 'upload_prescription' %}" enctype="multipart/form-data" class="needs-location" id="prescription-form">
                     {% csrf_token %}
+                    <input type="hidden" name="pharmacy_id" id="selected-pharmacy-id">
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
