@@ -147,7 +147,8 @@ def pharmacy_profile(request):
             lat = request.POST.get('latitude')
             lng = request.POST.get('longitude')
             if lat and lng:
-                updated_pharmacy.location = Point(float(lng), float(lat), srid=4326)
+                updated_pharmacy.latitude = float(lat)
+                updated_pharmacy.longitude = float(lng)
             
             updated_pharmacy.save()
             messages.success(request, 'Profile updated successfully!')
@@ -155,8 +156,9 @@ def pharmacy_profile(request):
     else:
         form = PharmacyProfileForm(instance=pharmacy)
     
-    # Extract coordinates for the map
-    longitude, latitude = pharmacy.location.coords
+    # Use existing latitude and longitude for the map
+    latitude = pharmacy.latitude
+    longitude = pharmacy.longitude
     
     return render(request, 'pharmacy/profile.html', {
         'form': form,
