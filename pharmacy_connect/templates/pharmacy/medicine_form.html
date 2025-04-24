@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if action == 'Add' %}
+        Add New Medicine - PharmacyConnect
+    {% else %}
+        Edit Medicine - PharmacyConnect
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="upload-card">
+                    <h1 class="mb-4">
+                        {% if action == 'Add' %}
+                            <i class="fas fa-plus-circle me-2"></i> Add New Medicine
+                        {% else %}
+                            <i class="fas fa-edit me-2"></i> Edit Medicine
+                        {% endif %}
+                    </h1>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label for="{{ form.name.id_for_label }}">Medicine Name</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label for="{{ form.description.id_for_label }}">Description</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.description.errors }}
+                                </div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    Include dosage information, primary uses, and any special instructions.
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="{{ form.price.id_for_label }}">Price (₹)</label>
+                                    {{ form.price }}
+                                    {% if form.price.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.price.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="{{ form.stock_quantity.id_for_label }}">Stock Quantity</label>
+                                    {{ form.stock_quantity }}
+                                    {% if form.stock_quantity.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.stock_quantity.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label for="{{ form.expiry_date.id_for_label }}">Expiry Date</label>
+                                {{ form.expiry_date }}
+                                {% if form.expiry_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.expiry_date.errors }}
+                                </div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    You'll receive notifications for medicines expiring in the next 30 days.
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_available }}
+                                <label class="form-check-label" for="{{ form.is_available.id_for_label }}">
+                                    Available for customers to search and purchase
+                                </label>
+                                {% if form.is_available.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.is_available.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'medicine_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i> Back to List
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if action == 'Add' %}
+                                    <i class="fas fa-plus me-2"></i> Add Medicine
+                                {% else %}
+                                    <i class="fas fa-save me-2"></i> Save Changes
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Information Box -->
+                <div class="alert alert-info mt-4">
+                    <h4 class="alert-heading mb-3">
+                        <i class="fas fa-info-circle me-2"></i> Tips for Managing Medicines
+                    </h4>
+                    <ul class="mb-0">
+                        <li>Regularly update stock quantities to ensure accurate availability</li>
+                        <li>Set accurate expiry dates to avoid selling expired medications</li>
+                        <li>Provide detailed descriptions to help customers find the right medicine</li>
+                        <li>Toggle availability when a medicine is temporarily out of stock</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add validation for expiry date to ensure it's not in the past
+        const expiryDateInput = document.getElementById('{{ form.expiry_date.id_for_label }}');
+        const form = expiryDateInput.form;
+        
+        form.addEventListener('submit', function(e) {
+            const selectedDate = new Date(expiryDateInput.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < today) {
+                e.preventDefault();
+                alert('Expiry date cannot be in the past. Please select a valid date.');
+                expiryDateInput.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+
+{% block title %}Pharmacy Dashboard - PharmacyConnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-card {
+        transition: all 0.3s ease;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .bg-light-warning {
+        background-color: rgba(255, 243, 205, 0.3);
+    }
+    
+    .bg-light-danger {
+        background-color: rgba(248, 215, 218, 0.3);
+    }
+    
+    .prescription-img-thumbnail {
+        max-width: 100px;
+        cursor: pointer;
+    }
+    
+    .prescription-modal-img {
+        max-width: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="dashboard py-5">
+    <div class="container">
+        <div class="dashboard-content">
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <h1>Welcome, {{ pharmacy.name }}</h1>
+                    <p>Manage your medicines, prescriptions, and pharmacy information from your dashboard.</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="{% url 'add_medicine' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> Add New Medicine
+                    </a>
+                    <a href="{% url 'pharmacy_profile' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card">
+                        <i class="fas fa-pills mb-2"></i>
+                        <h3>{{ medicines.count }}</h3>
+                        <p>Total Medicines</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card" style="background-color: var(--secondary-color);">
+                        <i class="fas fa-prescription mb-2"></i>
+                        <h3>{{ prescriptions.count }}</h3>
+                        <p>Total Prescriptions</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card" style="background-color: var(--accent-color);">
+                        <i class="fas fa-exclamation-triangle mb-2"></i>
+                        <h3 id="expiring-medicines-count">{{ expiring_medicines.count }}</h3>
+                        <p>Expiring Soon</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 mb-3">
+                    <div class="stat-card" style="background-color: #FF9800;">
+                        <i class="fas fa-clock mb-2"></i>
+                        <h3>{{ pending_count }}</h3>
+                        <p>Pending Prescriptions</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Expiring Medicines -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="dashboard-card">
+                        <h2>
+                            <i class="fas fa-exclamation-triangle me-2 text-warning"></i>
+                            Expiring Medicines
+                        </h2>
+                        
+                        {% if expiring_medicines %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Expiry Date</th>
+                                        <th>Stock</th>
+                                        <th>Price</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for medicine in expiring_medicines %}
+                                    <tr>
+                                        <td>{{ medicine.name }}</td>
+                                        <td class="expiry-date" data-date="{{ medicine.expiry_date|date:'Y-m-d' }}">
+                                            {{ medicine.expiry_date }}
+                                        </td>
+                                        <td class="stock-quantity">{{ medicine.stock_quantity }}</td>
+                                        <td>₹{{ medicine.price }}</td>
+                                        <td>
+                                            <a href="{% url 'edit_medicine' medicine.id %}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            
+                                            <button class="btn btn-sm btn-danger delete-medicine-btn" 
+                                                    data-id="{{ medicine.id }}" 
+                                                    data-name="{{ medicine.name }}">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                            
+                                            <form id="delete-medicine-form-{{ medicine.id }}" 
+                                                  action="{% url 'delete_medicine' medicine.id %}" 
+                                                  method="post" 
+                                                  style="display: none;">
+                                                {% csrf_token %}
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-success mb-0">
+                            <i class="fas fa-check-circle me-2"></i> No medicines expiring in the next 30 days.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Prescriptions -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="dashboard-card">
+                        <h2>
+                            <i class="fas fa-file-prescription me-2 text-primary"></i>
+                            Recent Prescriptions
+                        </h2>
+                        
+                        {% if prescriptions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>Prescription</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for prescription in prescriptions|slice:":5" %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ prescription.customer_name }}</strong><br>
+                                            <small>{{ prescription.customer_phone }}</small>
+                                        </td>
+                                        <td>
+                                            <img src="{{ prescription.prescription_image.url }}" 
+                                                 alt="Prescription" 
+                                                 class="prescription-img-thumbnail"
+                                                 data-bs-toggle="modal"
+                                                 data-bs-target="#prescriptionModal"
+                                                 data-img-src="{{ prescription.prescription_image.url }}"
+                                                 data-customer="{{ prescription.customer_name }}">
+                                        </td>
+                                        <td>{{ prescription.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <span class="badge badge-{{ prescription.status }}">
+                                                {{ prescription.status|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <form id="prescription-status-form-{{ prescription.id }}" 
+                                                  action="{% url 'update_prescription_status' prescription.id %}" 
+                                                  method="post">
+                                                {% csrf_token %}
+                                                <select name="status" 
+                                                        class="form-select form-select-sm prescription-status-select" 
+                                                        data-id="{{ prescription.id }}">
+                                                    <option value="pending" {% if prescription.status == 'pending' %}selected{% endif %}>Pending</option>
+                                                    <option value="approved" {% if prescription.status == 'approved' %}selected{% endif %}>Approved</option>
+                                                    <option value="rejected" {% if prescription.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                                                    <option value="completed" {% if prescription.status == 'completed' %}selected{% endif %}>Completed</option>
+                                                </select>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            
+                            {% if prescriptions.count > 5 %}
+                            <div class="text-center mt-3">
+                                <a href="{% url 'prescription_list' %}" class="btn btn-outline-primary">
+                                    View All Prescriptions
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-info-circle me-2"></i> No prescriptions received yet.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Prescription Modal -->
+    <div class="modal fade" id="prescriptionModal" tabindex="-1" aria-labelledby="prescriptionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="prescriptionModalLabel">Prescription</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="" alt="Prescription" class="prescription-modal-img" id="prescription-modal-img">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/pharmacy_dashboard.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle prescription modal
+        const prescriptionModal = document.getElementById('prescriptionModal');
+        if (prescriptionModal) {
+            prescriptionModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const imgSrc = button.getAttribute('data-img-src');
+                const customer = button.getAttribute('data-customer');
+                
+                const modalImg = document.getElementById('prescription-modal-img');
+                const modalTitle = this.querySelector('.modal-title');
+                
+                modalImg.src = imgSrc;
+                modalTitle.textContent = `Prescription - ${customer}`;
+            });
+        }
+        
+        // Pass expiring medicines data to chart
+        const expiringMedicines = [
+            {% for medicine in expiring_medicines %}
+            {
+                name: "{{ medicine.name }}",
+                expiry_date: "{{ medicine.expiry_date|date:'Y-m-d' }}",
+                stock_quantity: {{ medicine.stock_quantity }}
+            },
+            {% endfor %}
+        ];
+        
+        // Initialize charts if the element exists
+        const expiringChartElement = document.getElementById('expiring-medicines-chart');
+        if (expiringChartElement) {
+            expiringChartElement.setAttribute('data-medicines', JSON.stringify(expiringMedicines));
+        }
+        
+        // Pass all medicines data for stock chart
+        const allMedicines = [
+            {% for medicine in medicines %}
+            {
+                name: "{{ medicine.name }}",
+                stock_quantity: {{ medicine.stock_quantity }}
+            },
+            {% endfor %}
+        ];
+        
+        const stockChartElement = document.getElementById('stock-level-chart');
+        if (stockChartElement) {
+            stockChartElement.setAttribute('data-medicines', JSON.stringify(allMedicines));
+        }
+    });
+</script>
+{% endblock %}

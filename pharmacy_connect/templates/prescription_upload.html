@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Prescription - PharmacyConnect{% endblock %}
+
+{% block content %}
+<section class="prescription-upload py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="upload-card">
+                    <h1 class="mb-4">Upload Prescription</h1>
+                    
+                    {% if pharmacy %}
+                    <div class="alert alert-info mb-4">
+                        <p class="mb-0">
+                            <i class="fas fa-info-circle me-2"></i> You are sending this prescription to:
+                        </p>
+                        <h5 class="mt-2">{{ pharmacy.name }}</h5>
+                        <p class="mb-0">{{ pharmacy.address }}</p>
+                        <p class="mb-0"><i class="fas fa-phone me-2"></i> {{ pharmacy.phone }}</p>
+                    </div>
+                    {% else %}
+                    <p class="mb-4">
+                        Upload your prescription and we'll connect you with a pharmacy that can fulfill it.
+                        If you've already chosen a pharmacy, your prescription will be sent directly to them.
+                    </p>
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data" class="needs-location">
+                        {% csrf_token %}
+                        
+                        {% if pharmacy %}
+                        <input type="hidden" name="pharmacy_id" value="{{ pharmacy.id }}">
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="{{ form.customer_name.id_for_label }}">Full Name</label>
+                                    {{ form.customer_name }}
+                                    {% if form.customer_name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.customer_name.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="{{ form.customer_phone.id_for_label }}">Phone Number</label>
+                                    {{ form.customer_phone }}
+                                    {% if form.customer_phone.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.customer_phone.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label for="{{ form.customer_email.id_for_label }}">Email Address</label>
+                                {{ form.customer_email }}
+                                {% if form.customer_email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.customer_email.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label for="{{ form.prescription_image.id_for_label }}">Prescription Image</label>
+                                {{ form.prescription_image }}
+                                {% if form.prescription_image.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.prescription_image.errors }}
+                                </div>
+                                {% endif %}
+                                <small class="form-text text-muted">
+                                    Upload a clear image of your prescription. Accepted formats: JPG, PNG, PDF.
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-group">
+                                <label for="{{ form.notes.id_for_label }}">Additional Notes (Optional)</label>
+                                {{ form.notes }}
+                                {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.notes.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i> Submit Prescription
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Information Section -->
+                <div class="mt-4">
+                    <h3>How It Works</h3>
+                    <div class="row mt-3">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-upload fa-3x text-primary mb-3"></i>
+                                <h5>1. Upload</h5>
+                                <p>Take a photo of your prescription and upload it</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-check-circle fa-3x text-primary mb-3"></i>
+                                <h5>2. Verification</h5>
+                                <p>Pharmacy reviews your prescription</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center">
+                                <i class="fas fa-pills fa-3x text-primary mb-3"></i>
+                                <h5>3. Collection</h5>
+                                <p>Pick up your medicine or arrange delivery</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

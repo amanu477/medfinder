@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Pharmacy Profile - PharmacyConnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    #location-map {
+        height: 300px;
+        border-radius: var(--border-radius);
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8">
+                <h1 class="mb-4">
+                    <i class="fas fa-pharmacy me-2"></i> Pharmacy Profile
+                </h1>
+                <p class="mb-4">Update your pharmacy information and settings.</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="upload-card">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <h4 class="mb-3">Basic Information</h4>
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label for="{{ form.name.id_for_label }}">Pharmacy Name</label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.name.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="{{ form.email.id_for_label }}">Email Address</label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.email.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="{{ form.phone.id_for_label }}">Phone Number</label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.phone.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h4 class="mb-3 mt-4">Location Information</h4>
+                        <div class="mb-3">
+                            <div class="form-group">
+                                <label for="{{ form.address.id_for_label }}">Address</label>
+                                {{ form.address }}
+                                {% if form.address.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.address.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label>Pharmacy Location on Map</label>
+                            <div id="location-map"></div>
+                            <small class="form-text text-muted">
+                                Click on the map to update your pharmacy location or search for an address.
+                            </small>
+                            
+                            <!-- Hidden fields for lat/lng -->
+                            <input type="hidden" id="latitude" name="latitude" value="{{ latitude }}">
+                            <input type="hidden" id="longitude" name="longitude" value="{{ longitude }}">
+                        </div>
+                        
+                        <h4 class="mb-3 mt-4">Operating Hours</h4>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="{{ form.opening_time.id_for_label }}">Opening Time</label>
+                                    {{ form.opening_time }}
+                                    {% if form.opening_time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.opening_time.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="{{ form.closing_time.id_for_label }}">Closing Time</label>
+                                    {{ form.closing_time }}
+                                    {% if form.closing_time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.closing_time.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h4 class="mb-3 mt-4">Pharmacy Status</h4>
+                        <div class="mb-4">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    Pharmacy is currently active and accepting orders
+                                </label>
+                                {% if form.is_active.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.is_active.errors }}
+                                </div>
+                                {% endif %}
+                                <small class="form-text text-muted d-block mt-1">
+                                    Deactivating will temporarily hide your pharmacy from search results.
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i> Save Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <!-- Current Profile Information -->
+                <div class="dashboard-card mb-4">
+                    <h4 class="mb-3">Current Profile</h4>
+                    
+                    <div class="pharmacy-info">
+                        <h5>{{ pharmacy.name }}</h5>
+                        <p><i class="fas fa-map-marker-alt me-2 text-primary"></i> {{ pharmacy.address }}</p>
+                        <p><i class="fas fa-phone me-2 text-primary"></i> {{ pharmacy.phone }}</p>
+                        <p><i class="fas fa-envelope me-2 text-primary"></i> {{ pharmacy.email }}</p>
+                        <p>
+                            <i class="fas fa-clock me-2 text-primary"></i> 
+                            {{ pharmacy.opening_time|time:"g:i A" }} - {{ pharmacy.closing_time|time:"g:i A" }}
+                        </p>
+                        <p>
+                            <i class="fas fa-toggle-on me-2 {% if pharmacy.is_active %}text-success{% else %}text-danger{% endif %}"></i>
+                            Status: 
+                            {% if pharmacy.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Profile Tips -->
+                <div class="dashboard-card">
+                    <h4 class="mb-3">Profile Management Tips</h4>
+                    
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            Keep your contact information up-to-date to ensure customers can reach you
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            Accurate location helps customers find your pharmacy easily
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            Set correct operating hours to manage customer expectations
+                        </li>
+                        <li>
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            Temporarily deactivate your account if you're closed for holidays
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Google Maps API with Places library -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize map with the pharmacy's current location
+        initMap('location-map', 'latitude', 'longitude', {{ latitude }}, {{ longitude }});
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results for "{{ query }}" - PharmacyConnect{% endblock %}
+
+{% block extra_css %}
+<style>
+    .pharmacy-map {
+        height: 200px;
+        border-radius: var(--border-radius);
+        margin-bottom: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="search-results py-5">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1 class="mb-4">Search Results for "{{ query }}"</h1>
+                
+                <!-- Search Form -->
+                <div class="mb-4">
+                    <form id="search-form" action="{% url 'search_medicines' %}" method="GET" class="search-form needs-location">
+                        <div class="input-group">
+                            <input type="text" id="search-input" name="query" class="form-control" placeholder="Search for medicines..." value="{{ query }}" required>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-2"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Results Count -->
+                <p class="mb-4">
+                    {% if medicines %}
+                        Found {{ medicines|length }} result{{ medicines|length|pluralize }}
+                    {% else %}
+                        No results found for "{{ query }}"
+                    {% endif %}
+                </p>
+                
+                <!-- Results -->
+                <div class="row">
+                    {% for medicine in medicines %}
+                    <div class="col-md-6 mb-4">
+                        <div class="medicine-card">
+                            <h3>{{ medicine.name }}</h3>
+                            <div class="medicine-price">₹{{ medicine.price }}</div>
+                            <p>{{ medicine.description }}</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-primary">Stock: {{ medicine.stock_quantity }}</span>
+                                <span class="badge {% if medicine.is_expired %}bg-danger{% elif medicine.is_expiring_soon %}bg-warning{% else %}bg-success{% endif %}">
+                                    Expires: {{ medicine.expiry_date }}
+                                </span>
+                            </div>
+                            
+                            <div class="pharmacy-info">
+                                <h4>{{ medicine.pharmacy.name }}</h4>
+                                <p>{{ medicine.pharmacy.address }}</p>
+                                <p><i class="fas fa-phone me-2"></i> {{ medicine.pharmacy.phone }}</p>
+                                <p>
+                                    <i class="fas fa-clock me-2"></i> 
+                                    {{ medicine.pharmacy.opening_time|time:"g:i A" }} - {{ medicine.pharmacy.closing_time|time:"g:i A" }}
+                                </p>
+                                <p class="pharmacy-distance" data-lat="{{ medicine.pharmacy.location.y }}" data-lng="{{ medicine.pharmacy.location.x }}">
+                                    <i class="fas fa-map-marker-alt me-2"></i> Calculating distance...
+                                </p>
+                            </div>
+                            
+                            <div class="d-flex mt-3">
+                                <a href="{% url 'upload_prescription' %}?pharmacy_id={{ medicine.pharmacy.id }}" class="btn btn-primary me-2">
+                                    <i class="fas fa-file-prescription me-2"></i> Send Prescription
+                                </a>
+                                <button class="btn btn-outline-secondary view-map-btn" data-lat="{{ medicine.pharmacy.location.y }}" data-lng="{{ medicine.pharmacy.location.x }}" data-name="{{ medicine.pharmacy.name }}">
+                                    <i class="fas fa-map-marked-alt me-2"></i> View Map
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <p class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i> No medicines found matching your search.
+                            </p>
+                            <p class="mt-2 mb-0">Suggestions:</p>
+                            <ul class="mt-2 mb-0">
+                                <li>Check the spelling of your search term</li>
+                                <li>Try using more general keywords</li>
+                                <li>Try searching for an alternative medication</li>
+                                <li>Contact a pharmacy directly or consult your doctor</li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Map Modal -->
+    <div class="modal fade" id="mapModal" tabindex="-1" aria-labelledby="mapModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mapModalLabel">Pharmacy Location</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="pharmacyMap" style="height: 400px;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="#" id="directionsLink" class="btn btn-primary" target="_blank">Get Directions</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Google Maps API for Pharmacy Location -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle view map buttons
+        const viewMapButtons = document.querySelectorAll('.view-map-btn');
+        const mapModal = new bootstrap.Modal(document.getElementById('mapModal'));
+        const directionsLink = document.getElementById('directionsLink');
+        
+        viewMapButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const lat = parseFloat(this.getAttribute('data-lat'));
+                const lng = parseFloat(this.getAttribute('data-lng'));
+                const name = this.getAttribute('data-name');
+                
+                // Update modal title
+                document.getElementById('mapModalLabel').textContent = `${name} Location`;
+                
+                // Initialize map
+                const map = new google.maps.Map(document.getElementById('pharmacyMap'), {
+                    center: { lat, lng },
+                    zoom: 15
+                });
+                
+                // Add marker for pharmacy
+                new google.maps.Marker({
+                    position: { lat, lng },
+                    map: map,
+                    title: name
+                });
+                
+                // Update directions link
+                if (userLocation) {
+                    const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${lat},${lng}&travelmode=driving`;
+                    directionsLink.href = url;
+                } else {
+                    directionsLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+                }
+                
+                // Show modal
+                mapModal.show();
+            });
+        });
+    });
+</script>
+{% endblock %}
