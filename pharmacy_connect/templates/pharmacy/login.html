@@ -10,17 +10,19 @@
                 <div class="upload-card">
                     <h1 class="mb-4 text-center">Pharmacy Login</h1>
                     
-                    <form method="post">
+                    <form method="post" id="login-form">
                         {% csrf_token %}
                         
                         <div class="mb-3">
                             <label for="id_username" class="form-label">Username</label>
                             <input type="text" name="username" id="id_username" class="form-control" required>
+                            <div class="invalid-feedback username-error"></div>
                         </div>
                         
                         <div class="mb-4">
                             <label for="id_password" class="form-label">Password</label>
                             <input type="password" name="password" id="id_password" class="form-control" required>
+                            <div class="invalid-feedback password-error"></div>
                         </div>
                         
                         {% if form.errors %}
@@ -28,6 +30,10 @@
                             <p class="mb-0">Your username and password didn't match. Please try again.</p>
                         </div>
                         {% endif %}
+                        
+                        <div id="login-error" class="alert alert-danger mb-4 d-none">
+                            <p class="mb-0">Authentication failed. Please check your credentials and try again.</p>
+                        </div>
                         
                         <div class="d-grid mb-3">
                             <button type="submit" class="btn btn-primary">
@@ -72,4 +78,81 @@
         </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Reset errors
+                loginError.classList.add('d-none');
+                document.querySelectorAll('.is-invalid').forEach(el => {
+                    el.classList.remove('is-invalid');
+                });
+                
+                // Get form data
+                const formData = new FormData(loginForm);
+                
+                // Get CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                // Submit the form via AJAX
+                fetch('/pharmacy/login/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(data => {
+                            throw new Error(JSON.stringify(data));
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.redirect || '/pharmacy/dashboard/';
+                    } else {
+                        loginError.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    try {
+                        const errorData = JSON.parse(error.message);
+                        if (errorData.errors) {
+                            const errors = JSON.parse(errorData.errors);
+                            
+                            // Display field errors
+                            if (errors.username) {
+                                const usernameInput = document.getElementById('id_username');
+                                usernameInput.classList.add('is-invalid');
+                                document.querySelector('.username-error').textContent = errors.username[0].message;
+                            }
+                            
+                            if (errors.password) {
+                                const passwordInput = document.getElementById('id_password');
+                                passwordInput.classList.add('is-invalid');
+                                document.querySelector('.password-error').textContent = errors.password[0].message;
+                            }
+                        }
+                    } catch (e) {
+                        // If parsing fails, show general error
+                        loginError.classList.remove('d-none');
+                    }
+                });
+            });
+        }
+    });
+</script>
 {% endblock %}
