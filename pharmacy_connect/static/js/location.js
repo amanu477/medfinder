@@ -48,28 +48,36 @@ function addLocationToForm() {
     const forms = document.querySelectorAll('form.needs-location');
     
     forms.forEach(form => {
-        // Create hidden input fields for lat/lng if they don't exist
-        let latInput = form.querySelector('input[name="lat"]');
-        let lngInput = form.querySelector('input[name="lng"]');
+        // Get existing fields or create them
+        let latInput = form.querySelector('input[name="latitude"]') || form.querySelector('input[name="lat"]');
+        let lngInput = form.querySelector('input[name="longitude"]') || form.querySelector('input[name="lng"]');
         
         if (!latInput) {
             latInput = document.createElement('input');
             latInput.type = 'hidden';
-            latInput.name = 'lat';
+            latInput.name = 'latitude';
             form.appendChild(latInput);
         }
         
         if (!lngInput) {
             lngInput = document.createElement('input');
             lngInput.type = 'hidden';
-            lngInput.name = 'lng';
+            lngInput.name = 'longitude';
             form.appendChild(lngInput);
         }
+        
+        // Also populate user-latitude and user-longitude fields if they exist (for modals)
+        const userLatField = document.getElementById('user-latitude');
+        const userLngField = document.getElementById('user-longitude');
         
         // Set values if we have user location
         if (userLocation) {
             latInput.value = userLocation.lat;
             lngInput.value = userLocation.lng;
+            
+            // Update the specific fields if they exist
+            if (userLatField) userLatField.value = userLocation.lat;
+            if (userLngField) userLngField.value = userLocation.lng;
         } else {
             // Try to get location when form is submitted
             form.addEventListener('submit', async function(e) {
@@ -79,6 +87,11 @@ function addLocationToForm() {
                         const location = await getUserLocation();
                         latInput.value = location.lat;
                         lngInput.value = location.lng;
+                        
+                        // Update the specific fields if they exist
+                        if (userLatField) userLatField.value = location.lat;
+                        if (userLngField) userLngField.value = location.lng;
+                        
                         form.submit();
                     } catch (error) {
                         alert('Unable to get your location. Please enable location services and try again.');

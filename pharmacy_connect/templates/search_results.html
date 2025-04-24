@@ -145,6 +145,8 @@
                 <form method="post" action="{% url 'upload_prescription' %}" enctype="multipart/form-data" class="needs-location" id="prescription-form">
                     {% csrf_token %}
                     <input type="hidden" name="pharmacy_id" id="selected-pharmacy-id">
+                    <input type="hidden" name="latitude" id="user-latitude">
+                    <input type="hidden" name="longitude" id="user-longitude">
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
