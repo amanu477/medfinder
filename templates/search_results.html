@@ -37,13 +37,15 @@
                     <div class="card h-100 shadow-sm">
                         <div class="card-body">
                             <div class="d-flex mb-3">
-                                {% if medicine.medicine_image %}
-                                <img src="{{ medicine.medicine_image.url }}" alt="{{ medicine.name }}" class="medicine-image me-3">
-                                {% else %}
-                                <div class="me-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background-color: #f8f9fa; border-radius: 5px;">
-                                    <i class="fas fa-pills fa-2x text-primary"></i>
+                                <div class="me-3">
+                                    {% if medicine.medicine_image %}
+                                    <img src="{{ medicine.medicine_image.url }}" alt="{{ medicine.name }}" class="medicine-image">
+                                    {% else %}
+                                    <div class="d-flex align-items-center justify-content-center medicine-image">
+                                        <i class="fas fa-pills fa-2x text-primary"></i>
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
                                 <div>
                                     <h5 class="card-title mb-1">{{ medicine.name }}</h5>
                                     <p class="card-text text-primary mb-0"><strong>${{ medicine.price }}</strong></p>

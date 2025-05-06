@@ -173,10 +173,12 @@ footer {
 
 /* Medicine Cards */
 .medicine-image {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
     border-radius: 5px;
+    background-color: #f8f9fa;
+    padding: 5px;
 }
 
 /* Dashboard Styles */

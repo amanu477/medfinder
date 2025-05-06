@@ -17,12 +17,18 @@
                     <i class="fas fa-search me-2"></i> Search
                 </button>
             </form>
-            <div class="text-center mt-3">
+            <div class="text-center mt-3 mb-4">
                 <small class="text-white">
                     <i class="fas fa-location-dot me-1"></i> 
                     Enable location for best results. 
                     <a href="#" class="text-white text-decoration-underline get-location-btn">Get my location</a>
                 </small>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{% url 'upload_prescription' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-file-prescription me-2"></i> Upload Prescription
+                </a>
+                <p class="mt-2 text-white-50 small">Have a prescription? Upload it directly to a pharmacy near you</p>
             </div>
         </div>
     </div>
