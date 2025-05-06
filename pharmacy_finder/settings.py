@@ -33,6 +33,7 @@ ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = [
     'https://*.replit.app',
     'https://*.repl.co',
+    'https://*.janeway.replit.dev',
 ]
 
 # Application definition
