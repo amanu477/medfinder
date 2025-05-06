@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Prescription - MedFinder{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Upload Prescription</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-4">
+                            Upload your prescription to a nearby pharmacy for processing. They will contact you once they have reviewed your prescription.
+                        </p>
+                        
+                        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            
+                            <!-- Step 1: Choose Pharmacy -->
+                            <div class="mb-4">
+                                <h5 class="mb-3">1. Choose a Pharmacy</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="pharmacySelect" class="form-label">Select a Pharmacy</label>
+                                    <select name="pharmacy_id" id="pharmacySelect" class="form-select" required>
+                                        <option value="" selected disabled>-- Select a Pharmacy --</option>
+                                        {% for pharmacy in pharmacies %}
+                                        <option value="{{ pharmacy.id }}" data-address="{{ pharmacy.address }}" data-phone="{{ pharmacy.phone }}" data-email="{{ pharmacy.email }}">
+                                            {{ pharmacy.name }} {% if pharmacy.distance %}({{ pharmacy.distance|floatformat:1 }} km away){% endif %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="form-text">
+                                        <i class="fas fa-location-dot me-1"></i> 
+                                        <a href="#" class="get-location-btn text-decoration-none">Get nearby pharmacies</a>
+                                    </div>
+                                </div>
+                                
+                                <div id="pharmacyDetails" class="card d-none mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title" id="selectedPharmacyName"></h6>
+                                        <p class="card-text small mb-1" id="selectedPharmacyAddress"></p>
+                                        <p class="card-text small mb-0" id="selectedPharmacyPhone"></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 2: Your Information -->
+                            <div class="mb-4">
+                                <h5 class="mb-3">2. Your Information</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="customer_name" class="form-label">Your Name</label>
+                                    <input type="text" name="customer_name" id="customer_name" class="form-control" required>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="customer_email" class="form-label">Email Address</label>
+                                        <input type="email" name="customer_email" id="customer_email" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="customer_phone" class="form-label">Phone Number</label>
+                                        <input type="tel" name="customer_phone" id="customer_phone" class="form-control" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Step 3: Prescription -->
+                            <div class="mb-4">
+                                <h5 class="mb-3">3. Upload Prescription</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="prescription_image" class="form-label">Prescription Image</label>
+                                    <input type="file" name="prescription_image" id="prescription_image" class="form-control" accept="image/*" required>
+                                    <div class="form-text">Upload a clear photo or scan of your prescription</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="notes" class="form-label">Additional Notes (Optional)</label>
+                                    <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i> Submit Prescription
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/location.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const pharmacySelect = document.getElementById('pharmacySelect');
+        const pharmacyDetails = document.getElementById('pharmacyDetails');
+        const selectedPharmacyName = document.getElementById('selectedPharmacyName');
+        const selectedPharmacyAddress = document.getElementById('selectedPharmacyAddress');
+        const selectedPharmacyPhone = document.getElementById('selectedPharmacyPhone');
+        
+        pharmacySelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            if (this.value) {
+                // Update pharmacy details card
+                selectedPharmacyName.textContent = selectedOption.textContent;
+                selectedPharmacyAddress.textContent = selectedOption.getAttribute('data-address');
+                selectedPharmacyPhone.textContent = selectedOption.getAttribute('data-phone');
+                
+                // Show the card
+                pharmacyDetails.classList.remove('d-none');
+            } else {
+                // Hide the card if no pharmacy selected
+                pharmacyDetails.classList.add('d-none');
+            }
+        });
+        
+        // Listen for the user location event
+        document.addEventListener('userLocationObtained', function(e) {
+            // We could refresh the pharmacy list with nearby pharmacies here
+            // For now, just show a success message
+            const getLocationBtn = document.querySelector('.get-location-btn');
+            if (getLocationBtn) {
+                getLocationBtn.textContent = 'Location obtained! Showing nearby pharmacies';
+                getLocationBtn.classList.add('text-success');
+                
+                // Refresh the page with location parameters to get nearby pharmacies
+                const url = new URL(window.location.href);
+                url.searchParams.set('lat', e.detail.lat);
+                url.searchParams.set('lng', e.detail.lng);
+                window.location.href = url.toString();
+            }
+        });
+    });
+</script>
+{% endblock %}

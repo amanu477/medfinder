@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Results for "{{ query }}" - MedFinder{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-0">Search Results: "{{ query }}"</h1>
+                <p class="text-muted">{{ medicines|length }} medicines found</p>
+            </div>
+            <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i> New Search
+            </a>
+        </div>
+        
+        <!-- Search Bar -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="get" action="{% url 'search_medicines' %}" class="d-flex">
+                    <input type="text" name="query" value="{{ query }}" class="form-control me-2" placeholder="Search for medicines..." required>
+                    <input type="hidden" name="lat" id="user-latitude" value="{{ user_lat }}">
+                    <input type="hidden" name="lng" id="user-longitude" value="{{ user_lng }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i> Search
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Results -->
+        <div class="row">
+            {% if medicines %}
+                {% for medicine in medicines %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex mb-3">
+                                {% if medicine.medicine_image %}
+                                <img src="{{ medicine.medicine_image.url }}" alt="{{ medicine.name }}" class="medicine-image me-3">
+                                {% else %}
+                                <div class="me-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; background-color: #f8f9fa; border-radius: 5px;">
+                                    <i class="fas fa-pills fa-2x text-primary"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <h5 class="card-title mb-1">{{ medicine.name }}</h5>
+                                    <p class="card-text text-primary mb-0"><strong>${{ medicine.price }}</strong></p>
+                                    <div class="small text-muted">Stock: {{ medicine.stock_quantity }}</div>
+                                </div>
+                            </div>
+                            
+                            <p class="card-text small mb-3">{{ medicine.description|truncatewords:20 }}</p>
+                            
+                            <div class="card-text mb-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-store text-primary me-2"></i>
+                                    <strong>{{ medicine.pharmacy.name }}</strong>
+                                </div>
+                                <div class="d-flex align-items-center mb-2 small text-muted">
+                                    <i class="fas fa-map-marker-alt me-2"></i>
+                                    {{ medicine.pharmacy.address|truncatechars:50 }}
+                                </div>
+                                <div class="d-flex align-items-center mb-2 small text-muted">
+                                    <i class="fas fa-clock me-2"></i>
+                                    Open: {{ medicine.pharmacy.opening_time|time:"g:i A" }} - {{ medicine.pharmacy.closing_time|time:"g:i A" }}
+                                </div>
+                                {% if medicine.distance %}
+                                <div class="d-flex align-items-center small text-muted">
+                                    <i class="fas fa-route me-2"></i>
+                                    {{ medicine.distance|floatformat:1 }} km away
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <a href="tel:{{ medicine.pharmacy.phone }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-phone me-2"></i> {{ medicine.pharmacy.phone }}
+                                </a>
+                                <button type="button" class="btn btn-primary btn-sm upload-rx-btn" data-bs-toggle="modal" data-bs-target="#prescriptionModal" data-pharmacy-id="{{ medicine.pharmacy.id }}" data-pharmacy-name="{{ medicine.pharmacy.name }}">
+                                    <i class="fas fa-file-prescription me-2"></i> Send Prescription
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-search fa-3x text-secondary mb-3"></i>
+                            <h3 class="h4">No medicines found</h3>
+                            <p class="text-muted mb-4">We couldn't find any medicines matching "{{ query }}"</p>
+                            <p>Try a different search term or <a href="{% url 'upload_prescription' %}" class="text-decoration-none">upload your prescription</a> instead.</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Prescription Upload Modal -->
+<div class="modal fade" id="prescriptionModal" tabindex="-1" aria-labelledby="prescriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="prescriptionModalLabel">Upload Prescription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="pharmacy-info" class="alert alert-info mb-4 d-flex align-items-center">
+                    <i class="fas fa-store fa-2x me-3"></i>
+                    <div>
+                        <h5 class="mb-1">Sending to:</h5>
+                        <h4 id="selected-pharmacy-name"></h4>
+                    </div>
+                </div>
+                
+                <form method="post" action="{% url 'upload_prescription' %}" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="pharmacy_id" id="selected-pharmacy-id">
+                    
+                    <div class="mb-3">
+                        <label for="customer_name" class="form-label">Your Name</label>
+                        <input type="text" name="customer_name" id="customer_name" class="form-control" required>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="customer_email" class="form-label">Email Address</label>
+                            <input type="email" name="customer_email" id="customer_email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="customer_phone" class="form-label">Phone Number</label>
+                            <input type="tel" name="customer_phone" id="customer_phone" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="prescription_image" class="form-label">Prescription Image</label>
+                        <input type="file" name="prescription_image" id="prescription_image" class="form-control" accept="image/*" required>
+                        <div class="form-text">Upload a clear photo or scan of your prescription</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Additional Notes (Optional)</label>
+                        <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i> Submit Prescription
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/location.js"></script>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Prescription Sent Successfully - MedFinder{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow text-center">
+                    <div class="card-body p-5">
+                        <i class="fas fa-check-circle text-success fa-5x mb-4"></i>
+                        <h1 class="h3 mb-3">Prescription Sent Successfully!</h1>
+                        <p class="text-muted mb-4">Your prescription has been sent to <strong>{{ prescription.pharmacy.name }}</strong>. They will contact you soon regarding your medications.</p>
+                        
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Prescription Details</h5>
+                                <div class="row mt-4">
+                                    <div class="col-md-6 text-md-end">
+                                        <p class="mb-2"><strong>Name:</strong></p>
+                                        <p class="mb-2"><strong>Email:</strong></p>
+                                        <p class="mb-2"><strong>Phone:</strong></p>
+                                        <p class="mb-2"><strong>Pharmacy:</strong></p>
+                                        <p class="mb-2"><strong>Status:</strong></p>
+                                        <p class="mb-2"><strong>Submitted On:</strong></p>
+                                    </div>
+                                    <div class="col-md-6 text-md-start">
+                                        <p class="mb-2">{{ prescription.customer_name }}</p>
+                                        <p class="mb-2">{{ prescription.customer_email }}</p>
+                                        <p class="mb-2">{{ prescription.customer_phone }}</p>
+                                        <p class="mb-2">{{ prescription.pharmacy.name }}</p>
+                                        <p class="mb-2">
+                                            <span class="badge bg-warning">Pending</span>
+                                        </p>
+                                        <p class="mb-2">{{ prescription.created_at|date:"F j, Y, g:i a" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>What happens next?</strong>
+                            <p class="mb-0 mt-2">The pharmacy will review your prescription and contact you via email or phone to confirm availability and pricing of the medications. You'll be able to pick up your medications once they're ready.</p>
+                        </div>
+                        
+                        <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                            <a href="{% url 'home' %}" class="btn btn-primary">
+                                <i class="fas fa-home me-2"></i> Return to Home
+                            </a>
+                            <a href="tel:{{ prescription.pharmacy.phone }}" class="btn btn-outline-primary">
+                                <i class="fas fa-phone me-2"></i> Call Pharmacy
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

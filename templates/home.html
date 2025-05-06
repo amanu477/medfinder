@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}MedFinder - Find Medicines Near You{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Find the medicines you need, quickly and easily</h1>
+        <p>Connect with pharmacies near you that have the medications you're looking for</p>
+        <div class="search-container">
+            <form method="get" action="{% url 'search_medicines' %}" class="search-form">
+                <input type="text" name="query" placeholder="Search for medicines..." required>
+                <input type="hidden" name="lat" id="user-latitude">
+                <input type="hidden" name="lng" id="user-longitude">
+                <button type="submit" class="btn btn-primary px-4 py-2">
+                    <i class="fas fa-search me-2"></i> Search
+                </button>
+            </form>
+            <div class="text-center mt-3">
+                <small class="text-white">
+                    <i class="fas fa-location-dot me-1"></i> 
+                    Enable location for best results. 
+                    <a href="#" class="text-white text-decoration-underline get-location-btn">Get my location</a>
+                </small>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features bg-light">
+    <div class="container">
+        <h2 class="section-title">How MedFinder Works</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i class="fas fa-search"></i>
+                    <h3>Search Medicines</h3>
+                    <p>Quickly search for the medicines you need and find pharmacies that have them in stock.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i class="fas fa-file-prescription"></i>
+                    <h3>Upload Prescriptions</h3>
+                    <p>Upload your prescription directly to your preferred pharmacy for quick processing.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <h3>Find Nearby Pharmacies</h3>
+                    <p>Locate pharmacies near you with the medications you need, sorted by distance.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- For Pharmacies Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-4 mb-md-0">
+                <h2>For Pharmacies</h2>
+                <p class="lead mb-4">Join our network of pharmacies and connect with more customers in your area.</p>
+                <ul class="list-unstyled mb-4">
+                    <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Manage your inventory online</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Receive prescriptions digitally</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Increase visibility to nearby customers</li>
+                    <li class="mb-2"><i class="fas fa-check-circle text-primary me-2"></i> Track medicine expiry dates</li>
+                </ul>
+                <a href="{% url 'register' %}" class="btn btn-primary">Register Your Pharmacy</a>
+            </div>
+            <div class="col-md-6">
+                <img src="https://images.unsplash.com/photo-1576602976047-174e57a47881?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1469&q=80" alt="Pharmacy" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="bg-primary text-white py-5">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to find your medicines?</h2>
+        <p class="lead mb-4">Start searching now or upload your prescription to a pharmacy near you.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="#" class="btn btn-light btn-lg" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+                <i class="fas fa-search me-2"></i> Search Medicines
+            </a>
+            <a href="{% url 'upload_prescription' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-file-prescription me-2"></i> Upload Prescription
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/location.js"></script>
+{% endblock %}

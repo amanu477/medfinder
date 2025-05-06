@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+
+{% block title %}Pharmacy Dashboard - MedFinder{% endblock %}
+
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-0">Welcome, {{ pharmacy.name }}</h1>
+                <p class="text-muted">Manage your inventory and prescriptions</p>
+            </div>
+            <div>
+                <a href="{% url 'pharmacy_profile' %}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-user-cog me-2"></i> Profile
+                </a>
+            </div>
+        </div>
+        
+        <!-- Dashboard Stats -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    Total Medicines
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ medicines.count }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-pills fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Available Medicines
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ medicines.filter.is_available=True.count }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                    Expiring Soon
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    {{ expiring_medicines.count }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-3">
+                <div class="card border-left-danger shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                    Pending Prescriptions
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_count }}</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-file-prescription fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'add_medicine' %}" class="btn btn-primary btn-block d-flex align-items-center justify-content-center py-3">
+                                    <i class="fas fa-plus-circle me-2"></i> Add Medicine
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'medicine_list' %}" class="btn btn-info btn-block d-flex align-items-center justify-content-center py-3">
+                                    <i class="fas fa-list me-2"></i> View All Medicines
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'prescription_list' %}" class="btn btn-warning btn-block d-flex align-items-center justify-content-center py-3">
+                                    <i class="fas fa-file-prescription me-2"></i> View Prescriptions
+                                </a>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <a href="{% url 'pharmacy_profile' %}" class="btn btn-secondary btn-block d-flex align-items-center justify-content-center py-3">
+                                    <i class="fas fa-user-cog me-2"></i> Edit Profile
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Recent Prescriptions -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Recent Prescriptions</h6>
+                        <a href="{% url 'prescription_list' %}" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        {% if prescriptions %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Customer</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for prescription in prescriptions|slice:":5" %}
+                                        <tr>
+                                            <td>{{ prescription.customer_name }}</td>
+                                            <td>{{ prescription.created_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                <span class="badge bg-{% if prescription.status == 'pending' %}warning{% elif prescription.status == 'approved' %}success{% elif prescription.status == 'rejected' %}danger{% else %}info{% endif %}">
+                                                    {{ prescription.status|title }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-file-prescription fa-3x text-secondary mb-3"></i>
+                                <p>No prescriptions received yet.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Expiring Medicines -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow h-100">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 font-weight-bold text-primary">Medicines Expiring Soon</h6>
+                        <a href="{% url 'medicine_list' %}" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="card-body">
+                        {% if expiring_medicines %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Medicine</th>
+                                            <th>Expiry Date</th>
+                                            <th>Stock</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for medicine in expiring_medicines|slice:":5" %}
+                                        <tr>
+                                            <td>{{ medicine.name }}</td>
+                                            <td>{{ medicine.expiry_date|date:"M d, Y" }}</td>
+                                            <td>{{ medicine.stock_quantity }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                <p>No medicines expiring soon.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
