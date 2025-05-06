@@ -11,9 +11,8 @@ from .models import Pharmacy, Medicine
 from .forms import PharmacyRegistrationForm, MedicineForm, PharmacyProfileForm
 from core.models import Prescription
 
-@ensure_csrf_cookie
 def pharmacy_login(request):
-    """Custom login view for pharmacies that handles CSRF better"""
+    """Custom login view for pharmacies without AJAX for simplicity"""
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -22,11 +21,7 @@ def pharmacy_login(request):
             user = authenticate(username=username, password=password)
             if user is not None:
                 login(request, user)
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({'success': True, 'redirect': '/pharmacy/dashboard/'})
                 return redirect('pharmacy_dashboard')
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'errors': form.errors.as_json()}, status=400)
     else:
         form = AuthenticationForm()
     
