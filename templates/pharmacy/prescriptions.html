@@ -3,54 +3,34 @@
 {% block title %}Manage Prescriptions - MedFinder{% endblock %}
 
 {% block content %}
-<section class="py-4">
+<section class="py-5">
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="h3 mb-0">Manage Prescriptions</h1>
-                <p class="text-muted">View and process customer prescriptions</p>
-            </div>
-            <div>
-                <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
-                </a>
-            </div>
+            <h1 class="h3 mb-0">Prescription Management</h1>
+            <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+            </a>
         </div>
         
-        <!-- Filter Controls -->
-        <div class="card shadow mb-4">
+        <!-- Filter prescriptions -->
+        <div class="card shadow-sm mb-4">
             <div class="card-body">
-                <form method="get">
-                    <div class="row">
-                        <div class="col-md-4 mb-2 mb-md-0">
-                            <div class="input-group">
-                                <input type="text" class="form-control" name="search" placeholder="Search by name or email..." value="{{ request.GET.search }}">
-                                <button class="btn btn-primary" type="submit">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-2 mb-md-0">
-                            <select name="status" class="form-select" onchange="this.form.submit()">
-                                <option value="">All Status</option>
-                                <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
-                                <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
-                                <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
-                                <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-2 mb-md-0">
-                            <select name="date" class="form-select" onchange="this.form.submit()">
-                                <option value="">All Dates</option>
-                                <option value="today" {% if request.GET.date == 'today' %}selected{% endif %}>Today</option>
-                                <option value="week" {% if request.GET.date == 'week' %}selected{% endif %}>This Week</option>
-                                <option value="month" {% if request.GET.date == 'month' %}selected{% endif %}>This Month</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2">
-                            <a href="{% url 'prescription_list' %}" class="btn btn-outline-secondary w-100">
-                                <i class="fas fa-sync-alt"></i> Reset
-                            </a>
+                <form method="get" action="{% url 'prescription_list' %}" class="row g-3">
+                    <div class="col-md-4">
+                        <select name="status" class="form-select">
+                            <option value="" {% if not request.GET.status %}selected{% endif %}>All Status</option>
+                            <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="approved" {% if request.GET.status == 'approved' %}selected{% endif %}>Approved</option>
+                            <option value="rejected" {% if request.GET.status == 'rejected' %}selected{% endif %}>Rejected</option>
+                            <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control" placeholder="Search by customer name or email" value="{{ request.GET.search }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
                         </div>
                     </div>
                 </form>
@@ -58,118 +38,261 @@
         </div>
         
         <!-- Prescriptions List -->
-        <div class="card shadow">
+        <div class="card shadow-sm">
             <div class="card-body p-0">
-                {% if prescriptions %}
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th scope="col">ID</th>
-                                <th scope="col">Customer</th>
-                                <th scope="col">Contact</th>
-                                <th scope="col">Image</th>
-                                <th scope="col">Date Submitted</th>
-                                <th scope="col">Status</th>
-                                <th scope="col">Actions</th>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Contact</th>
+                                <th>Submitted</th>
+                                <th>Status</th>
+                                <th>Image</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for prescription in prescriptions %}
-                            <tr>
-                                <td>#{{ prescription.id }}</td>
-                                <td>{{ prescription.customer_name }}</td>
-                                <td>
-                                    <span class="d-block"><i class="fas fa-envelope me-1"></i> {{ prescription.customer_email }}</span>
-                                    <span class="d-block"><i class="fas fa-phone me-1"></i> {{ prescription.customer_phone }}</span>
-                                </td>
-                                <td>
-                                    <img src="{{ prescription.prescription_image.url }}" alt="Prescription" class="prescription-img-thumbnail" data-bs-toggle="modal" data-bs-target="#prescriptionModal{{ prescription.id }}">
-                                </td>
-                                <td>{{ prescription.created_at|date:"M d, Y H:i" }}</td>
-                                <td>
-                                    <span class="badge bg-{% if prescription.status == 'pending' %}warning{% elif prescription.status == 'approved' %}success{% elif prescription.status == 'rejected' %}danger{% else %}info{% endif %}">
-                                        {{ prescription.status|title }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#updateStatusModal{{ prescription.id }}">
-                                        <i class="fas fa-edit"></i> Update Status
-                                    </button>
-                                </td>
-                            </tr>
-                            
-                            <!-- Prescription Image Modal -->
-                            <div class="modal fade" id="prescriptionModal{{ prescription.id }}" tabindex="-1" aria-labelledby="prescriptionModalLabel{{ prescription.id }}" aria-hidden="true">
-                                <div class="modal-dialog modal-lg">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="prescriptionModalLabel{{ prescription.id }}">Prescription from {{ prescription.customer_name }}</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            {% if prescriptions %}
+                                {% for prescription in prescriptions %}
+                                <tr>
+                                    <td>#{{ prescription.id }}</td>
+                                    <td>{{ prescription.customer_name }}</td>
+                                    <td>
+                                        <div><a href="mailto:{{ prescription.customer_email }}">{{ prescription.customer_email }}</a></div>
+                                        <div><a href="tel:{{ prescription.customer_phone }}">{{ prescription.customer_phone }}</a></div>
+                                    </td>
+                                    <td>{{ prescription.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if prescription.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% elif prescription.status == 'approved' %}
+                                        <span class="badge bg-success">Approved</span>
+                                        {% elif prescription.status == 'rejected' %}
+                                        <span class="badge bg-danger">Rejected</span>
+                                        {% elif prescription.status == 'completed' %}
+                                        <span class="badge bg-primary">Completed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ prescription.prescription_image.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-image"></i> View
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton{{ prescription.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="fas fa-cog"></i> Manage
+                                            </button>
+                                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ prescription.id }}">
+                                                <li>
+                                                    <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#prescriptionModal{{ prescription.id }}">
+                                                        <i class="fas fa-eye me-2"></i> View Details
+                                                    </button>
+                                                </li>
+                                                <li><hr class="dropdown-divider"></li>
+                                                <li>
+                                                    <form action="{% url 'update_prescription_status' prescription.id %}" method="post" class="status-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="status" value="approved">
+                                                        <button type="submit" class="dropdown-item text-success">
+                                                            <i class="fas fa-check-circle me-2"></i> Mark as Approved
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="{% url 'update_prescription_status' prescription.id %}" method="post" class="status-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="status" value="rejected">
+                                                        <button type="submit" class="dropdown-item text-danger">
+                                                            <i class="fas fa-times-circle me-2"></i> Mark as Rejected
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                                <li>
+                                                    <form action="{% url 'update_prescription_status' prescription.id %}" method="post" class="status-form">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="status" value="completed">
+                                                        <button type="submit" class="dropdown-item text-primary">
+                                                            <i class="fas fa-check-square me-2"></i> Mark as Completed
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            </ul>
                                         </div>
-                                        <div class="modal-body text-center">
-                                            <img src="{{ prescription.prescription_image.url }}" alt="Prescription" class="prescription-modal-img">
-                                        </div>
-                                        <div class="modal-footer">
-                                            <div class="me-auto">
-                                                {% if prescription.notes %}
-                                                <div class="alert alert-info mb-0">
-                                                    <strong>Notes:</strong> {{ prescription.notes }}
+                                        
+                                        <!-- Prescription Detail Modal -->
+                                        <div class="modal fade" id="prescriptionModal{{ prescription.id }}" tabindex="-1" aria-labelledby="prescriptionModalLabel{{ prescription.id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="prescriptionModalLabel{{ prescription.id }}">Prescription #{{ prescription.id }}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <h6>Customer Information</h6>
+                                                                <table class="table table-borderless">
+                                                                    <tr>
+                                                                        <th>Name:</th>
+                                                                        <td>{{ prescription.customer_name }}</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Email:</th>
+                                                                        <td>{{ prescription.customer_email }}</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Phone:</th>
+                                                                        <td>{{ prescription.customer_phone }}</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Submitted:</th>
+                                                                        <td>{{ prescription.created_at|date:"F j, Y, g:i a" }}</td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <th>Status:</th>
+                                                                        <td>
+                                                                            {% if prescription.status == 'pending' %}
+                                                                            <span class="badge bg-warning">Pending</span>
+                                                                            {% elif prescription.status == 'approved' %}
+                                                                            <span class="badge bg-success">Approved</span>
+                                                                            {% elif prescription.status == 'rejected' %}
+                                                                            <span class="badge bg-danger">Rejected</span>
+                                                                            {% elif prescription.status == 'completed' %}
+                                                                            <span class="badge bg-primary">Completed</span>
+                                                                            {% endif %}
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                                
+                                                                {% if prescription.notes %}
+                                                                <h6>Customer Notes</h6>
+                                                                <div class="card mb-3">
+                                                                    <div class="card-body">
+                                                                        {{ prescription.notes|linebreaks }}
+                                                                    </div>
+                                                                </div>
+                                                                {% endif %}
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <h6>Prescription Image</h6>
+                                                                <div class="text-center">
+                                                                    <img src="{{ prescription.prescription_image.url }}" alt="Prescription" class="img-fluid rounded mb-3">
+                                                                    <a href="{{ prescription.prescription_image.url }}" target="_blank" class="btn btn-sm btn-primary">
+                                                                        <i class="fas fa-external-link-alt me-2"></i> Open Full Image
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-primary dropdown-toggle" type="button" id="statusDropdown{{ prescription.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                                Update Status
+                                                            </button>
+                                                            <ul class="dropdown-menu" aria-labelledby="statusDropdown{{ prescription.id }}">
+                                                                <li>
+                                                                    <form action="{% url 'update_prescription_status' prescription.id %}" method="post" class="status-form">
+                                                                        {% csrf_token %}
+                                                                        <input type="hidden" name="status" value="approved">
+                                                                        <button type="submit" class="dropdown-item text-success">
+                                                                            <i class="fas fa-check-circle me-2"></i> Mark as Approved
+                                                                        </button>
+                                                                    </form>
+                                                                </li>
+                                                                <li>
+                                                                    <form action="{% url 'update_prescription_status' prescription.id %}" method="post" class="status-form">
+                                                                        {% csrf_token %}
+                                                                        <input type="hidden" name="status" value="rejected">
+                                                                        <button type="submit" class="dropdown-item text-danger">
+                                                                            <i class="fas fa-times-circle me-2"></i> Mark as Rejected
+                                                                        </button>
+                                                                    </form>
+                                                                </li>
+                                                                <li>
+                                                                    <form action="{% url 'update_prescription_status' prescription.id %}" method="post" class="status-form">
+                                                                        {% csrf_token %}
+                                                                        <input type="hidden" name="status" value="completed">
+                                                                        <button type="submit" class="dropdown-item text-primary">
+                                                                            <i class="fas fa-check-square me-2"></i> Mark as Completed
+                                                                        </button>
+                                                                    </form>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                {% endif %}
                                             </div>
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Update Status Modal -->
-                            <div class="modal fade" id="updateStatusModal{{ prescription.id }}" tabindex="-1" aria-labelledby="updateStatusModalLabel{{ prescription.id }}" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title" id="updateStatusModalLabel{{ prescription.id }}">Update Prescription Status</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form method="post" action="{% url 'update_prescription_status' prescription.id %}">
-                                                {% csrf_token %}
-                                                <div class="mb-3">
-                                                    <label class="form-label">Customer</label>
-                                                    <input type="text" class="form-control" value="{{ prescription.customer_name }}" readonly>
-                                                </div>
-                                                <div class="mb-4">
-                                                    <label class="form-label">Status</label>
-                                                    <select name="status" class="form-select">
-                                                        <option value="pending" {% if prescription.status == 'pending' %}selected{% endif %}>Pending</option>
-                                                        <option value="approved" {% if prescription.status == 'approved' %}selected{% endif %}>Approved</option>
-                                                        <option value="rejected" {% if prescription.status == 'rejected' %}selected{% endif %}>Rejected</option>
-                                                        <option value="completed" {% if prescription.status == 'completed' %}selected{% endif %}>Completed</option>
-                                                    </select>
-                                                </div>
-                                                <div class="d-flex justify-content-end">
-                                                    <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-primary">Update Status</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-3">No prescriptions found.</td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-file-prescription fa-4x text-secondary mb-3"></i>
-                    <h3 class="h5 text-muted">No prescriptions found</h3>
-                    <p class="mb-4">You haven't received any prescriptions yet or none match your filters.</p>
-                </div>
-                {% endif %}
             </div>
         </div>
+        
+        <!-- Pagination -->
+        {% if prescriptions.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if prescriptions.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ prescriptions.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Previous</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+                {% endif %}
+                
+                {% for i in prescriptions.paginator.page_range %}
+                    {% if prescriptions.number == i %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ i }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ i }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ i }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if prescriptions.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ prescriptions.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Next</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Auto-submit forms when status changes
+        const statusForms = document.querySelectorAll('.status-form');
+        statusForms.forEach(form => {
+            form.querySelector('button').addEventListener('click', function() {
+                form.submit();
+            });
+        });
+    });
+</script>
 {% endblock %}

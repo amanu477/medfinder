@@ -1,222 +1,134 @@
 /**
- * Pharmacy Dashboard JavaScript functionality
+ * Pharmacy Dashboard JavaScript
+ * Handles dashboard-specific functionality
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize charts if Chart.js is available
-    if (typeof Chart !== 'undefined') {
-        initializeCharts();
-    }
-    
-    // Initialize datatables if available
-    if (typeof $.fn.DataTable !== 'undefined') {
-        $('.datatable').DataTable({
-            responsive: true,
-            order: [[0, 'desc']]
-        });
-    }
-    
-    // Handle status updates via AJAX
-    const statusUpdateForms = document.querySelectorAll('.status-update-form');
-    statusUpdateForms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(form);
-            const url = form.getAttribute('action');
-            
-            fetch(url, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Show success message
-                    showAlert('Status updated successfully!', 'success');
-                    
-                    // Update UI
-                    const prescriptionId = form.getAttribute('data-prescription-id');
-                    const statusBadge = document.querySelector(`.status-badge-${prescriptionId}`);
-                    if (statusBadge) {
-                        statusBadge.textContent = data.status_display;
-                        
-                        // Update badge color
-                        statusBadge.className = 'badge ';
-                        if (data.status === 'pending') {
-                            statusBadge.className += 'bg-warning';
-                        } else if (data.status === 'approved') {
-                            statusBadge.className += 'bg-success';
-                        } else if (data.status === 'rejected') {
-                            statusBadge.className += 'bg-danger';
-                        } else {
-                            statusBadge.className += 'bg-info';
-                        }
-                    }
-                    
-                    // Close the modal if it exists
-                    const modalId = form.closest('.modal').id;
-                    const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
-                    if (modal) {
-                        modal.hide();
-                    }
-                } else {
-                    // Show error message
-                    showAlert(data.error || 'An error occurred', 'danger');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert('An error occurred while updating the status', 'danger');
-            });
-        });
-    });
-    
-    // Medicine stock level warnings
-    const stockInputs = document.querySelectorAll('.stock-input');
-    stockInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            const value = parseInt(this.value);
-            const warningElement = this.nextElementSibling;
-            
-            if (value <= 5) {
-                warningElement.textContent = 'Low stock!';
-                warningElement.classList.remove('d-none');
-                warningElement.classList.add('text-danger');
-            } else if (value <= 10) {
-                warningElement.textContent = 'Stock getting low';
-                warningElement.classList.remove('d-none');
-                warningElement.classList.add('text-warning');
-            } else {
-                warningElement.classList.add('d-none');
-            }
-        });
+    // Initialize chart for inventory analytics if the element exists
+    const inventoryChartElement = document.getElementById('inventoryChart');
+    if (inventoryChartElement) {
+        const ctx = inventoryChartElement.getContext('2d');
         
-        // Trigger on load
-        input.dispatchEvent(new Event('change'));
-    });
-    
-    // Initialize medicine expiry date warning
-    const expiryDateInputs = document.querySelectorAll('.expiry-date-input');
-    expiryDateInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            const expiryDate = new Date(this.value);
-            const today = new Date();
-            const thirtyDaysLater = new Date();
-            thirtyDaysLater.setDate(today.getDate() + 30);
-            
-            const warningElement = this.nextElementSibling;
-            
-            if (expiryDate < today) {
-                warningElement.textContent = 'This medicine has expired!';
-                warningElement.classList.remove('d-none');
-                warningElement.classList.add('text-danger');
-            } else if (expiryDate <= thirtyDaysLater) {
-                warningElement.textContent = 'Expiring soon!';
-                warningElement.classList.remove('d-none');
-                warningElement.classList.add('text-warning');
-            } else {
-                warningElement.classList.add('d-none');
-            }
-        });
-        
-        // Trigger on load
-        input.dispatchEvent(new Event('change'));
-    });
-});
-
-/**
- * Show a Bootstrap alert
- */
-function showAlert(message, type = 'info') {
-    const alertContainer = document.getElementById('alert-container');
-    if (!alertContainer) return;
-    
-    const alertElement = document.createElement('div');
-    alertElement.className = `alert alert-${type} alert-dismissible fade show`;
-    alertElement.role = 'alert';
-    
-    alertElement.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    `;
-    
-    alertContainer.appendChild(alertElement);
-    
-    // Auto dismiss after 5 seconds
-    setTimeout(() => {
-        const bsAlert = new bootstrap.Alert(alertElement);
-        bsAlert.close();
-    }, 5000);
-}
-
-/**
- * Initialize dashboard charts
- */
-function initializeCharts() {
-    // Medicine Stock Chart
-    const stockChartCanvas = document.getElementById('medicineStockChart');
-    if (stockChartCanvas) {
-        const ctx = stockChartCanvas.getContext('2d');
-        
-        // Get data from the data attributes
-        const labels = JSON.parse(stockChartCanvas.getAttribute('data-labels'));
-        const data = JSON.parse(stockChartCanvas.getAttribute('data-values'));
-        
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Stock Level',
-                    data: data,
-                    backgroundColor: '#4e73df',
-                    borderColor: '#4e73df',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-    
-    // Prescription Status Chart
-    const prescriptionChartCanvas = document.getElementById('prescriptionStatusChart');
-    if (prescriptionChartCanvas) {
-        const ctx = prescriptionChartCanvas.getContext('2d');
-        
-        // Get data from the data attributes
-        const statusLabels = JSON.parse(prescriptionChartCanvas.getAttribute('data-labels'));
-        const statusData = JSON.parse(prescriptionChartCanvas.getAttribute('data-values'));
-        
-        new Chart(ctx, {
+        // Sample data - In a real application, this would come from the backend
+        const inventoryChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
-                labels: statusLabels,
+                labels: ['Available', 'Expiring Soon', 'Out of Stock'],
                 datasets: [{
-                    data: statusData,
-                    backgroundColor: ['#f6c23e', '#1cc88a', '#e74a3b', '#36b9cc'],
+                    data: [
+                        document.getElementById('available-count').dataset.count,
+                        document.getElementById('expiring-count').dataset.count,
+                        document.getElementById('outofstock-count').dataset.count
+                    ],
+                    backgroundColor: [
+                        '#00d97e', // success
+                        '#f6c343', // warning
+                        '#e63757'  // danger
+                    ],
                     borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'bottom'
                     }
-                },
-                cutout: '60%'
+                }
             }
         });
+    }
+    
+    // Initialize chart for prescription analytics if the element exists
+    const prescriptionChartElement = document.getElementById('prescriptionChart');
+    if (prescriptionChartElement) {
+        const ctx = prescriptionChartElement.getContext('2d');
+        
+        // Sample data - In a real application, this would come from the backend
+        const prescriptionChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+                datasets: [{
+                    label: 'Prescriptions',
+                    data: [12, 19, 8, 15, 25, 17],
+                    backgroundColor: '#2c7be5',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Update countdown for expiring medicines
+    const countdownElements = document.querySelectorAll('.expiry-countdown');
+    countdownElements.forEach(el => {
+        const expiryDate = new Date(el.getAttribute('data-expiry-date'));
+        updateCountdown(el, expiryDate);
+    });
+    
+    // Status form handling with confirmation
+    const statusForms = document.querySelectorAll('.status-form');
+    statusForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const status = form.querySelector('input[name="status"]').value;
+            let confirmMessage = '';
+            
+            switch(status) {
+                case 'approved':
+                    confirmMessage = 'Are you sure you want to approve this prescription?';
+                    break;
+                case 'rejected':
+                    confirmMessage = 'Are you sure you want to reject this prescription?';
+                    break;
+                case 'completed':
+                    confirmMessage = 'Are you sure you want to mark this prescription as completed?';
+                    break;
+                default:
+                    break;
+            }
+            
+            if (confirmMessage && !confirm(confirmMessage)) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+
+/**
+ * Update the countdown display for expiring medicines
+ */
+function updateCountdown(element, expiryDate) {
+    const now = new Date();
+    const diff = expiryDate - now;
+    
+    // Calculate days remaining
+    const daysRemaining = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    if (daysRemaining <= 0) {
+        element.textContent = 'Expired';
+        element.classList.add('text-danger');
+    } else if (daysRemaining <= 30) {
+        element.textContent = `${daysRemaining} days left`;
+        element.classList.add('text-warning');
+    } else {
+        element.textContent = `${daysRemaining} days left`;
     }
 }

@@ -1,90 +1,88 @@
 {% extends 'base.html' %}
 
-{% block title %}Register Your Pharmacy - MedFinder{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<style>
-    #map {
-        height: 300px;
-        width: 100%;
-        border-radius: 0.375rem;
-    }
-</style>
-{% endblock %}
+{% block title %}Register Pharmacy - MedFinder{% endblock %}
 
 {% block content %}
-<section class="py-5 bg-light">
+<section class="py-5">
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-lg-10">
                 <div class="card shadow">
                     <div class="card-header bg-primary text-white">
                         <h4 class="mb-0">Register Your Pharmacy</h4>
                     </div>
                     <div class="card-body p-4">
-                        <p class="text-muted mb-4">
-                            Join our network of pharmacies and connect with customers in your area. Complete the form below to get started.
-                        </p>
+                        {% if messages %}
+                        <div class="mb-4">
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                         
-                        <form method="post">
+                        <form method="post" class="needs-validation" novalidate>
                             {% csrf_token %}
-                            <input type="hidden" name="latitude" id="id_latitude">
-                            <input type="hidden" name="longitude" id="id_longitude">
                             
-                            <!-- Step 1: Account Details -->
-                            <div class="mb-4">
-                                <h5 class="mb-3">1. Account Details</h5>
-                                
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="{{ user_form.username.id_for_label }}" class="form-label">Username</label>
-                                        {{ user_form.username }}
-                                        {% if user_form.username.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ user_form.username.errors }}
-                                        </div>
-                                        {% endif %}
+                            {% if user_form.non_field_errors or pharmacy_form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in user_form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                                {% for error in pharmacy_form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Account Information -->
+                            <h5 class="mb-3">Account Information</h5>
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ user_form.username.id_for_label }}" class="form-label">Username <span class="text-danger">*</span></label>
+                                    {{ user_form.username }}
+                                    {% if user_form.username.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ user_form.username.errors }}
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="{{ user_form.email.id_for_label }}" class="form-label">Email Address</label>
-                                        {{ user_form.email }}
-                                        {% if user_form.email.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ user_form.email.errors }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">This will be used to log in to your account</div>
                                 </div>
-                                
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="{{ user_form.password1.id_for_label }}" class="form-label">Password</label>
-                                        {{ user_form.password1 }}
-                                        {% if user_form.password1.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ user_form.password1.errors }}
-                                        </div>
-                                        {% endif %}
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ user_form.email.id_for_label }}" class="form-label">Email <span class="text-danger">*</span></label>
+                                    {{ user_form.email }}
+                                    {% if user_form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ user_form.email.errors }}
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="{{ user_form.password2.id_for_label }}" class="form-label">Confirm Password</label>
-                                        {{ user_form.password2 }}
-                                        {% if user_form.password2.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ user_form.password2.errors }}
-                                        </div>
-                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ user_form.password1.id_for_label }}" class="form-label">Password <span class="text-danger">*</span></label>
+                                    {{ user_form.password1 }}
+                                    {% if user_form.password1.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ user_form.password1.errors }}
                                     </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ user_form.password2.id_for_label }}" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    {{ user_form.password2 }}
+                                    {% if user_form.password2.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ user_form.password2.errors }}
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             
-                            <!-- Step 2: Pharmacy Details -->
-                            <div class="mb-4">
-                                <h5 class="mb-3">2. Pharmacy Details</h5>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ pharmacy_form.name.id_for_label }}" class="form-label">Pharmacy Name</label>
+                            <!-- Pharmacy Information -->
+                            <h5 class="mb-3">Pharmacy Information</h5>
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ pharmacy_form.name.id_for_label }}" class="form-label">Pharmacy Name <span class="text-danger">*</span></label>
                                     {{ pharmacy_form.name }}
                                     {% if pharmacy_form.name.errors %}
                                     <div class="invalid-feedback d-block">
@@ -92,93 +90,195 @@
                                     </div>
                                     {% endif %}
                                 </div>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ pharmacy_form.license_number.id_for_label }}" class="form-label">License Number</label>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ pharmacy_form.license_number.id_for_label }}" class="form-label">License Number <span class="text-danger">*</span></label>
                                     {{ pharmacy_form.license_number }}
                                     {% if pharmacy_form.license_number.errors %}
                                     <div class="invalid-feedback d-block">
                                         {{ pharmacy_form.license_number.errors }}
                                     </div>
                                     {% endif %}
+                                    <div class="form-text">Your pharmacy's official license number</div>
                                 </div>
-                                
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="{{ pharmacy_form.phone.id_for_label }}" class="form-label">Phone Number</label>
-                                        {{ pharmacy_form.phone }}
-                                        {% if pharmacy_form.phone.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ pharmacy_form.phone.errors }}
-                                        </div>
-                                        {% endif %}
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ pharmacy_form.phone.id_for_label }}" class="form-label">Phone <span class="text-danger">*</span></label>
+                                    {{ pharmacy_form.phone }}
+                                    {% if pharmacy_form.phone.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ pharmacy_form.phone.errors }}
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="{{ pharmacy_form.email.id_for_label }}" class="form-label">Pharmacy Email</label>
-                                        {{ pharmacy_form.email }}
-                                        {% if pharmacy_form.email.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ pharmacy_form.email.errors }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
+                                    {% endif %}
                                 </div>
-                            </div>
-                            
-                            <!-- Step 3: Address & Hours -->
-                            <div class="mb-4">
-                                <h5 class="mb-3">3. Address & Hours</h5>
-                                
-                                <div class="mb-3">
-                                    <label for="{{ pharmacy_form.address.id_for_label }}" class="form-label">Pharmacy Address</label>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ pharmacy_form.email.id_for_label }}" class="form-label">Contact Email <span class="text-danger">*</span></label>
+                                    {{ pharmacy_form.email }}
+                                    {% if pharmacy_form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ pharmacy_form.email.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">This will be shown to customers for contact purposes</div>
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="{{ pharmacy_form.address.id_for_label }}" class="form-label">Address <span class="text-danger">*</span></label>
                                     {{ pharmacy_form.address }}
                                     {% if pharmacy_form.address.errors %}
                                     <div class="invalid-feedback d-block">
                                         {{ pharmacy_form.address.errors }}
                                     </div>
                                     {% endif %}
+                                    <div class="form-text">Full address including street, city, state and ZIP code</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Location Information -->
+                            <h5 class="mb-3">Location Information</h5>
+                            <div class="mb-4">
+                                <p class="mb-3">Your pharmacy's location is used to help customers find medicines near them.</p>
+                                
+                                <div class="d-grid mb-3">
+                                    <button type="button" class="btn btn-outline-primary get-location-btn">
+                                        <i class="fas fa-map-marker-alt me-2"></i> Get Current Location
+                                    </button>
                                 </div>
                                 
-                                <div class="mb-3">
-                                    <label class="form-label">Pharmacy Location</label>
-                                    <div id="map"></div>
-                                    <div class="form-text">Drag the marker to your exact pharmacy location</div>
-                                </div>
+                                {{ pharmacy_form.latitude }}
+                                {{ pharmacy_form.longitude }}
                                 
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="{{ pharmacy_form.opening_time.id_for_label }}" class="form-label">Opening Time</label>
-                                        {{ pharmacy_form.opening_time }}
-                                        {% if pharmacy_form.opening_time.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ pharmacy_form.opening_time.errors }}
-                                        </div>
-                                        {% endif %}
+                                <div id="location-status" class="alert alert-info d-none">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <span id="location-message">Click the button above to get your current location.</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Business Hours -->
+                            <h5 class="mb-3">Business Hours</h5>
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ pharmacy_form.opening_time.id_for_label }}" class="form-label">Opening Time <span class="text-danger">*</span></label>
+                                    {{ pharmacy_form.opening_time }}
+                                    {% if pharmacy_form.opening_time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ pharmacy_form.opening_time.errors }}
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="{{ pharmacy_form.closing_time.id_for_label }}" class="form-label">Closing Time</label>
-                                        {{ pharmacy_form.closing_time }}
-                                        {% if pharmacy_form.closing_time.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {{ pharmacy_form.closing_time.errors }}
-                                        </div>
-                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ pharmacy_form.closing_time.id_for_label }}" class="form-label">Closing Time <span class="text-danger">*</span></label>
+                                    {{ pharmacy_form.closing_time }}
+                                    {% if pharmacy_form.closing_time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ pharmacy_form.closing_time.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Terms and Conditions -->
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="terms" required>
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms and Conditions</a> and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                                    </label>
+                                    <div class="invalid-feedback">
+                                        You must agree to the terms and conditions to register.
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="d-grid">
+                            <div class="d-grid mb-3">
                                 <button type="submit" class="btn btn-primary btn-lg">
                                     <i class="fas fa-user-plus me-2"></i> Register Pharmacy
                                 </button>
                             </div>
                             
-                            <div class="text-center mt-3">
-                                <p class="mb-0">Already have an account?</p>
-                                <a href="{% url 'pharmacy_login' %}" class="text-decoration-none">Login to your pharmacy</a>
-                            </div>
+                            <p class="text-center mb-0">
+                                Already have an account? <a href="{% url 'pharmacy_login' %}">Log in</a>
+                            </p>
                         </form>
                     </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'home' %}" class="text-decoration-none">
+                        <i class="fas fa-arrow-left me-2"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Terms and Conditions Modal -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>1. Introduction</h6>
+                    <p>Welcome to MedFinder. These Terms and Conditions govern your use of our platform and services.</p>
+                    
+                    <h6>2. Pharmacy Responsibilities</h6>
+                    <p>As a pharmacy on our platform, you are responsible for:</p>
+                    <ul>
+                        <li>Providing accurate information about your pharmacy and medicines</li>
+                        <li>Maintaining the confidentiality of customer data</li>
+                        <li>Responding to prescription requests in a timely manner</li>
+                        <li>Ensuring all medicines are genuine and properly stored</li>
+                        <li>Complying with all applicable laws and regulations</li>
+                    </ul>
+                    
+                    <h6>3. Platform Usage</h6>
+                    <p>You agree not to:</p>
+                    <ul>
+                        <li>Misrepresent your pharmacy or medicines</li>
+                        <li>Use the platform for any illegal purposes</li>
+                        <li>Interfere with the operation of the platform</li>
+                        <li>Share access to your account with unauthorized users</li>
+                    </ul>
+                    
+                    <h6>4. Limitation of Liability</h6>
+                    <p>MedFinder serves as a connection platform and is not responsible for the quality or availability of medicines, or any disputes between pharmacies and customers.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Privacy Policy Modal -->
+    <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>1. Information We Collect</h6>
+                    <p>We collect information such as your pharmacy details, medicine inventory, and location data to provide our services.</p>
+                    
+                    <h6>2. How We Use Your Information</h6>
+                    <p>We use your information to:</p>
+                    <ul>
+                        <li>Connect customers with pharmacies</li>
+                        <li>Display medicine availability to users</li>
+                        <li>Process prescription requests</li>
+                        <li>Improve our platform and services</li>
+                    </ul>
+                    
+                    <h6>3. Data Security</h6>
+                    <p>We implement appropriate security measures to protect your information. However, no method of transmission over the internet is 100% secure.</p>
+                    
+                    <h6>4. Customer Data</h6>
+                    <p>You agree to handle all customer data in accordance with applicable privacy laws and to only use such data for fulfilling prescription requests.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
                 </div>
             </div>
         </div>
@@ -187,50 +287,31 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="/static/js/location.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize the map
-        var map = L.map('map');
+        // Form validation
+        const form = document.querySelector('.needs-validation');
         
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity() || !document.getElementById('terms').checked) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            form.classList.add('was-validated');
+        }, false);
         
-        // Create a marker
-        var marker = L.marker([0, 0], {
-            draggable: true
-        }).addTo(map);
+        // Location handling
+        const locationStatus = document.getElementById('location-status');
+        const locationMessage = document.getElementById('location-message');
         
-        // Update lat/lng inputs when marker is moved
-        function updateMarkerPosition(lat, lng) {
-            document.getElementById('id_latitude').value = lat;
-            document.getElementById('id_longitude').value = lng;
-        }
-        
-        marker.on('dragend', function(e) {
-            var position = marker.getLatLng();
-            updateMarkerPosition(position.lat, position.lng);
+        document.addEventListener('userLocationObtained', function(e) {
+            locationStatus.classList.remove('d-none');
+            locationStatus.classList.remove('alert-info');
+            locationStatus.classList.add('alert-success');
+            locationMessage.textContent = 'Location successfully obtained.';
         });
-        
-        // Get user's location
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-                var lat = position.coords.latitude;
-                var lng = position.coords.longitude;
-                
-                map.setView([lat, lng], 15);
-                marker.setLatLng([lat, lng]);
-                
-                updateMarkerPosition(lat, lng);
-            }, function() {
-                // If geolocation fails, use a default location
-                map.setView([0, 0], 2);
-            });
-        } else {
-            // If geolocation is not supported
-            map.setView([0, 0], 2);
-        }
     });
 </script>
 {% endblock %}

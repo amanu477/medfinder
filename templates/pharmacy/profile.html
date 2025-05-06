@@ -1,146 +1,148 @@
 {% extends 'base.html' %}
 
-{% block title %}Edit Pharmacy Profile - MedFinder{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-<style>
-    #map {
-        height: 300px;
-        width: 100%;
-        border-radius: 0.375rem;
-    }
-</style>
-{% endblock %}
+{% block title %}Pharmacy Profile - MedFinder{% endblock %}
 
 {% block content %}
-<section class="py-4">
+<section class="py-5">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h1 class="h3 mb-0">Pharmacy Profile</h1>
-                <p class="text-muted">Edit your pharmacy information</p>
-            </div>
-            <div>
-                <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
-                </a>
-            </div>
-        </div>
-        
-        <div class="card shadow">
-            <div class="card-body p-4">
-                <form method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="latitude" id="id_latitude" value="{{ latitude|default:'' }}">
-                    <input type="hidden" name="longitude" id="id_longitude" value="{{ longitude|default:'' }}">
-                    
-                    <div class="row mb-4">
-                        <div class="col-12 mb-3">
-                            <h4 class="h5">Basic Information</h4>
-                            <hr>
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.name.id_for_label }}" class="form-label">Pharmacy Name</label>
-                            {{ form.name }}
-                            {% if form.name.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.name.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label">Pharmacy Email</label>
-                            {{ form.email }}
-                            {% if form.email.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.email.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="col-12 mb-3">
-                            <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
-                            {{ form.address }}
-                            {% if form.address.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.address.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.phone.id_for_label }}" class="form-label">Phone Number</label>
-                            {{ form.phone }}
-                            {% if form.phone.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.phone.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="col-md-3 mb-3">
-                            <label for="{{ form.opening_time.id_for_label }}" class="form-label">Opening Time</label>
-                            {{ form.opening_time }}
-                            {% if form.opening_time.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.opening_time.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="col-md-3 mb-3">
-                            <label for="{{ form.closing_time.id_for_label }}" class="form-label">Closing Time</label>
-                            {{ form.closing_time }}
-                            {% if form.closing_time.errors %}
-                            <div class="invalid-feedback d-block">
-                                {{ form.closing_time.errors }}
-                            </div>
-                            {% endif %}
-                        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Pharmacy Profile</h4>
                     </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-12 mb-3">
-                            <h4 class="h5">Location</h4>
-                            <p class="text-muted small">Drag the marker to your exact pharmacy location</p>
-                            <hr>
+                    <div class="card-body p-4">
+                        {% if messages %}
+                        <div class="mb-4">
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
                         </div>
+                        {% endif %}
                         
-                        <div class="col-12 mb-3">
-                            <div id="map"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-12 mb-3">
-                            <h4 class="h5">Visibility Settings</h4>
-                            <hr>
-                        </div>
-                        
-                        <div class="col-12">
-                            <div class="form-check form-switch">
-                                {{ form.is_active }}
-                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                    Pharmacy is active and visible to customers
-                                </label>
-                                {% if form.is_active.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.is_active.errors }}
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Basic Information -->
+                            <h5 class="mb-3">Basic Information</h5>
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.name.id_for_label }}" class="form-label">Pharmacy Name <span class="text-danger">*</span></label>
+                                    {{ form.name }}
+                                    {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.name.errors }}
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">Email <span class="text-danger">*</span></label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.email.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.phone.id_for_label }}" class="form-label">Phone <span class="text-danger">*</span></label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.phone.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-12 mb-3">
+                                    <label for="{{ form.address.id_for_label }}" class="form-label">Address <span class="text-danger">*</span></label>
+                                    {{ form.address }}
+                                    {% if form.address.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.address.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">Full address including street, city, state and ZIP code</div>
+                                </div>
                             </div>
-                        </div>
+                            
+                            <!-- Location Information -->
+                            <h5 class="mb-3">Location Information</h5>
+                            <div class="mb-4">
+                                <p class="mb-3">Your pharmacy's location is used to help customers find medicines near them.</p>
+                                
+                                <div class="d-grid mb-3">
+                                    <button type="button" class="btn btn-outline-primary get-location-btn">
+                                        <i class="fas fa-map-marker-alt me-2"></i> Get Current Location
+                                    </button>
+                                </div>
+                                
+                                <input type="hidden" id="user-latitude" name="latitude" value="{{ pharmacy.latitude|default:'' }}">
+                                <input type="hidden" id="user-longitude" name="longitude" value="{{ pharmacy.longitude|default:'' }}">
+                                
+                                <div id="location-status" class="alert alert-info d-none">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <span id="location-message">Click the button above to get your current location.</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Business Hours -->
+                            <h5 class="mb-3">Business Hours</h5>
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.opening_time.id_for_label }}" class="form-label">Opening Time <span class="text-danger">*</span></label>
+                                    {{ form.opening_time }}
+                                    {% if form.opening_time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.opening_time.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ form.closing_time.id_for_label }}" class="form-label">Closing Time <span class="text-danger">*</span></label>
+                                    {{ form.closing_time }}
+                                    {% if form.closing_time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.closing_time.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Pharmacy Status -->
+                            <h5 class="mb-3">Pharmacy Status</h5>
+                            <div class="mb-4">
+                                <div class="form-check form-switch">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        Pharmacy is active and available for customers
+                                    </label>
+                                </div>
+                                <div class="form-text">
+                                    When inactive, your pharmacy will not appear in search results and customers won't be able to upload prescriptions to you.
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i> Save Changes
+                                </button>
+                            </div>
+                        </form>
                     </div>
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i> Save Changes
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -148,63 +150,29 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script src="/static/js/location.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize the map
-        var map = L.map('map');
+        const latField = document.getElementById('user-latitude');
+        const lngField = document.getElementById('user-longitude');
+        const locationStatus = document.getElementById('location-status');
+        const locationMessage = document.getElementById('location-message');
         
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        
-        // Create a marker
-        var marker = L.marker([0, 0], {
-            draggable: true
-        }).addTo(map);
-        
-        // Update lat/lng inputs when marker is moved
-        function updateMarkerPosition(lat, lng) {
-            document.getElementById('id_latitude').value = lat;
-            document.getElementById('id_longitude').value = lng;
+        // Show location status if we have coordinates
+        if (latField.value && lngField.value) {
+            locationStatus.classList.remove('d-none');
+            locationStatus.classList.remove('alert-info');
+            locationStatus.classList.add('alert-success');
+            locationMessage.textContent = 'Location successfully set.';
         }
         
-        marker.on('dragend', function(e) {
-            var position = marker.getLatLng();
-            updateMarkerPosition(position.lat, position.lng);
+        // Listen for location obtained event
+        document.addEventListener('userLocationObtained', function(e) {
+            locationStatus.classList.remove('d-none');
+            locationStatus.classList.remove('alert-info');
+            locationStatus.classList.add('alert-success');
+            locationMessage.textContent = 'Location successfully updated.';
         });
-        
-        // Set initial position based on pharmacy's coordinates or use geolocation
-        var existingLat = '{{ latitude|default:"" }}';
-        var existingLng = '{{ longitude|default:"" }}';
-        
-        if (existingLat && existingLng) {
-            // Use pharmacy's existing coordinates
-            var lat = parseFloat(existingLat);
-            var lng = parseFloat(existingLng);
-            
-            map.setView([lat, lng], 15);
-            marker.setLatLng([lat, lng]);
-            
-            updateMarkerPosition(lat, lng);
-        } else if (navigator.geolocation) {
-            // Use browser geolocation as fallback
-            navigator.geolocation.getCurrentPosition(function(position) {
-                var lat = position.coords.latitude;
-                var lng = position.coords.longitude;
-                
-                map.setView([lat, lng], 15);
-                marker.setLatLng([lat, lng]);
-                
-                updateMarkerPosition(lat, lng);
-            }, function() {
-                // If geolocation fails, use a default location (can be set to city center)
-                map.setView([0, 0], 2);
-            });
-        } else {
-            // If geolocation is not supported
-            map.setView([0, 0], 2);
-        }
     });
 </script>
 {% endblock %}
