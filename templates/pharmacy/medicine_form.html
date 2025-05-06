@@ -96,6 +96,20 @@
                                         <div class="form-text">Uncheck if the medicine is temporarily unavailable even if in stock</div>
                                     </div>
                                 </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check">
+                                        {{ form.prescription_required }}
+                                        <label class="form-check-label" for="{{ form.prescription_required.id_for_label }}">
+                                            Prescription Required
+                                        </label>
+                                        {% if form.prescription_required.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.prescription_required.errors }}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">Check if this medicine requires a prescription to purchase</div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <!-- Image Upload -->

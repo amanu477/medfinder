@@ -40,6 +40,7 @@ class Medicine(models.Model):
     medicine_image = models.ImageField(upload_to='medicines/', null=True, blank=True)
     expiry_date = models.DateField()
     is_available = models.BooleanField(default=True)
+    prescription_required = models.BooleanField(default=True, help_text="Check if this medicine requires a prescription")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

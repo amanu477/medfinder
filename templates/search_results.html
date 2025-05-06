@@ -50,6 +50,15 @@
                                     <h5 class="card-title mb-1">{{ medicine.name }}</h5>
                                     <p class="card-text text-primary mb-0"><strong>${{ medicine.price }}</strong></p>
                                     <div class="small text-muted">Stock: {{ medicine.stock_quantity }}</div>
+                                    {% if medicine.prescription_required %}
+                                    <div class="mt-1 badge bg-warning">
+                                        <i class="fas fa-file-prescription me-1"></i> Prescription Required
+                                    </div>
+                                    {% else %}
+                                    <div class="mt-1 badge bg-success">
+                                        <i class="fas fa-check me-1"></i> No Prescription Needed
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                             

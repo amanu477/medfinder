@@ -51,7 +51,7 @@ class MedicineForm(forms.ModelForm):
     """Form for medicine CRUD operations"""
     class Meta:
         model = Medicine
-        fields = ['name', 'description', 'price', 'stock_quantity', 'medicine_image', 'expiry_date', 'is_available']
+        fields = ['name', 'description', 'price', 'stock_quantity', 'medicine_image', 'expiry_date', 'is_available', 'prescription_required']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
@@ -60,4 +60,5 @@ class MedicineForm(forms.ModelForm):
             'medicine_image': forms.FileInput(attrs={'class': 'form-control'}),
             'expiry_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'is_available': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'prescription_required': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

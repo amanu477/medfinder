@@ -9,7 +9,7 @@ class PharmacyAdmin(admin.ModelAdmin):
 
 @admin.register(Medicine)
 class MedicineAdmin(admin.ModelAdmin):
-    list_display = ('name', 'pharmacy', 'price', 'stock_quantity', 'expiry_date', 'is_available')
-    list_filter = ('is_available', 'pharmacy')
+    list_display = ('name', 'pharmacy', 'price', 'stock_quantity', 'expiry_date', 'is_available', 'prescription_required')
+    list_filter = ('is_available', 'prescription_required', 'pharmacy')
     search_fields = ('name', 'description')
     date_hierarchy = 'expiry_date'
