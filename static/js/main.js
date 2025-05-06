@@ -1,55 +1,86 @@
 /**
- * Main JavaScript for the MedFinder application
+ * Main JavaScript for MedFinder
+ * Handles general UI interactions and functionality
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tooltips
+    // Initialize Bootstrap tooltips
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
+    tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
     
-    // Initialize popovers
+    // Initialize Bootstrap popovers
     const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function (popoverTriggerEl) {
+    popoverTriggerList.map(function(popoverTriggerEl) {
         return new bootstrap.Popover(popoverTriggerEl);
     });
     
-    // Handle prescription upload modal
+    // Prescription Upload modal handling
     const prescriptionModal = document.getElementById('prescriptionModal');
     if (prescriptionModal) {
-        const modal = new bootstrap.Modal(prescriptionModal);
-        
-        const uploadButtons = document.querySelectorAll('.upload-rx-btn');
-        const pharmacyInfoDiv = document.getElementById('pharmacy-info');
-        const selectedPharmacyName = document.getElementById('selected-pharmacy-name');
-        const selectedPharmacyId = document.getElementById('selected-pharmacy-id');
-        
-        uploadButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const pharmacyId = this.getAttribute('data-pharmacy-id');
-                const pharmacyName = this.getAttribute('data-pharmacy-name');
-                
-                if (pharmacyId && pharmacyName) {
-                    // Show pharmacy info and set values
-                    if (pharmacyInfoDiv) pharmacyInfoDiv.classList.remove('d-none');
-                    if (selectedPharmacyName) selectedPharmacyName.textContent = pharmacyName;
-                    if (selectedPharmacyId) selectedPharmacyId.value = pharmacyId;
-                } else {
-                    // Hide pharmacy info if no pharmacy selected
-                    if (pharmacyInfoDiv) pharmacyInfoDiv.classList.add('d-none');
-                    if (selectedPharmacyId) selectedPharmacyId.value = '';
-                }
-            });
+        prescriptionModal.addEventListener('show.bs.modal', function(event) {
+            // Button that triggered the modal
+            const button = event.relatedTarget;
+            
+            // Extract pharmacy info from data attributes
+            const pharmacyId = button.getAttribute('data-pharmacy-id');
+            const pharmacyName = button.getAttribute('data-pharmacy-name');
+            
+            // Update the modal's content
+            const selectedPharmacyId = document.getElementById('selected-pharmacy-id');
+            const selectedPharmacyName = document.getElementById('selected-pharmacy-name');
+            
+            if (selectedPharmacyId && selectedPharmacyName) {
+                selectedPharmacyId.value = pharmacyId;
+                selectedPharmacyName.textContent = pharmacyName;
+            }
         });
     }
     
-    // Handle auto-dismiss alerts
-    const autoDismissAlerts = document.querySelectorAll('.alert-auto-dismiss');
-    autoDismissAlerts.forEach(alert => {
-        setTimeout(() => {
-            const alertInstance = new bootstrap.Alert(alert);
-            alertInstance.close();
-        }, 5000); // Auto-dismiss after 5 seconds
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            form.classList.add('was-validated');
+        }, false);
+    });
+    
+    // Countdown timer for expiring medicines
+    const countdownElements = document.querySelectorAll('.expiry-countdown');
+    countdownElements.forEach(el => {
+        const expiryDate = new Date(el.getAttribute('data-expiry-date'));
+        updateCountdown(el, expiryDate);
+        
+        // Update every day
+        setInterval(() => {
+            updateCountdown(el, expiryDate);
+        }, 86400000); // 24 hours
     });
 });
+
+/**
+ * Update the countdown display for expiring medicines
+ */
+function updateCountdown(element, expiryDate) {
+    const now = new Date();
+    const diff = expiryDate - now;
+    
+    // Calculate days remaining
+    const daysRemaining = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    
+    if (daysRemaining <= 0) {
+        element.textContent = 'Expired';
+        element.classList.add('text-danger');
+    } else if (daysRemaining <= 30) {
+        element.textContent = `${daysRemaining} days left`;
+        element.classList.add('text-warning');
+    } else {
+        element.textContent = `${daysRemaining} days left`;
+    }
+}
