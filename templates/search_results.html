@@ -20,8 +20,6 @@
             <div class="card-body">
                 <form method="get" action="{% url 'search_medicines' %}" class="d-flex">
                     <input type="text" name="query" value="{{ query }}" class="form-control me-2" placeholder="Search for medicines..." required>
-                    <input type="hidden" name="lat" id="user-latitude" value="{{ user_lat }}">
-                    <input type="hidden" name="lng" id="user-longitude" value="{{ user_lng }}">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search me-2"></i> Search
                     </button>
@@ -77,12 +75,7 @@
                                     <i class="fas fa-clock me-2"></i>
                                     Open: {{ medicine.pharmacy.opening_time|time:"g:i A" }} - {{ medicine.pharmacy.closing_time|time:"g:i A" }}
                                 </div>
-                                {% if medicine.distance %}
-                                <div class="d-flex align-items-center small text-muted">
-                                    <i class="fas fa-route me-2"></i>
-                                    {{ medicine.distance|floatformat:1 }} km away
-                                </div>
-                                {% endif %}
+                                <!-- Distance display removed as requested -->
                             </div>
                             
                             <div class="d-grid gap-2">
@@ -173,6 +166,6 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script src="/static/js/location.js"></script>
-{% endblock %}
+{% comment %}
+Location functionality has been removed as requested
+{% endcomment %}

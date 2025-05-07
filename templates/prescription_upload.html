@@ -13,7 +13,7 @@
                     </div>
                     <div class="card-body p-4">
                         <p class="text-muted mb-4">
-                            Upload your prescription to a nearby pharmacy for processing. They will contact you once they have reviewed your prescription.
+                            Upload your prescription to a pharmacy for processing. They will contact you once they have reviewed your prescription.
                         </p>
                         
                         <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
@@ -29,13 +29,13 @@
                                         <option value="" selected disabled>-- Select a Pharmacy --</option>
                                         {% for pharmacy in pharmacies %}
                                         <option value="{{ pharmacy.id }}" data-address="{{ pharmacy.address }}" data-phone="{{ pharmacy.phone }}" data-email="{{ pharmacy.email }}">
-                                            {{ pharmacy.name }} {% if pharmacy.distance %}({{ pharmacy.distance|floatformat:1 }} km away){% endif %}
+                                            {{ pharmacy.name }}
                                         </option>
                                         {% endfor %}
                                     </select>
                                     <div class="form-text">
-                                        <i class="fas fa-location-dot me-1"></i> 
-                                        <a href="#" class="get-location-btn text-decoration-none">Get nearby pharmacies</a>
+                                        <i class="fas fa-info-circle me-1"></i> 
+                                        Select a pharmacy from the list
                                     </div>
                                 </div>
                                 
@@ -100,7 +100,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/location.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const pharmacySelect = document.getElementById('pharmacySelect');
@@ -123,23 +122,6 @@
             } else {
                 // Hide the card if no pharmacy selected
                 pharmacyDetails.classList.add('d-none');
-            }
-        });
-        
-        // Listen for the user location event
-        document.addEventListener('userLocationObtained', function(e) {
-            // We could refresh the pharmacy list with nearby pharmacies here
-            // For now, just show a success message
-            const getLocationBtn = document.querySelector('.get-location-btn');
-            if (getLocationBtn) {
-                getLocationBtn.textContent = 'Location obtained! Showing nearby pharmacies';
-                getLocationBtn.classList.add('text-success');
-                
-                // Refresh the page with location parameters to get nearby pharmacies
-                const url = new URL(window.location.href);
-                url.searchParams.set('lat', e.detail.lat);
-                url.searchParams.set('lng', e.detail.lng);
-                window.location.href = url.toString();
             }
         });
     });

@@ -1,34 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %}MedFinder - Find Medicines Near You{% endblock %}
+{% block title %}MedFinder - Find Medicines{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
 <section class="hero">
     <div class="hero-content">
         <h1>Find the medicines you need, quickly and easily</h1>
-        <p>Connect with pharmacies near you that have the medications you're looking for</p>
+        <p>Connect with pharmacies that have the medications you're looking for</p>
         <div class="search-container">
             <form method="get" action="{% url 'search_medicines' %}" class="search-form">
                 <input type="text" name="query" placeholder="Search for medicines..." required>
-                <input type="hidden" name="lat" id="user-latitude">
-                <input type="hidden" name="lng" id="user-longitude">
                 <button type="submit" class="btn btn-primary px-4 py-2">
                     <i class="fas fa-search me-2"></i> Search
                 </button>
             </form>
-            <div class="text-center mt-3 mb-4">
-                <small class="text-white">
-                    <i class="fas fa-location-dot me-1"></i> 
-                    Enable location for best results. 
-                    <a href="#" class="text-white text-decoration-underline get-location-btn">Get my location</a>
-                </small>
-            </div>
             <div class="text-center mt-3">
                 <a href="{% url 'upload_prescription' %}" class="btn btn-light btn-lg">
                     <i class="fas fa-file-prescription me-2"></i> Upload Prescription
                 </a>
-                <p class="mt-2 text-white-50 small">Have a prescription? Upload it directly to a pharmacy near you</p>
+                <p class="mt-2 text-white-50 small">Have a prescription? Upload it directly to your preferred pharmacy</p>
             </div>
         </div>
     </div>
@@ -55,9 +46,9 @@
             </div>
             <div class="col-md-4 mb-4">
                 <div class="feature-card">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <h3>Find Nearby Pharmacies</h3>
-                    <p>Locate pharmacies near you with the medications you need, sorted by distance.</p>
+                    <i class="fas fa-hospital-user"></i>
+                    <h3>Connect with Pharmacies</h3>
+                    <p>Find all pharmacies that carry the medications you need in one place.</p>
                 </div>
             </div>
         </div>
@@ -101,8 +92,7 @@
         </div>
     </div>
 </section>
-{% endblock %}
-
-{% block extra_js %}
-<script src="/static/js/location.js"></script>
+{% comment %}
+Location-based functionality has been removed as requested
+{% endcomment %}
 {% endblock %}

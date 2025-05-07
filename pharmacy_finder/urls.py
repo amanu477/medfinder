@@ -19,7 +19,6 @@ urlpatterns = [
     path('search/', customer_views.search_medicines, name='search_medicines'),
     path('prescription/upload/', customer_views.upload_prescription, name='upload_prescription'),
     path('prescription/success/', customer_views.prescription_success, name='prescription_success'),
-    path('api/nearby-pharmacies/', customer_views.get_nearby_pharmacies, name='get_nearby_pharmacies'),
     
     # Pharmacy Routes
     path('pharmacy/', include('pharmacy.urls')),

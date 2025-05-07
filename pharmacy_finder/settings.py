@@ -27,7 +27,8 @@ SECRET_KEY = 'django-insecure-v6srk55iwb3zde16bg0b8$7!j@0gosr5t$y@489&d&%h&=jkv)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1', '.replit.app', '.repl.co', '.janeway.replit.dev', '86b78c18-036e-4fa8-9dfb-f8589a24e402-00-1rorhkx86i9vj.janeway.replit.dev']
+# Use wildcard to allow all hosts - most permissive setting for development
+ALLOWED_HOSTS = ['*']
 
 # CSRF Settings for Replit
 CSRF_TRUSTED_ORIGINS = [
