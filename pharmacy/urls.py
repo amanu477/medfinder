@@ -8,6 +8,10 @@ urlpatterns = [
     path('logout/', views.pharmacy_logout, name='pharmacy_logout'),
     path('register/', views.register, name='pharmacy_register'),
     
+    # Verification
+    path('verification/', views.pharmacy_verification, name='pharmacy_verification'),
+    path('verification/pending/', views.verification_pending, name='verification_pending'),
+    
     # Dashboard
     path('dashboard/', views.dashboard, name='pharmacy_dashboard'),
     path('profile/', views.pharmacy_profile, name='pharmacy_profile'),

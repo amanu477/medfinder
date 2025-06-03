@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Pharmacy Verification - MedFinder{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Pharmacy Verification</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Verification Required:</strong> To ensure the safety and authenticity of our pharmacy network, 
+                        please upload the required documents for verification. Your pharmacy will be reviewed by our admin team.
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.business_license.id_for_label }}" class="form-label">
+                                    <i class="fas fa-certificate text-primary me-2"></i>Business License *
+                                </label>
+                                {{ form.business_license }}
+                                <div class="form-text">{{ form.business_license.help_text }}</div>
+                                {% if form.business_license.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.business_license.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.pharmacist_certificate.id_for_label }}" class="form-label">
+                                    <i class="fas fa-user-md text-primary me-2"></i>Pharmacist Certificate *
+                                </label>
+                                {{ form.pharmacist_certificate }}
+                                <div class="form-text">{{ form.pharmacist_certificate.help_text }}</div>
+                                {% if form.pharmacist_certificate.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.pharmacist_certificate.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.verification_documents.id_for_label }}" class="form-label">
+                                <i class="fas fa-file-alt text-primary me-2"></i>Additional Documents
+                            </label>
+                            {{ form.verification_documents }}
+                            <div class="form-text">{{ form.verification_documents.help_text }}</div>
+                            {% if form.verification_documents.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.verification_documents.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Important:</strong> Please ensure all documents are clear, legible, and valid. 
+                            Incomplete or unclear documents may result in verification delays or rejection.
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-upload me-2"></i>Submit for Verification
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Current Status -->
+            {% if pharmacy.verification_status %}
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Current Status</h5>
+                    {% if pharmacy.verification_status == 'pending' %}
+                        <span class="badge bg-warning fs-6">
+                            <i class="fas fa-clock me-1"></i>Pending Review
+                        </span>
+                        <p class="mt-2 text-muted">Your documents are under review by our admin team.</p>
+                    {% elif pharmacy.verification_status == 'rejected' %}
+                        <span class="badge bg-danger fs-6">
+                            <i class="fas fa-times me-1"></i>Rejected
+                        </span>
+                        {% if pharmacy.rejection_reason %}
+                            <div class="alert alert-danger mt-2">
+                                <strong>Rejection Reason:</strong> {{ pharmacy.rejection_reason }}
+                            </div>
+                        {% endif %}
+                    {% elif pharmacy.verification_status == 'verified' %}
+                        <span class="badge bg-success fs-6">
+                            <i class="fas fa-check me-1"></i>Verified
+                        </span>
+                        <p class="mt-2 text-success">Your pharmacy is verified and active!</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+});
+</script>
+{% endblock %}

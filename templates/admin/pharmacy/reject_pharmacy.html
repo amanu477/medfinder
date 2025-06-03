@@ -1,0 +1,67 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label='pharmacy' %}">Pharmacy</a>
+&rsaquo; <a href="{% url 'admin:pharmacy_pharmacy_changelist' %}">Pharmacies</a>
+&rsaquo; {{ title }}
+</div>
+{% endblock %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<div class="module aligned">
+    <h2>Pharmacy Information</h2>
+    <div class="form-row">
+        <p><strong>Name:</strong> {{ pharmacy.name }}</p>
+        <p><strong>License Number:</strong> {{ pharmacy.license_number }}</p>
+        <p><strong>Email:</strong> {{ pharmacy.email }}</p>
+        <p><strong>Phone:</strong> {{ pharmacy.phone }}</p>
+        <p><strong>Address:</strong> {{ pharmacy.address }}</p>
+    </div>
+    
+    {% if pharmacy.business_license %}
+    <div class="form-row">
+        <p><strong>Business License:</strong> <a href="{{ pharmacy.business_license.url }}" target="_blank">View Document</a></p>
+    </div>
+    {% endif %}
+    
+    {% if pharmacy.pharmacist_certificate %}
+    <div class="form-row">
+        <p><strong>Pharmacist Certificate:</strong> <a href="{{ pharmacy.pharmacist_certificate.url }}" target="_blank">View Document</a></p>
+    </div>
+    {% endif %}
+    
+    {% if pharmacy.verification_documents %}
+    <div class="form-row">
+        <p><strong>Additional Documents:</strong> <a href="{{ pharmacy.verification_documents.url }}" target="_blank">View Document</a></p>
+    </div>
+    {% endif %}
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="module aligned">
+        <h2>Rejection Reason</h2>
+        <div class="form-row">
+            <div>
+                <label for="rejection_reason">Please provide a reason for rejection:</label>
+                <textarea name="rejection_reason" id="rejection_reason" rows="4" cols="50" required 
+                          placeholder="Enter the reason for rejecting this pharmacy verification..."></textarea>
+            </div>
+        </div>
+    </div>
+    
+    <div class="submit-row">
+        <input type="submit" value="Reject Pharmacy" class="default" />
+        <p class="deletelink-box">
+            <a href="{% url 'admin:pharmacy_pharmacy_changelist' %}" class="deletelink">Cancel</a>
+        </p>
+    </div>
+</form>
+{% endblock %}
