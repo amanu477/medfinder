@@ -19,7 +19,7 @@ class PharmacyRegistrationForm(forms.ModelForm):
     
     class Meta:
         model = Pharmacy
-        fields = ['name', 'license_number', 'address', 'phone', 'email', 'opening_time', 'closing_time']
+        fields = ['name', 'license_number', 'address', 'phone', 'email', 'opening_time', 'closing_time', 'latitude', 'longitude']
 
 class PharmacyUserForm(UserCreationForm):
     """Form for creating user account for pharmacy"""

@@ -234,38 +234,55 @@ function handlePharmacyLocationButton() {
 
     // Handle manual coordinate input changes
     if (manualLatInput && manualLonInput) {
+        console.log('Manual location inputs found, setting up event listeners');
+        
         const updateFormWithManualLocation = () => {
             const latInput = document.querySelector('input[name="latitude"]');
             const lonInput = document.querySelector('input[name="longitude"]');
             const statusDiv = document.getElementById('location-status');
             const messageSpan = document.getElementById('location-message');
 
+            console.log('Updating manual location, lat input:', latInput, 'lon input:', lonInput);
+
             const lat = parseFloat(manualLatInput.value);
             const lon = parseFloat(manualLonInput.value);
 
+            console.log('Manual coordinates entered:', lat, lon);
+
             if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
                 // Valid coordinates
-                latInput.value = lat;
-                lonInput.value = lon;
+                if (latInput && lonInput) {
+                    latInput.value = lat;
+                    lonInput.value = lon;
+                    console.log('Form fields updated with manual coordinates');
+                }
 
-                statusDiv.classList.remove('d-none', 'alert-info', 'alert-warning');
-                statusDiv.classList.add('alert-success');
-                messageSpan.textContent = `Manual coordinates set: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                if (statusDiv && messageSpan) {
+                    statusDiv.classList.remove('d-none', 'alert-info', 'alert-warning');
+                    statusDiv.classList.add('alert-success');
+                    messageSpan.textContent = `Manual coordinates set: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                }
 
                 // Reset automatic button
                 locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Get Current Location';
                 locationBtn.className = 'btn btn-outline-primary';
                 locationBtn.disabled = false;
-            } else {
-                // Invalid coordinates
-                statusDiv.classList.remove('d-none', 'alert-success', 'alert-info');
-                statusDiv.classList.add('alert-warning');
-                messageSpan.textContent = 'Please enter valid coordinates (Latitude: -90 to 90, Longitude: -180 to 180)';
+            } else if (manualLatInput.value !== '' || manualLonInput.value !== '') {
+                // Invalid coordinates (only show error if user has entered something)
+                if (statusDiv && messageSpan) {
+                    statusDiv.classList.remove('d-none', 'alert-success', 'alert-info');
+                    statusDiv.classList.add('alert-warning');
+                    messageSpan.textContent = 'Please enter valid coordinates (Latitude: -90 to 90, Longitude: -180 to 180)';
+                }
             }
         };
 
         manualLatInput.addEventListener('input', updateFormWithManualLocation);
         manualLonInput.addEventListener('input', updateFormWithManualLocation);
+        manualLatInput.addEventListener('change', updateFormWithManualLocation);
+        manualLonInput.addEventListener('change', updateFormWithManualLocation);
+    } else {
+        console.log('Manual location inputs not found');
     }
 }
 
