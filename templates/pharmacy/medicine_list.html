@@ -75,7 +75,7 @@
                                         <strong>{{ medicine.name }}</strong>
                                         <div class="small text-muted">{{ medicine.description|truncatechars:50 }}</div>
                                     </td>
-                                    <td>${{ medicine.price }}</td>
+                                    <td>{{ medicine.price }} ETB</td>
                                     <td>{{ medicine.stock_quantity }}</td>
                                     <td>{{ medicine.expiry_date|date:"M d, Y" }}</td>
                                     <td>

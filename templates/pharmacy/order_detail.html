@@ -94,16 +94,16 @@
                                                 </div>
                                             {% endif %}
                                         </td>
-                                        <td>${{ item.price }}</td>
+                                        <td>{{ item.price }} ETB</td>
                                         <td>{{ item.quantity }}</td>
-                                        <td><strong>${{ item.get_total_price }}</strong></td>
+                                        <td><strong>{{ item.get_total_price }} ETB</strong></td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>
                                 <tfoot class="table-light">
                                     <tr>
                                         <th colspan="4" class="text-end">Total Order Amount:</th>
-                                        <th><strong>${{ order.total_amount }}</strong></th>
+                                        <th><strong>{{ order.total_amount }} ETB</strong></th>
                                     </tr>
                                 </tfoot>
                             </table>
