@@ -275,7 +275,12 @@ def order_management(request):
 @login_required
 def order_detail_pharmacy(request, order_id):
     """View order details for pharmacy"""
-    pharmacy = get_object_or_404(Pharmacy, user=request.user)
+    try:
+        pharmacy = get_object_or_404(Pharmacy, user=request.user)
+    except:
+        messages.error(request, 'Pharmacy profile not found.')
+        return redirect('pharmacy_login')
+    
     order = get_object_or_404(Order, id=order_id, pharmacy=pharmacy)
     order_items = OrderItem.objects.filter(order=order)
     

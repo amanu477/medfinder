@@ -209,6 +209,11 @@ def place_order(request, medicine_id):
     """Place an order for a specific medicine"""
     medicine = get_object_or_404(Medicine, id=medicine_id, is_available=True)
     
+    # Check if medicine is expired
+    if medicine.is_expired():
+        messages.error(request, 'This medicine has expired and cannot be ordered.')
+        return redirect('search_medicines')
+    
     try:
         customer = request.user.customer
     except Customer.DoesNotExist:
@@ -217,7 +222,11 @@ def place_order(request, medicine_id):
     
     if request.method == 'POST':
         form = OrderForm(request.POST)
-        quantity = int(request.POST.get('quantity', 1))
+        try:
+            quantity = int(request.POST.get('quantity', 1))
+        except (ValueError, TypeError):
+            quantity = 1
+            messages.error(request, 'Invalid quantity entered.')
         
         if form.is_valid() and quantity > 0:
             # Check stock availability
