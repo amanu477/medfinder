@@ -9,7 +9,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from .models import Pharmacy, Medicine
 from .forms import PharmacyRegistrationForm, PharmacyUserForm, MedicineForm, PharmacyProfileForm
-from customer.models import Prescription
+from customer.models import Prescription, Order, OrderItem
 
 def pharmacy_login(request):
     """Custom login view for pharmacies"""
@@ -217,3 +217,53 @@ def update_prescription_status(request, prescription_id):
             messages.error(request, 'Invalid status value!')
     
     return redirect('prescription_list')
+
+
+@login_required
+def order_management(request):
+    """View all orders for a pharmacy"""
+    pharmacy = get_object_or_404(Pharmacy, user=request.user)
+    orders = Order.objects.filter(pharmacy=pharmacy).order_by('-created_at')
+    
+    # Filter by status if provided
+    status_filter = request.GET.get('status')
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    
+    return render(request, 'pharmacy/order_management.html', {
+        'orders': orders,
+        'pharmacy': pharmacy,
+        'status_filter': status_filter
+    })
+
+
+@login_required
+def order_detail_pharmacy(request, order_id):
+    """View order details for pharmacy"""
+    pharmacy = get_object_or_404(Pharmacy, user=request.user)
+    order = get_object_or_404(Order, id=order_id, pharmacy=pharmacy)
+    order_items = OrderItem.objects.filter(order=order)
+    
+    return render(request, 'pharmacy/order_detail.html', {
+        'order': order,
+        'order_items': order_items,
+        'pharmacy': pharmacy
+    })
+
+
+@login_required
+def update_order_status(request, order_id):
+    """Update order status"""
+    pharmacy = get_object_or_404(Pharmacy, user=request.user)
+    order = get_object_or_404(Order, id=order_id, pharmacy=pharmacy)
+    
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        if new_status in [s[0] for s in Order.STATUS_CHOICES]:
+            order.status = new_status
+            order.save()
+            messages.success(request, f'Order #{order.id} status updated to {new_status}!')
+        else:
+            messages.error(request, 'Invalid status value!')
+    
+    return redirect('order_management')
