@@ -137,11 +137,64 @@ function addLocationButton() {
     searchContainer.appendChild(locationBtn);
 }
 
+// Handle pharmacy registration location button
+function handlePharmacyLocationButton() {
+    const locationBtn = document.querySelector('.get-location-btn');
+    if (!locationBtn) return;
+
+    locationBtn.addEventListener('click', () => {
+        const latInput = document.querySelector('input[name="latitude"]');
+        const lonInput = document.querySelector('input[name="longitude"]');
+        const statusDiv = document.getElementById('location-status');
+        const messageSpan = document.getElementById('location-message');
+
+        if (!latInput || !lonInput) return;
+
+        // Update button state
+        locationBtn.disabled = true;
+        locationBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Getting Location...';
+
+        getUserLocation()
+            .then((location) => {
+                // Update form fields
+                latInput.value = location.lat;
+                lonInput.value = location.lon;
+
+                // Show success message
+                statusDiv.classList.remove('d-none', 'alert-info', 'alert-warning');
+                statusDiv.classList.add('alert-success');
+                messageSpan.textContent = `Location obtained: ${location.lat.toFixed(6)}, ${location.lon.toFixed(6)}`;
+
+                // Update button
+                locationBtn.innerHTML = '<i class="fas fa-check me-2"></i> Location Obtained';
+                locationBtn.className = 'btn btn-success';
+
+                // Dispatch custom event
+                document.dispatchEvent(new CustomEvent('userLocationObtained', {
+                    detail: location
+                }));
+            })
+            .catch((error) => {
+                // Show error message
+                statusDiv.classList.remove('d-none', 'alert-info', 'alert-success');
+                statusDiv.classList.add('alert-warning');
+                messageSpan.textContent = `Error: ${error.message}`;
+
+                // Reset button
+                locationBtn.disabled = false;
+                locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Get Current Location';
+            });
+    });
+}
+
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Add location button for manual activation
+    // Handle pharmacy registration location
+    handlePharmacyLocationButton();
+    
+    // Add location button for search pages
     addLocationButton();
     
-    // Automatically try to get location (users can deny)
+    // Automatically try to get location for search pages
     initializeLocation();
 });
