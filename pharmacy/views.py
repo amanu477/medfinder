@@ -81,12 +81,26 @@ def dashboard(request):
     # Count of pending prescriptions
     pending_count = prescriptions.filter(status='pending').count()
     
+    # Get orders for this pharmacy
+    orders = Order.objects.filter(pharmacy=pharmacy).order_by('-created_at')
+    pending_orders_count = orders.filter(status='pending').count()
+    recent_orders = orders[:5]
+    
+    # Calculate totals
+    total_medicines = medicines.count()
+    total_orders = orders.count()
+    
     return render(request, 'pharmacy/dashboard.html', {
         'pharmacy': pharmacy,
         'medicines': medicines,
+        'total_medicines': total_medicines,
         'expiring_medicines': expiring_medicines,
         'prescriptions': prescriptions,
-        'pending_count': pending_count
+        'pending_count': pending_count,
+        'recent_prescriptions': prescriptions[:5],
+        'orders': recent_orders,
+        'pending_orders_count': pending_orders_count,
+        'total_orders': total_orders,
     })
 
 @login_required
@@ -197,8 +211,19 @@ def prescription_list(request):
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
     prescriptions = Prescription.objects.filter(pharmacy=pharmacy).order_by('-created_at')
     
-    return render(request, 'pharmacy/prescription_list.html', {
-        'prescriptions': prescriptions
+    # Calculate statistics
+    pending_count = prescriptions.filter(status='pending').count()
+    approved_count = prescriptions.filter(status='approved').count()
+    rejected_count = prescriptions.filter(status='rejected').count()
+    completed_count = prescriptions.filter(status='completed').count()
+    
+    return render(request, 'pharmacy/prescriptions.html', {
+        'prescriptions': prescriptions,
+        'pharmacy': pharmacy,
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'rejected_count': rejected_count,
+        'completed_count': completed_count,
     })
 
 @login_required
@@ -225,6 +250,12 @@ def order_management(request):
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
     orders = Order.objects.filter(pharmacy=pharmacy).order_by('-created_at')
     
+    # Calculate order statistics
+    pending_orders = orders.filter(status='pending').count()
+    approved_orders = orders.filter(status='approved').count()
+    completed_orders = orders.filter(status='completed').count()
+    rejected_orders = orders.filter(status='rejected').count()
+    
     # Filter by status if provided
     status_filter = request.GET.get('status')
     if status_filter:
@@ -233,7 +264,11 @@ def order_management(request):
     return render(request, 'pharmacy/order_management.html', {
         'orders': orders,
         'pharmacy': pharmacy,
-        'status_filter': status_filter
+        'status_filter': status_filter,
+        'pending_orders': pending_orders,
+        'approved_orders': approved_orders,
+        'completed_orders': completed_orders,
+        'rejected_orders': rejected_orders,
     })
 
 

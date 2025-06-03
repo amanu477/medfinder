@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Management - Pharmacy Dashboard{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">Customer Orders</h1>
+            <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+            </a>
+        </div>
+
+        <!-- Order Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center border-warning">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">{{ pending_orders }}</h5>
+                        <p class="card-text">Pending Orders</p>
+                        <a href="?status=pending" class="btn btn-sm btn-warning">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-success">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">{{ approved_orders }}</h5>
+                        <p class="card-text">Approved Orders</p>
+                        <a href="?status=approved" class="btn btn-sm btn-success">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-primary">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">{{ completed_orders }}</h5>
+                        <p class="card-text">Completed Orders</p>
+                        <a href="?status=completed" class="btn btn-sm btn-primary">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-danger">
+                    <div class="card-body">
+                        <h5 class="card-title text-danger">{{ rejected_orders }}</h5>
+                        <p class="card-text">Rejected Orders</p>
+                        <a href="?status=rejected" class="btn btn-sm btn-danger">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Options -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="{% url 'order_management' %}" class="btn btn-outline-secondary btn-sm">All Orders</a>
+                        <a href="?status=pending" class="btn btn-outline-warning btn-sm">Pending</a>
+                        <a href="?status=approved" class="btn btn-outline-success btn-sm">Approved</a>
+                        <a href="?status=completed" class="btn btn-outline-primary btn-sm">Completed</a>
+                        <a href="?status=rejected" class="btn btn-outline-danger btn-sm">Rejected</a>
+                    </div>
+                    {% if status_filter %}
+                        <small class="text-muted">Showing: {{ status_filter|title }} orders</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders List -->
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">Customer Orders</h5>
+            </div>
+            <div class="card-body">
+                {% if orders %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Medicine</th>
+                                    <th>Quantity</th>
+                                    <th>Total Amount</th>
+                                    <th>Order Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                <tr>
+                                    <td><strong>#{{ order.id }}</strong></td>
+                                    <td>
+                                        <div>{{ order.customer.name }}</div>
+                                        <small class="text-muted">{{ order.customer.email }}</small><br>
+                                        <small class="text-muted">{{ order.customer.phone }}</small>
+                                    </td>
+                                    <td>
+                                        {% for item in order.orderitem_set.all %}
+                                            <div class="mb-1">
+                                                <strong>{{ item.medicine.name }}</strong>
+                                                {% if item.medicine.medicine_image %}
+                                                    <br><img src="{{ item.medicine.medicine_image.url }}" alt="{{ item.medicine.name }}" style="width: 30px; height: 30px;" class="rounded">
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% for item in order.orderitem_set.all %}
+                                            <div class="mb-1">{{ item.quantity }} units</div>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        <strong>${{ order.total_amount }}</strong>
+                                        {% for item in order.orderitem_set.all %}
+                                            <div class="small text-muted">${{ item.price }} each</div>
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% elif order.status == 'approved' %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% elif order.status == 'rejected' %}
+                                            <span class="badge bg-danger">Rejected</span>
+                                        {% elif order.status == 'completed' %}
+                                            <span class="badge bg-primary">Completed</span>
+                                        {% elif order.status == 'cancelled' %}
+                                            <span class="badge bg-secondary">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if order.status == 'pending' %}
+                                            <div class="btn-group-vertical btn-group-sm" role="group">
+                                                <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline mb-1">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="status" value="approved">
+                                                    <button type="submit" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-check"></i> Approve
+                                                    </button>
+                                                </form>
+                                                <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="status" value="rejected">
+                                                    <button type="submit" class="btn btn-danger btn-sm">
+                                                        <i class="fas fa-times"></i> Reject
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        {% elif order.status == 'approved' %}
+                                            <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="status" value="completed">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-check-circle"></i> Complete
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="text-muted">No actions</span>
+                                        {% endif %}
+                                        
+                                        <a href="{% url 'order_detail_pharmacy' order.id %}" class="btn btn-outline-info btn-sm mt-1">
+                                            <i class="fas fa-eye"></i> View Details
+                                        </a>
+                                        
+                                        {% if order.notes %}
+                                            <button type="button" class="btn btn-sm btn-outline-secondary mt-1" data-bs-toggle="modal" data-bs-target="#notesModal{{ order.id }}">
+                                                <i class="fas fa-sticky-note"></i> Notes
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No orders found</h5>
+                        <p class="text-muted">
+                            {% if status_filter %}
+                                No {{ status_filter }} orders found.
+                            {% else %}
+                                Customer orders will appear here when they place them.
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Notes Modals -->
+{% for order in orders %}
+    {% if order.notes %}
+    <div class="modal fade" id="notesModal{{ order.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Notes for Order #{{ order.id }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Customer:</strong> {{ order.customer.name }}</p>
+                    <p><strong>Order Notes:</strong></p>
+                    <p>{{ order.notes|linebreaks }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+{% endblock %}
