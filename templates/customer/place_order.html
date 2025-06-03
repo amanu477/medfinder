@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %}
+
+{% block title %}Place Order - {{ medicine.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Place Order</h2>
+                <a href="{% url 'home' %}" class="btn btn-outline-secondary">Back to Search</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Medicine Information -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Medicine Details</h5>
+                </div>
+                <div class="card-body">
+                    {% if medicine.medicine_image %}
+                        <img src="{{ medicine.medicine_image.url }}" class="img-fluid mb-3" alt="{{ medicine.name }}" style="max-height: 200px;">
+                    {% endif %}
+                    
+                    <h4>{{ medicine.name }}</h4>
+                    {% if medicine.prescription_required %}
+                        <span class="badge bg-warning text-dark mb-2">Prescription Required</span>
+                    {% endif %}
+                    
+                    <p class="text-muted">{{ medicine.description }}</p>
+                    
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <p><strong>Price:</strong> ${{ medicine.price }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p><strong>Stock:</strong> {{ medicine.stock_quantity }} available</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p><strong>Expiry Date:</strong> {{ medicine.expiry_date }}</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <p><strong>Status:</strong> 
+                                {% if medicine.is_available %}
+                                    <span class="text-success">Available</span>
+                                {% else %}
+                                    <span class="text-danger">Not Available</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Pharmacy Information</h5>
+                </div>
+                <div class="card-body">
+                    <h6>{{ medicine.pharmacy.name }}</h6>
+                    <p class="text-muted mb-2">{{ medicine.pharmacy.address }}</p>
+                    <p class="mb-1"><strong>Phone:</strong> {{ medicine.pharmacy.phone }}</p>
+                    <p class="mb-1"><strong>Email:</strong> {{ medicine.pharmacy.email }}</p>
+                    <p class="mb-0">
+                        <strong>Hours:</strong> 
+                        {{ medicine.pharmacy.opening_time|time:"g:i A" }} - {{ medicine.pharmacy.closing_time|time:"g:i A" }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Form -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Order Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <select name="quantity" id="quantity" class="form-select" onchange="calculateTotal()">
+                                {% for i in "12345678910"|make_list %}
+                                    {% if forloop.counter <= medicine.stock_quantity %}
+                                        <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes (Optional)</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="text-danger">{{ form.notes.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6>Order Summary</h6>
+                                <div class="d-flex justify-content-between">
+                                    <span>Unit Price:</span>
+                                    <span id="unit-price">${{ medicine.price }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span>Quantity:</span>
+                                    <span id="selected-quantity">1</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <strong>Total Amount:</strong>
+                                    <strong id="total-amount">${{ medicine.price }}</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if medicine.prescription_required %}
+                        <div class="alert alert-warning mt-3">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Prescription Required:</strong> This medicine requires a valid prescription. 
+                            Please ensure you have uploaded your prescription or have it ready for verification.
+                        </div>
+                        {% endif %}
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">Place Order</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function calculateTotal() {
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const unitPrice = {{ medicine.price }};
+    const total = quantity * unitPrice;
+    
+    document.getElementById('selected-quantity').textContent = quantity;
+    document.getElementById('total-amount').textContent = '$' + total.toFixed(2);
+}
+
+// Initialize calculation on page load
+document.addEventListener('DOMContentLoaded', function() {
+    calculateTotal();
+});
+</script>
+{% endblock %}

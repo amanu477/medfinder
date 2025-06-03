@@ -19,6 +19,7 @@ urlpatterns = [
     path('search/', customer_views.search_medicines, name='search_medicines'),
     path('prescription/upload/', customer_views.upload_prescription, name='upload_prescription'),
     path('prescription/success/', customer_views.prescription_success, name='prescription_success'),
+    path('customer/', include('customer.urls')),
     
     # Pharmacy Routes
     path('pharmacy/', include('pharmacy.urls')),
