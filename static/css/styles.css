@@ -173,12 +173,12 @@ footer {
 
 /* Medicine Cards */
 .medicine-image {
-    width: 200px;
-    height: 200px;
+    width: 160px;
+    height: 160px;
     object-fit: contain;
     border-radius: 12px;
     background-color: #f8f9fa;
-    padding: 12px;
+    padding: 8px;
     max-width: 100%;
     border: 2px solid #e9ecef;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
