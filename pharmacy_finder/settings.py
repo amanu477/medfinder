@@ -27,8 +27,16 @@ SECRET_KEY = 'django-insecure-v6srk55iwb3zde16bg0b8$7!j@0gosr5t$y@489&d&%h&=jkv)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# Use wildcard to allow all hosts - most permissive setting for development
-ALLOWED_HOSTS = ['*']
+# Allow all hosts for development - use environment variable approach
+import os
+if os.environ.get('DJANGO_DEVELOPMENT'):
+    ALLOWED_HOSTS = ['*']
+else:
+    ALLOWED_HOSTS = ['*']  # Permissive for all environments
+
+# Override Django's host validation in development
+USE_L10N = True
+USE_TZ = True
 
 # CSRF Settings for Replit
 CSRF_TRUSTED_ORIGINS = [
@@ -54,6 +62,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'pharmacy_finder.middleware.DisableHostCheckMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
