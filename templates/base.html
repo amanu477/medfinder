@@ -73,12 +73,35 @@
                         </a>
                         {% endif %}
                     {% else %}
-                        <a href="{% url 'pharmacy_login' %}" class="btn btn-outline-primary me-2">
-                            <i class="fas fa-store me-1"></i> Pharmacy Login
-                        </a>
-                        <a href="{% url 'pharmacy_register' %}" class="btn btn-primary">
-                            <i class="fas fa-user-plus me-1"></i> Register Pharmacy
-                        </a>
+                        <!-- Login Dropdown -->
+                        <div class="dropdown me-2">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="loginDropdown" data-bs-toggle="dropdown">
+                                <i class="fas fa-sign-in-alt me-1"></i> Login
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'customer_login' %}">
+                                    <i class="fas fa-user me-2"></i> Customer Login
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'pharmacy_login' %}">
+                                    <i class="fas fa-store me-2"></i> Pharmacy Login
+                                </a></li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Register Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-primary dropdown-toggle" type="button" id="registerDropdown" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-plus me-1"></i> Register
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'customer_register' %}">
+                                    <i class="fas fa-user me-2"></i> Register as Customer
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'pharmacy_register' %}">
+                                    <i class="fas fa-store me-2"></i> Register as Pharmacy
+                                </a></li>
+                            </ul>
+                        </div>
                     {% endif %}
                 </div>
             </div>
