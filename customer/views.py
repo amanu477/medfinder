@@ -51,11 +51,11 @@ def search_medicines(request):
                     )
                     medicine.distance = round(distance, 1)
                 else:
-                    medicine.distance = float('inf')  # No location = far away
+                    medicine.distance = None  # No location data
                 medicine_list.append(medicine)
             
-            # Sort by distance (nearest first)
-            medicines = sorted(medicine_list, key=lambda x: x.distance)
+            # Sort by distance (nearest first, None values last)
+            medicines = sorted(medicine_list, key=lambda x: x.distance if x.distance is not None else float('inf'))
             
         except (ValueError, ImportError):
             # Fall back to name ordering if location processing fails
@@ -220,27 +220,35 @@ def place_order(request, medicine_id):
         quantity = int(request.POST.get('quantity', 1))
         
         if form.is_valid() and quantity > 0:
-            with transaction.atomic():
-                # Create the order
-                order = Order.objects.create(
-                    customer=customer,
-                    pharmacy=medicine.pharmacy,
-                    notes=form.cleaned_data.get('notes', '')
-                )
-                
-                # Create order item
-                OrderItem.objects.create(
-                    order=order,
-                    medicine=medicine,
-                    quantity=quantity,
-                    price=medicine.price
-                )
-                
-                # Calculate total
-                order.calculate_total()
-                
-                messages.success(request, f'Order placed successfully! Order #{order.id}')
-                return redirect('order_detail', order_id=order.id)
+            # Check stock availability
+            if quantity > medicine.stock_quantity:
+                messages.error(request, f'Only {medicine.stock_quantity} units available in stock.')
+                form = OrderForm()
+            else:
+                with transaction.atomic():
+                    # Create the order
+                    order = Order.objects.create(
+                        customer=customer,
+                        pharmacy=medicine.pharmacy,
+                        notes=form.cleaned_data.get('notes', '')
+                    )
+                    
+                    # Create order item
+                    OrderItem.objects.create(
+                        order=order,
+                        medicine=medicine,
+                        quantity=quantity,
+                        price=medicine.price
+                    )
+                    
+                    # Calculate total
+                    order.calculate_total()
+                    
+                    messages.success(request, f'Order placed successfully! Order #{order.id}')
+                    return redirect('order_detail', order_id=order.id)
+        else:
+            if quantity <= 0:
+                messages.error(request, 'Please enter a valid quantity.')
     else:
         form = OrderForm()
     

@@ -75,7 +75,7 @@
                                     <i class="fas fa-clock me-2"></i>
                                     Open: {{ medicine.pharmacy.opening_time|time:"g:i A" }} - {{ medicine.pharmacy.closing_time|time:"g:i A" }}
                                 </div>
-                                {% if medicine.distance and medicine.distance != 'inf' %}
+                                {% if medicine.distance %}
                                 <div class="d-flex align-items-center mb-2 small text-success">
                                     <i class="fas fa-map-marker-alt me-2"></i>
                                     {{ medicine.distance }} km away
