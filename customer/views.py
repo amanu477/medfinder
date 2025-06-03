@@ -90,6 +90,27 @@ def prescription_success(request):
         'prescription': prescription
     })
 
+def customer_login(request):
+    """Custom customer login view"""
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            # Check if user has a customer profile
+            try:
+                customer = user.customer
+                login(request, user)
+                messages.success(request, f'Welcome back, {customer.name}!')
+                return redirect('customer_dashboard')
+            except Customer.DoesNotExist:
+                messages.error(request, 'This account is not registered as a customer.')
+        else:
+            messages.error(request, 'Invalid username or password.')
+    
+    return render(request, 'customer/login.html')
+
 def customer_register(request):
     """Customer registration view"""
     if request.method == 'POST':

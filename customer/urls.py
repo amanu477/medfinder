@@ -5,7 +5,7 @@ from . import views
 urlpatterns = [
     # Customer authentication
     path('register/', views.customer_register, name='customer_register'),
-    path('login/', auth_views.LoginView.as_view(template_name='customer/login.html'), name='customer_login'),
+    path('login/', views.customer_login, name='customer_login'),
     path('logout/', views.customer_logout, name='customer_logout'),
     
     # Customer dashboard and profile
