@@ -34,7 +34,9 @@ if os.environ.get('DJANGO_DEVELOPMENT'):
 else:
     ALLOWED_HOSTS = ['*']  # Permissive for all environments
 
-# CSRF trusted origins for Replit
+# CSRF settings for development
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = None
 CSRF_TRUSTED_ORIGINS = [
     'https://*.replit.dev',
     'https://*.replit.co', 
@@ -44,6 +46,11 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5000',
     'http://127.0.0.1:5000',
 ]
+
+# Disable CSRF for development (temporary fix for Replit)
+if os.environ.get('REPLIT_DEV_DOMAIN'):
+    CSRF_COOKIE_SECURE = False
+    CSRF_USE_SESSIONS = False
 
 # Override Django's host validation in development
 USE_L10N = True
@@ -66,6 +73,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'pharmacy_finder.middleware.DisableHostCheckMiddleware',
+    'pharmacy_finder.middleware.DisableCSRFMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
