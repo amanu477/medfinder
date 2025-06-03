@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from .models import Pharmacy, Medicine
-from .forms import PharmacyRegistrationForm, PharmacyUserForm, MedicineForm, PharmacyProfileForm
+from .forms import PharmacyRegistrationForm, PharmacyUserForm, MedicineForm, PharmacyProfileForm, PharmacyVerificationForm
 from customer.models import Prescription, Order, OrderItem
 
 def pharmacy_login(request):
@@ -53,8 +53,10 @@ def register(request):
             
             pharmacy.save()
             
-            messages.success(request, 'Registration successful! Please log in with your credentials.')
-            return redirect('pharmacy_login')
+            # Log the user in automatically and redirect to verification
+            login(request, user)
+            messages.success(request, 'Registration successful! Please upload verification documents to complete your pharmacy setup.')
+            return redirect('pharmacy_verification')
     else:
         user_form = PharmacyUserForm()
         pharmacy_form = PharmacyRegistrationForm()
@@ -65,9 +67,57 @@ def register(request):
     })
 
 @login_required
+def pharmacy_verification(request):
+    """Pharmacy verification document upload"""
+    pharmacy = get_object_or_404(Pharmacy, user=request.user)
+    
+    # Check if already verified
+    if pharmacy.verification_status == 'verified':
+        messages.info(request, 'Your pharmacy is already verified!')
+        return redirect('pharmacy_dashboard')
+    
+    if request.method == 'POST':
+        form = PharmacyVerificationForm(request.POST, request.FILES, instance=pharmacy)
+        if form.is_valid():
+            pharmacy = form.save(commit=False)
+            pharmacy.verification_status = 'pending'
+            pharmacy.save()
+            
+            messages.success(request, 'Verification documents uploaded successfully! Your application is now under review. You will be notified once approved.')
+            return redirect('verification_pending')
+    else:
+        form = PharmacyVerificationForm(instance=pharmacy)
+    
+    return render(request, 'pharmacy/verification.html', {
+        'form': form,
+        'pharmacy': pharmacy
+    })
+
+@login_required
+def verification_pending(request):
+    """Show verification pending status"""
+    pharmacy = get_object_or_404(Pharmacy, user=request.user)
+    
+    if pharmacy.verification_status == 'verified':
+        return redirect('pharmacy_dashboard')
+    
+    return render(request, 'pharmacy/verification_pending.html', {
+        'pharmacy': pharmacy
+    })
+
+@login_required
 def dashboard(request):
     """Pharmacy dashboard"""
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
+    
+    # Check verification status
+    if pharmacy.verification_status == 'pending':
+        return redirect('verification_pending')
+    elif pharmacy.verification_status == 'rejected':
+        messages.error(request, f'Your pharmacy verification was rejected. Reason: {pharmacy.rejection_reason or "No specific reason provided."}')
+        return redirect('pharmacy_verification')
+    elif pharmacy.verification_status != 'verified':
+        return redirect('pharmacy_verification')
     
     # Get all medicines for this pharmacy
     medicines = Medicine.objects.filter(pharmacy=pharmacy)

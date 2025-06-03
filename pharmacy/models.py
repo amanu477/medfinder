@@ -5,6 +5,12 @@ from datetime import timedelta
 
 class Pharmacy(models.Model):
     """Model for storing pharmacy information"""
+    VERIFICATION_STATUS_CHOICES = [
+        ('pending', 'Pending Verification'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     license_number = models.CharField(max_length=50, unique=True)
@@ -16,6 +22,12 @@ class Pharmacy(models.Model):
     opening_time = models.TimeField()
     closing_time = models.TimeField()
     is_active = models.BooleanField(default=True)
+    verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, default='pending')
+    verification_documents = models.FileField(upload_to='pharmacy_documents/', null=True, blank=True)
+    business_license = models.FileField(upload_to='pharmacy_documents/', null=True, blank=True)
+    pharmacist_certificate = models.FileField(upload_to='pharmacy_documents/', null=True, blank=True)
+    rejection_reason = models.TextField(blank=True, null=True)
+    verified_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

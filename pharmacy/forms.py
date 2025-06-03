@@ -62,3 +62,23 @@ class MedicineForm(forms.ModelForm):
             'is_available': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'prescription_required': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+
+class PharmacyVerificationForm(forms.ModelForm):
+    """Form for pharmacy verification document upload"""
+    business_license = forms.FileField(
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
+        help_text="Upload your business license (PDF, JPG, PNG)"
+    )
+    pharmacist_certificate = forms.FileField(
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
+        help_text="Upload pharmacist certification (PDF, JPG, PNG)"
+    )
+    verification_documents = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
+        help_text="Upload any additional verification documents (Optional)"
+    )
+    
+    class Meta:
+        model = Pharmacy
+        fields = ['business_license', 'pharmacist_certificate', 'verification_documents']
