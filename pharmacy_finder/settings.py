@@ -34,17 +34,20 @@ if os.environ.get('DJANGO_DEVELOPMENT'):
 else:
     ALLOWED_HOSTS = ['*']  # Permissive for all environments
 
+# CSRF trusted origins for Replit
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.replit.dev',
+    'https://*.replit.co', 
+    'https://*.replit.app',
+    'https://*.janeway.replit.dev',
+    'https://86b78c18-036e-4fa8-9dfb-f8589a24e402-00-1rorhkx86i9vj.janeway.replit.dev',
+    'http://localhost:5000',
+    'http://127.0.0.1:5000',
+]
+
 # Override Django's host validation in development
 USE_L10N = True
 USE_TZ = True
-
-# CSRF Settings for Replit
-CSRF_TRUSTED_ORIGINS = [
-    'https://*.replit.app',
-    'https://*.repl.co',
-    'https://*.janeway.replit.dev',
-    'https://86b78c18-036e-4fa8-9dfb-f8589a24e402-00-1rorhkx86i9vj.janeway.replit.dev',
-]
 
 # Application definition
 INSTALLED_APPS = [
