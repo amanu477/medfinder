@@ -24,8 +24,7 @@ urlpatterns = [
     # Pharmacy Routes
     path('pharmacy/', include('pharmacy.urls')),
     
-    # Authentication Routes
-    path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
+    # Authentication Routes are handled in individual apps
 ]
 
 # Serve media files in development
