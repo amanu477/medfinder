@@ -47,10 +47,9 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:5000',
 ]
 
-# Disable CSRF for development (temporary fix for Replit)
-if os.environ.get('REPLIT_DEV_DOMAIN'):
-    CSRF_COOKIE_SECURE = False
-    CSRF_USE_SESSIONS = False
+# Disable CSRF for development
+CSRF_COOKIE_SECURE = False
+CSRF_USE_SESSIONS = False
 
 # Override Django's host validation in development
 USE_L10N = True

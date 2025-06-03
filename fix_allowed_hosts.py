@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 This script fixes the ALLOWED_HOSTS setting in settings.py to include
-the Replit-specific domain. Run this when you encounter DisallowedHost errors.
+development domains. Run this when you encounter DisallowedHost errors.
 """
 
 import os
@@ -31,10 +31,10 @@ def main():
             sys.exit(1)
     else:
         # Use a very permissive ALLOWED_HOSTS setting 
-        # and add common Replit domains
+        # and add common development domains
         print("No error message provided. Using default settings.")
         pattern = r"ALLOWED_HOSTS\s*=\s*\[([^\]]*)\]"
-        replacement = "ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1', '.replit.app', '.repl.co', '.janeway.replit.dev']"
+        replacement = "ALLOWED_HOSTS = ['*', 'localhost', '127.0.0.1']"
         
         new_content = re.sub(pattern, replacement, content)
         

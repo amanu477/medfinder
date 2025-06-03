@@ -1,5 +1,5 @@
 """
-Custom middleware to handle Replit host validation and CSRF issues
+Custom middleware to handle host validation and CSRF issues
 """
 
 class DisableHostCheckMiddleware:
@@ -27,7 +27,7 @@ class DisableHostCheckMiddleware:
 
 class DisableCSRFMiddleware:
     """
-    Middleware to disable CSRF protection for development on Replit
+    Middleware to disable CSRF protection for development
     """
     def __init__(self, get_response):
         self.get_response = get_response

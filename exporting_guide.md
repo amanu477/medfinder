@@ -1,12 +1,11 @@
-# Exporting the Pharmacy Connection Platform from Replit
+# Exporting the Pharmacy Connection Platform
 
-This guide will show you how to export your Pharmacy Connection Platform project from Replit to run on your local PC.
+This guide will show you how to export your Pharmacy Connection Platform project to run on your local PC.
 
 ## Step 1: Export Project Files
 
 1. **Download as ZIP**:
-   - In Replit, click on the three dots menu (...) in the Files panel
-   - Select "Download as zip"
+   - Download the project files from your development environment
    - Save the ZIP file to your computer
 
 2. **Extract the ZIP file**:
@@ -112,7 +111,7 @@ git init
 git add .
 
 # Create your first commit
-git commit -m "Initial commit from Replit export"
+git commit -m "Initial commit"
 ```
 
 This makes it easier to track changes and collaborate with others.

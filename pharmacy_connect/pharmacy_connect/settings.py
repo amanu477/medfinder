@@ -22,11 +22,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-# CSRF Settings for Replit
+# CSRF Settings for development
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.replit.app',
-    'https://*.repl.co',
-    'https://*.replit.dev',
+    'https://localhost',
+    'http://localhost',
+    'http://127.0.0.1',
 ]
 
 # Application definition
