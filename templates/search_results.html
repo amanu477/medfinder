@@ -100,8 +100,11 @@
                                 </div>
                                 {% if medicine.pharmacy.latitude and medicine.pharmacy.longitude %}
                                 <div class="small text-muted mb-2">
-                                    <i class="fas fa-globe me-2"></i>
-                                    <strong>Location:</strong> {{ medicine.pharmacy.latitude|floatformat:4 }}°N, {{ medicine.pharmacy.longitude|floatformat:4 }}°E
+                                    <i class="fas fa-map me-2"></i>
+                                    <a href="https://www.google.com/maps?q={{ medicine.pharmacy.latitude }},{{ medicine.pharmacy.longitude }}" 
+                                       target="_blank" class="text-decoration-none">
+                                        <strong>View on Map</strong> <i class="fas fa-external-link-alt ms-1"></i>
+                                    </a>
                                 </div>
                                 {% endif %}
                                 <div class="small text-muted mb-2">
