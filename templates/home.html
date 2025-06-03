@@ -9,12 +9,20 @@
         <h1>Find the medicines you need, quickly and easily</h1>
         <p>Connect with pharmacies that have the medications you're looking for</p>
         <div class="search-container">
-            <form method="get" action="{% url 'search_medicines' %}" class="search-form">
+            <form method="get" action="{% url 'search_medicines' %}" class="search-form" id="medicine-search-form">
                 <input type="text" name="query" placeholder="Search for medicines..." required>
+                <input type="hidden" name="lat" id="search-lat">
+                <input type="hidden" name="lon" id="search-lon">
                 <button type="submit" class="btn btn-primary px-4 py-2">
                     <i class="fas fa-search me-2"></i> Search
                 </button>
             </form>
+            <div class="text-center mt-2">
+                <button type="button" class="btn btn-outline-light btn-sm" id="get-location-btn">
+                    <i class="fas fa-map-marker-alt me-1"></i> Get My Location for Better Results
+                </button>
+                <div id="location-status" class="mt-2 small text-white-75"></div>
+            </div>
             <div class="text-center mt-3">
                 <a href="{% url 'upload_prescription' %}" class="btn btn-light btn-lg">
                     <i class="fas fa-file-prescription me-2"></i> Upload Prescription
@@ -92,7 +100,89 @@
         </div>
     </div>
 </section>
-{% comment %}
-Location-based functionality has been removed as requested
-{% endcomment %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const getLocationBtn = document.getElementById('get-location-btn');
+    const locationStatus = document.getElementById('location-status');
+    const searchLatInput = document.getElementById('search-lat');
+    const searchLonInput = document.getElementById('search-lon');
+    
+    // Check if location is already stored
+    const savedLat = localStorage.getItem('customer_lat');
+    const savedLon = localStorage.getItem('customer_lon');
+    
+    if (savedLat && savedLon) {
+        searchLatInput.value = savedLat;
+        searchLonInput.value = savedLon;
+        locationStatus.innerHTML = '<i class="fas fa-check-circle me-1"></i> Location detected - results will be sorted by distance';
+        getLocationBtn.innerHTML = '<i class="fas fa-check me-1"></i> Location Set';
+        getLocationBtn.classList.remove('btn-outline-light');
+        getLocationBtn.classList.add('btn-success');
+    }
+    
+    getLocationBtn.addEventListener('click', function() {
+        if (navigator.geolocation) {
+            locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Getting your location...';
+            getLocationBtn.disabled = true;
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    // Store location in form and localStorage
+                    searchLatInput.value = lat;
+                    searchLonInput.value = lon;
+                    localStorage.setItem('customer_lat', lat);
+                    localStorage.setItem('customer_lon', lon);
+                    
+                    locationStatus.innerHTML = '<i class="fas fa-check-circle me-1"></i> Location detected - results will be sorted by distance';
+                    getLocationBtn.innerHTML = '<i class="fas fa-check me-1"></i> Location Set';
+                    getLocationBtn.classList.remove('btn-outline-light');
+                    getLocationBtn.classList.add('btn-success');
+                    getLocationBtn.disabled = false;
+                },
+                function(error) {
+                    let errorMsg = 'Unable to get location. ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg += 'Please allow location access for better results.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg += 'Location information unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg += 'Location request timed out.';
+                            break;
+                        default:
+                            errorMsg += 'An unknown error occurred.';
+                            break;
+                    }
+                    locationStatus.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> ' + errorMsg;
+                    getLocationBtn.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000  // Cache location for 5 minutes
+                }
+            );
+        } else {
+            locationStatus.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Geolocation is not supported by this browser.';
+        }
+    });
+    
+    // Auto-get location if user hasn't set it yet
+    if (!savedLat || !savedLon) {
+        setTimeout(() => {
+            if (navigator.geolocation) {
+                getLocationBtn.click();
+            }
+        }, 1000);
+    }
+});
+</script>
 {% endblock %}

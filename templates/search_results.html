@@ -8,7 +8,18 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h1 class="h3 mb-0">Search Results: "{{ query }}"</h1>
-                <p class="text-muted">{{ medicines|length }} medicines found</p>
+                <p class="text-muted">
+                    {{ medicines|length }} medicines found
+                    {% if user_has_location %}
+                        <span class="text-success ms-2">
+                            <i class="fas fa-map-marker-alt me-1"></i> Sorted by distance
+                        </span>
+                    {% else %}
+                        <span class="text-warning ms-2">
+                            <i class="fas fa-info-circle me-1"></i> Enable location for distance sorting
+                        </span>
+                    {% endif %}
+                </p>
             </div>
             <a href="{% url 'home' %}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left me-2"></i> New Search
@@ -18,12 +29,22 @@
         <!-- Search Bar -->
         <div class="card shadow-sm mb-4">
             <div class="card-body">
-                <form method="get" action="{% url 'search_medicines' %}" class="d-flex">
+                <form method="get" action="{% url 'search_medicines' %}" class="d-flex" id="results-search-form">
                     <input type="text" name="query" value="{{ query }}" class="form-control me-2" placeholder="Search for medicines..." required>
+                    <input type="hidden" name="lat" id="results-lat">
+                    <input type="hidden" name="lon" id="results-lon">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search me-2"></i> Search
                     </button>
                 </form>
+                {% if not user_has_location %}
+                <div class="text-center mt-2">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="enable-location-btn">
+                        <i class="fas fa-map-marker-alt me-1"></i> Enable Location for Distance Sorting
+                    </button>
+                    <div id="location-status-results" class="mt-2 small text-muted"></div>
+                </div>
+                {% endif %}
             </div>
         </div>
         
@@ -180,6 +201,74 @@
 </div>
 {% endblock %}
 
-{% comment %}
-Location functionality has been removed as requested
-{% endcomment %}
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const enableLocationBtn = document.getElementById('enable-location-btn');
+    const locationStatusResults = document.getElementById('location-status-results');
+    const resultsLatInput = document.getElementById('results-lat');
+    const resultsLonInput = document.getElementById('results-lon');
+    
+    // Check if location is already stored
+    const savedLat = localStorage.getItem('customer_lat');
+    const savedLon = localStorage.getItem('customer_lon');
+    
+    if (savedLat && savedLon) {
+        if (resultsLatInput) resultsLatInput.value = savedLat;
+        if (resultsLonInput) resultsLonInput.value = savedLon;
+    }
+    
+    if (enableLocationBtn) {
+        enableLocationBtn.addEventListener('click', function() {
+            if (navigator.geolocation) {
+                locationStatusResults.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Getting your location...';
+                enableLocationBtn.disabled = true;
+                
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        // Store location
+                        localStorage.setItem('customer_lat', lat);
+                        localStorage.setItem('customer_lon', lon);
+                        
+                        // Update form and reload with location
+                        const form = document.getElementById('results-search-form');
+                        const queryInput = form.querySelector('input[name="query"]');
+                        const newUrl = `{% url 'search_medicines' %}?query=${encodeURIComponent(queryInput.value)}&lat=${lat}&lon=${lon}`;
+                        window.location.href = newUrl;
+                    },
+                    function(error) {
+                        let errorMsg = 'Unable to get location. ';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorMsg += 'Please allow location access for better results.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorMsg += 'Location information unavailable.';
+                                break;
+                            case error.TIMEOUT:
+                                errorMsg += 'Location request timed out.';
+                                break;
+                            default:
+                                errorMsg += 'An unknown error occurred.';
+                                break;
+                        }
+                        locationStatusResults.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> ' + errorMsg;
+                        enableLocationBtn.disabled = false;
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 300000
+                    }
+                );
+            } else {
+                locationStatusResults.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Geolocation is not supported by this browser.';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
