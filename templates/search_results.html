@@ -52,36 +52,37 @@
         <div class="row">
             {% if medicines %}
                 {% for medicine in medicines %}
-                <div class="col-md-6 col-lg-4 mb-4">
+                <div class="col-lg-6 mb-4">
                     <div class="card h-100 shadow-sm">
                         <div class="card-body">
-                            <div class="d-flex mb-3 align-items-center">
-                                <div class="me-3 flex-shrink-0">
+                            <div class="row mb-3">
+                                <div class="col-md-5 text-center mb-3 mb-md-0">
                                     {% if medicine.medicine_image %}
                                     <img src="{{ medicine.medicine_image.url }}" alt="{{ medicine.name }}" class="medicine-image">
                                     {% else %}
                                     <div class="d-flex align-items-center justify-content-center medicine-image">
-                                        <i class="fas fa-pills fa-2x text-primary"></i>
+                                        <i class="fas fa-pills fa-4x text-primary"></i>
                                     </div>
                                     {% endif %}
                                 </div>
-                                <div class="flex-grow-1">
-                                    <h5 class="card-title mb-1">{{ medicine.name }}</h5>
-                                    <p class="card-text text-primary mb-0"><strong>{{ medicine.price }} ETB</strong></p>
-                                    <div class="small text-muted">Stock: {{ medicine.stock_quantity }}</div>
-                                    {% if medicine.prescription_required %}
-                                    <div class="mt-1 badge bg-warning">
-                                        <i class="fas fa-file-prescription me-1"></i> Prescription Required
+                                <div class="col-md-7">
+                                    <h5 class="card-title mb-2">{{ medicine.name }}</h5>
+                                    <p class="card-text text-primary mb-2"><strong class="fs-4">{{ medicine.price }} ETB</strong></p>
+                                    <div class="mb-2">
+                                        <span class="badge bg-info me-2">Stock: {{ medicine.stock_quantity }}</span>
+                                        {% if medicine.prescription_required %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-file-prescription me-1"></i> Prescription Required
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check me-1"></i> No Prescription Needed
+                                        </span>
+                                        {% endif %}
                                     </div>
-                                    {% else %}
-                                    <div class="mt-1 badge bg-success">
-                                        <i class="fas fa-check me-1"></i> No Prescription Needed
-                                    </div>
-                                    {% endif %}
+                                    <p class="card-text small mb-2">{{ medicine.description|truncatewords:15 }}</p>
                                 </div>
                             </div>
-                            
-                            <p class="card-text small mb-3">{{ medicine.description|truncatewords:20 }}</p>
                             
                             <div class="pharmacy-location">
                                 <div class="d-flex align-items-center justify-content-between mb-2">

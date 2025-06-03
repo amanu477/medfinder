@@ -173,14 +173,20 @@ footer {
 
 /* Medicine Cards */
 .medicine-image {
-    width: 120px;
-    height: 120px;
+    width: 200px;
+    height: 200px;
     object-fit: contain;
-    border-radius: 8px;
+    border-radius: 12px;
     background-color: #f8f9fa;
-    padding: 8px;
+    padding: 12px;
     max-width: 100%;
-    border: 1px solid #e9ecef;
+    border: 2px solid #e9ecef;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.medicine-image:hover {
+    transform: scale(1.05);
 }
 
 .pharmacy-location {
