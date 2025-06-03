@@ -137,11 +137,17 @@ function addLocationButton() {
     searchContainer.appendChild(locationBtn);
 }
 
-// Handle pharmacy registration location button
+// Handle pharmacy registration location functionality
 function handlePharmacyLocationButton() {
     const locationBtn = document.querySelector('.get-location-btn');
+    const manualToggleBtn = document.querySelector('.toggle-manual-location');
+    const manualSection = document.getElementById('manual-location-section');
+    const manualLatInput = document.getElementById('manual-latitude');
+    const manualLonInput = document.getElementById('manual-longitude');
+    
     if (!locationBtn) return;
 
+    // Handle automatic location detection
     locationBtn.addEventListener('click', () => {
         const latInput = document.querySelector('input[name="latitude"]');
         const lonInput = document.querySelector('input[name="longitude"]');
@@ -160,6 +166,10 @@ function handlePharmacyLocationButton() {
                 latInput.value = location.lat;
                 lonInput.value = location.lon;
 
+                // Clear manual inputs
+                if (manualLatInput) manualLatInput.value = '';
+                if (manualLonInput) manualLonInput.value = '';
+
                 // Show success message
                 statusDiv.classList.remove('d-none', 'alert-info', 'alert-warning');
                 statusDiv.classList.add('alert-success');
@@ -168,6 +178,12 @@ function handlePharmacyLocationButton() {
                 // Update button
                 locationBtn.innerHTML = '<i class="fas fa-check me-2"></i> Location Obtained';
                 locationBtn.className = 'btn btn-success';
+
+                // Hide manual section if open
+                if (manualSection && !manualSection.classList.contains('d-none')) {
+                    manualSection.classList.add('d-none');
+                    manualToggleBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Enter Location Manually';
+                }
 
                 // Dispatch custom event
                 document.dispatchEvent(new CustomEvent('userLocationObtained', {
@@ -178,13 +194,79 @@ function handlePharmacyLocationButton() {
                 // Show error message
                 statusDiv.classList.remove('d-none', 'alert-info', 'alert-success');
                 statusDiv.classList.add('alert-warning');
-                messageSpan.textContent = `Error: ${error.message}`;
+                messageSpan.textContent = `Error: ${error.message}. Try entering coordinates manually.`;
 
                 // Reset button
                 locationBtn.disabled = false;
                 locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Get Current Location';
             });
     });
+
+    // Handle manual location toggle
+    if (manualToggleBtn && manualSection) {
+        manualToggleBtn.addEventListener('click', () => {
+            const isHidden = manualSection.classList.contains('d-none');
+            
+            if (isHidden) {
+                // Show manual section
+                manualSection.classList.remove('d-none');
+                manualToggleBtn.innerHTML = '<i class="fas fa-times me-2"></i> Cancel Manual Entry';
+                manualToggleBtn.className = 'btn btn-outline-danger';
+                
+                // Update status message
+                const statusDiv = document.getElementById('location-status');
+                const messageSpan = document.getElementById('location-message');
+                statusDiv.classList.remove('d-none', 'alert-success', 'alert-warning');
+                statusDiv.classList.add('alert-info');
+                messageSpan.textContent = 'Enter your pharmacy coordinates manually below.';
+            } else {
+                // Hide manual section
+                manualSection.classList.add('d-none');
+                manualToggleBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Enter Location Manually';
+                manualToggleBtn.className = 'btn btn-outline-secondary';
+                
+                // Clear manual inputs
+                if (manualLatInput) manualLatInput.value = '';
+                if (manualLonInput) manualLonInput.value = '';
+            }
+        });
+    }
+
+    // Handle manual coordinate input changes
+    if (manualLatInput && manualLonInput) {
+        const updateFormWithManualLocation = () => {
+            const latInput = document.querySelector('input[name="latitude"]');
+            const lonInput = document.querySelector('input[name="longitude"]');
+            const statusDiv = document.getElementById('location-status');
+            const messageSpan = document.getElementById('location-message');
+
+            const lat = parseFloat(manualLatInput.value);
+            const lon = parseFloat(manualLonInput.value);
+
+            if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+                // Valid coordinates
+                latInput.value = lat;
+                lonInput.value = lon;
+
+                statusDiv.classList.remove('d-none', 'alert-info', 'alert-warning');
+                statusDiv.classList.add('alert-success');
+                messageSpan.textContent = `Manual coordinates set: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+
+                // Reset automatic button
+                locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Get Current Location';
+                locationBtn.className = 'btn btn-outline-primary';
+                locationBtn.disabled = false;
+            } else {
+                // Invalid coordinates
+                statusDiv.classList.remove('d-none', 'alert-success', 'alert-info');
+                statusDiv.classList.add('alert-warning');
+                messageSpan.textContent = 'Please enter valid coordinates (Latitude: -90 to 90, Longitude: -180 to 180)';
+            }
+        };
+
+        manualLatInput.addEventListener('input', updateFormWithManualLocation);
+        manualLonInput.addEventListener('input', updateFormWithManualLocation);
+    }
 }
 
 // Initialize when page loads

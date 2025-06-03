@@ -136,18 +136,59 @@
                             <div class="mb-4">
                                 <p class="mb-3">Your pharmacy's location is used to help customers find medicines near them.</p>
                                 
-                                <div class="d-grid mb-3">
-                                    <button type="button" class="btn btn-outline-primary get-location-btn">
-                                        <i class="fas fa-map-marker-alt me-2"></i> Get Current Location
-                                    </button>
+                                <!-- Automatic Location Detection -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="d-grid">
+                                            <button type="button" class="btn btn-outline-primary get-location-btn">
+                                                <i class="fas fa-map-marker-alt me-2"></i> Get Current Location
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="d-grid">
+                                            <button type="button" class="btn btn-outline-secondary toggle-manual-location">
+                                                <i class="fas fa-edit me-2"></i> Enter Location Manually
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 
+                                <!-- Manual Location Entry (Hidden by default) -->
+                                <div id="manual-location-section" class="d-none">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="manual-latitude" class="form-label">Latitude</label>
+                                            <input type="number" id="manual-latitude" class="form-control" 
+                                                   step="any" placeholder="e.g., 9.145000" 
+                                                   title="Enter latitude coordinate (e.g., 9.145000)">
+                                            <div class="form-text">Latitude coordinate (North/South position)</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="manual-longitude" class="form-label">Longitude</label>
+                                            <input type="number" id="manual-longitude" class="form-control" 
+                                                   step="any" placeholder="e.g., 40.489673" 
+                                                   title="Enter longitude coordinate (e.g., 40.489673)">
+                                            <div class="form-text">Longitude coordinate (East/West position)</div>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>How to find your coordinates:</strong><br>
+                                        1. Open Google Maps or any map service<br>
+                                        2. Right-click on your pharmacy location<br>
+                                        3. Copy the latitude and longitude numbers<br>
+                                        4. Paste them in the fields above
+                                    </div>
+                                </div>
+                                
+                                <!-- Hidden form fields for Django -->
                                 {{ pharmacy_form.latitude }}
                                 {{ pharmacy_form.longitude }}
                                 
                                 <div id="location-status" class="alert alert-info d-none">
                                     <i class="fas fa-info-circle me-2"></i>
-                                    <span id="location-message">Click the button above to get your current location.</span>
+                                    <span id="location-message">Choose automatic detection or enter coordinates manually.</span>
                                 </div>
                             </div>
                             
