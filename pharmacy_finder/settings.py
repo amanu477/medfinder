@@ -38,11 +38,6 @@ else:
 CSRF_COOKIE_SECURE = False
 CSRF_COOKIE_SAMESITE = None
 CSRF_TRUSTED_ORIGINS = [
-    'https://*.replit.dev',
-    'https://*.replit.co', 
-    'https://*.replit.app',
-    'https://*.janeway.replit.dev',
-    'https://86b78c18-036e-4fa8-9dfb-f8589a24e402-00-1rorhkx86i9vj.janeway.replit.dev',
     'http://localhost:5000',
     'http://127.0.0.1:5000',
 ]

@@ -47,7 +47,7 @@
                                             <small class="text-muted">{{ order.pharmacy.address|truncatechars:30 }}</small>
                                         </td>
                                         <td>{{ order.get_total_items }} item{{ order.get_total_items|pluralize }}</td>
-                                        <td>${{ order.total_amount }}</td>
+                                        <td>{{ order.total_amount }} ETB</td>
                                         <td>
                                             <span class="badge 
                                                 {% if order.status == 'pending' %}bg-warning text-dark

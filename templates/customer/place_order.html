@@ -108,7 +108,7 @@
                                 <h6>Order Summary</h6>
                                 <div class="d-flex justify-content-between">
                                     <span>Unit Price:</span>
-                                    <span id="unit-price">${{ medicine.price }}</span>
+                                    <span id="unit-price">{{ medicine.price }} ETB</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span>Quantity:</span>
@@ -117,7 +117,7 @@
                                 <hr>
                                 <div class="d-flex justify-content-between">
                                     <strong>Total Amount:</strong>
-                                    <strong id="total-amount">${{ medicine.price }}</strong>
+                                    <strong id="total-amount">{{ medicine.price }} ETB</strong>
                                 </div>
                             </div>
                         </div>
@@ -147,7 +147,7 @@ function calculateTotal() {
     const total = quantity * unitPrice;
     
     document.getElementById('selected-quantity').textContent = quantity;
-    document.getElementById('total-amount').textContent = '$' + total.toFixed(2);
+    document.getElementById('total-amount').textContent = total.toFixed(2) + ' ETB';
 }
 
 // Initialize calculation on page load

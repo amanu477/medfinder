@@ -116,9 +116,9 @@
                                         {% endfor %}
                                     </td>
                                     <td>
-                                        <strong>${{ order.total_amount }}</strong>
+                                        <strong>{{ order.total_amount }} ETB</strong>
                                         {% for item in order.orderitem_set.all %}
-                                            <div class="small text-muted">${{ item.price }} each</div>
+                                            <div class="small text-muted">{{ item.price }} ETB each</div>
                                         {% endfor %}
                                     </td>
                                     <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
