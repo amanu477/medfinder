@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     # Authentication
     path('login/', views.pharmacy_login, name='pharmacy_login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='pharmacy_logout'),
     path('register/', views.register, name='pharmacy_register'),
     
     # Dashboard
