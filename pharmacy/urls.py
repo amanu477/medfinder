@@ -20,4 +20,9 @@ urlpatterns = [
     # Prescriptions
     path('prescriptions/', views.prescription_list, name='prescription_list'),
     path('prescriptions/update/<int:prescription_id>/', views.update_prescription_status, name='update_prescription_status'),
+    
+    # Orders
+    path('orders/', views.order_management, name='order_management'),
+    path('orders/<int:order_id>/', views.order_detail_pharmacy, name='order_detail_pharmacy'),
+    path('orders/<int:order_id>/update/', views.update_order_status, name='update_order_status'),
 ]
