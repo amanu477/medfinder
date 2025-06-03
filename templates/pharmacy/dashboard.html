@@ -161,7 +161,7 @@
                                 <tr>
                                     <td>{{ medicine.name }}</td>
                                     <td>{{ medicine.stock_quantity }}</td>
-                                    <td>${{ medicine.price }}</td>
+                                    <td>{{ medicine.price }} ETB</td>
                                     <td>{{ medicine.expiry_date|date:"M d, Y" }}</td>
                                     <td>
                                         <span class="expiry-countdown {% if medicine.days_until_expiry <= 30 %}text-warning{% endif %}" data-expiry-date="{{ medicine.expiry_date|date:'Y-m-d' }}">
@@ -223,7 +223,7 @@
                                             </div>
                                         {% endfor %}
                                     </td>
-                                    <td><strong>${{ order.total_amount }}</strong></td>
+                                    <td><strong>{{ order.total_amount }} ETB</strong></td>
                                     <td>{{ order.created_at|date:"M d, H:i" }}</td>
                                     <td>
                                         {% if order.status == 'pending' %}
