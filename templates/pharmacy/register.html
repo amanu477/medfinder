@@ -353,6 +353,74 @@
             locationStatus.classList.add('alert-success');
             locationMessage.textContent = 'Location successfully obtained.';
         });
+        
+        // Manual location toggle - Simple implementation
+        const manualToggleBtn = document.querySelector('.toggle-manual-location');
+        const manualSection = document.getElementById('manual-location-section');
+        
+        if (manualToggleBtn && manualSection) {
+            console.log('Manual toggle button found, adding click handler');
+            
+            manualToggleBtn.addEventListener('click', function() {
+                console.log('Manual location button clicked');
+                
+                if (manualSection.classList.contains('d-none')) {
+                    console.log('Showing manual section');
+                    manualSection.classList.remove('d-none');
+                    manualToggleBtn.innerHTML = '<i class="fas fa-times me-2"></i> Cancel Manual Entry';
+                    manualToggleBtn.className = 'btn btn-outline-danger';
+                    
+                    locationStatus.classList.remove('d-none', 'alert-success', 'alert-warning');
+                    locationStatus.classList.add('alert-info');
+                    locationMessage.textContent = 'Enter your pharmacy coordinates manually below.';
+                } else {
+                    console.log('Hiding manual section');
+                    manualSection.classList.add('d-none');
+                    manualToggleBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Enter Location Manually';
+                    manualToggleBtn.className = 'btn btn-outline-secondary';
+                    
+                    // Clear manual inputs
+                    const manualLat = document.getElementById('manual-latitude');
+                    const manualLon = document.getElementById('manual-longitude');
+                    if (manualLat) manualLat.value = '';
+                    if (manualLon) manualLon.value = '';
+                }
+            });
+        } else {
+            console.log('Manual toggle button or section not found');
+        }
+        
+        // Manual coordinate input handling
+        const manualLatInput = document.getElementById('manual-latitude');
+        const manualLonInput = document.getElementById('manual-longitude');
+        
+        if (manualLatInput && manualLonInput) {
+            console.log('Manual coordinate inputs found');
+            
+            function updateCoordinates() {
+                const lat = parseFloat(manualLatInput.value);
+                const lon = parseFloat(manualLonInput.value);
+                
+                console.log('Manual coordinates:', lat, lon);
+                
+                const latInput = document.querySelector('input[name="latitude"]');
+                const lonInput = document.querySelector('input[name="longitude"]');
+                
+                if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+                    if (latInput) latInput.value = lat;
+                    if (lonInput) lonInput.value = lon;
+                    
+                    locationStatus.classList.remove('d-none', 'alert-info', 'alert-warning');
+                    locationStatus.classList.add('alert-success');
+                    locationMessage.textContent = `Manual coordinates set: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                    
+                    console.log('Coordinates updated in form fields');
+                }
+            }
+            
+            manualLatInput.addEventListener('input', updateCoordinates);
+            manualLonInput.addEventListener('input', updateCoordinates);
+        }
     });
 </script>
 {% endblock %}
