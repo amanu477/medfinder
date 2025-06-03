@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib import messages
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -242,6 +242,13 @@ def cancel_order(request, order_id):
         messages.error(request, 'This order cannot be cancelled.')
     
     return redirect('order_detail', order_id=order.id)
+
+
+def customer_logout(request):
+    """Custom logout view for customer"""
+    logout(request)
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('home')
 
 
 # Removed location-based API endpoints as requested

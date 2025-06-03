@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.utils import timezone
 from django.http import JsonResponse
@@ -267,3 +267,10 @@ def update_order_status(request, order_id):
             messages.error(request, 'Invalid status value!')
     
     return redirect('order_management')
+
+
+def pharmacy_logout(request):
+    """Custom logout view for pharmacy"""
+    logout(request)
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('home')

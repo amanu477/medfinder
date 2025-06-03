@@ -6,7 +6,7 @@ urlpatterns = [
     # Customer authentication
     path('register/', views.customer_register, name='customer_register'),
     path('login/', auth_views.LoginView.as_view(template_name='customer/login.html'), name='customer_login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='customer_logout'),
+    path('logout/', views.customer_logout, name='customer_logout'),
     
     # Customer dashboard and profile
     path('dashboard/', views.customer_dashboard, name='customer_dashboard'),
