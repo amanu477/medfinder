@@ -135,10 +135,18 @@ def customer_dashboard(request):
     # Get recent prescriptions
     recent_prescriptions = Prescription.objects.filter(customer=customer).order_by('-created_at')[:5]
     
+    # Check for order status notifications
+    approved_orders = Order.objects.filter(customer=customer, status='approved').count()
+    completed_orders = Order.objects.filter(customer=customer, status='completed').count()
+    pending_orders = Order.objects.filter(customer=customer, status='pending').count()
+    
     return render(request, 'customer/dashboard.html', {
         'customer': customer,
         'recent_orders': recent_orders,
-        'recent_prescriptions': recent_prescriptions
+        'recent_prescriptions': recent_prescriptions,
+        'approved_orders': approved_orders,
+        'completed_orders': completed_orders,
+        'pending_orders': pending_orders,
     })
 
 

@@ -5,6 +5,25 @@
 
 {% block content %}
 <div class="container mt-4">
+    <!-- Order Status Notifications -->
+    {% if approved_orders > 0 %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <strong>Good news!</strong> You have {{ approved_orders }} approved order{{ approved_orders|pluralize }}. 
+        Visit the pharmacy to pick up your medicine{{ approved_orders|pluralize }}.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+    
+    {% if completed_orders > 0 %}
+    <div class="alert alert-primary alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-double me-2"></i>
+        <strong>Order{{ completed_orders|pluralize }} completed!</strong> {{ completed_orders }} order{{ completed_orders|pluralize }} 
+        {{ completed_orders|pluralize:"has,have" }} been marked as completed. Thank you for your purchase!
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
     <div class="row">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
