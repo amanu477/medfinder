@@ -16,8 +16,10 @@ def home(request):
     return render(request, 'home.html')
 
 def search_medicines(request):
-    """Search medicines and return results"""
+    """Search medicines and return results sorted by proximity"""
     query = request.GET.get('query', '')
+    user_lat = request.GET.get('lat')
+    user_lon = request.GET.get('lon')
     
     if not query:
         return render(request, 'search_results.html', {'query': query, 'medicines': []})
@@ -29,11 +31,42 @@ def search_medicines(request):
         pharmacy__is_active=True,
         stock_quantity__gt=0,
         expiry_date__gt=timezone.now().date()
-    ).select_related('pharmacy').order_by('name')
+    ).select_related('pharmacy')
+    
+    # If user location is provided, sort by proximity
+    if user_lat and user_lon:
+        try:
+            from .utils import haversine_distance
+            user_lat = float(user_lat)
+            user_lon = float(user_lon)
+            
+            # Calculate distances and add to medicines
+            medicine_list = []
+            for medicine in medicines:
+                if medicine.pharmacy.latitude and medicine.pharmacy.longitude:
+                    distance = haversine_distance(
+                        user_lat, user_lon,
+                        float(medicine.pharmacy.latitude),
+                        float(medicine.pharmacy.longitude)
+                    )
+                    medicine.distance = round(distance, 1)
+                else:
+                    medicine.distance = float('inf')  # No location = far away
+                medicine_list.append(medicine)
+            
+            # Sort by distance (nearest first)
+            medicines = sorted(medicine_list, key=lambda x: x.distance)
+            
+        except (ValueError, ImportError):
+            # Fall back to name ordering if location processing fails
+            medicines = medicines.order_by('name')
+    else:
+        medicines = medicines.order_by('name')
     
     return render(request, 'search_results.html', {
         'query': query,
-        'medicines': medicines
+        'medicines': medicines,
+        'user_has_location': bool(user_lat and user_lon)
     })
 
 def upload_prescription(request):
