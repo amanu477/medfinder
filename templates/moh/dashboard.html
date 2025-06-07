@@ -255,6 +255,76 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Verification Requests from Platform Administrators -->
+                {% if pending_verifications > 0 or recent_verification_requests %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Platform Verification Requests
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h6 class="mb-1">Pending Verifications</h6>
+                                        <small class="text-muted">Platform administrators requesting pharmacy verification</small>
+                                    </div>
+                                    <span class="badge bg-warning fs-6">{{ pending_verifications }}</span>
+                                </div>
+                                
+                                {% if recent_verification_requests %}
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Pharmacy Name</th>
+                                                <th>License Number</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for request in recent_verification_requests %}
+                                            <tr>
+                                                <td>{{ request.pharmacy_name }}</td>
+                                                <td>{{ request.license_number }}</td>
+                                                <td>
+                                                    {% if request.status == 'pending' %}
+                                                        <span class="badge bg-warning">Pending</span>
+                                                    {% elif request.status == 'approved' %}
+                                                        <span class="badge bg-success">Approved</span>
+                                                    {% elif request.status == 'rejected' %}
+                                                        <span class="badge bg-danger">Rejected</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ request.created_at|date:"M d, H:i" }}</td>
+                                                <td>
+                                                    <a href="{% url 'moh_respond_verification' request.id %}" class="btn btn-sm btn-outline-primary">
+                                                        Review
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="text-center mt-3">
+                                    <a href="{% url 'moh_verification_requests' %}" class="btn btn-warning">
+                                        View All Verification Requests
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
