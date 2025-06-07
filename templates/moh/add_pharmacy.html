@@ -223,7 +223,7 @@
                                         <div class="help-text">Complete address including street name, building number, and landmarks</div>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="{{ form.region.id_for_label }}" class="form-label fw-bold">
                                             Region <span class="required-field">*</span>
@@ -234,7 +234,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="{{ form.city.id_for_label }}" class="form-label fw-bold">
                                             City <span class="required-field">*</span>
@@ -245,18 +245,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label for="{{ form.subcity.id_for_label }}" class="form-label fw-bold">
-                                            Subcity <span class="required-field">*</span>
-                                        </label>
-                                        {{ form.subcity }}
-                                        {% if form.subcity.errors %}
-                                            <div class="text-danger small mt-1">{{ form.subcity.errors }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="{{ form.woreda.id_for_label }}" class="form-label fw-bold">
                                             Woreda <span class="required-field">*</span>
