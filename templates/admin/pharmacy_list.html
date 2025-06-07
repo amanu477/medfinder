@@ -138,14 +138,14 @@
                                                 <i class="fas fa-eye me-1"></i>Details
                                             </a>
                                             {% if pharmacy.verification_status == 'pending' %}
-                                            <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success" onclick="return confirm('Approve this pharmacy?')">
+                                            <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success">
                                                 <i class="fas fa-check me-1"></i>Approve
                                             </a>
                                             <a href="{% url 'admin_reject_pharmacy' pharmacy.id %}" class="btn btn-sm btn-danger">
                                                 <i class="fas fa-times me-1"></i>Reject
                                             </a>
                                             {% elif pharmacy.verification_status == 'rejected' %}
-                                            <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success" onclick="return confirm('Approve this pharmacy?')">
+                                            <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success">
                                                 <i class="fas fa-check me-1"></i>Approve
                                             </a>
                                             {% endif %}
