@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - MedFinder{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h2>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'admin_pharmacy_list' %}" class="btn btn-primary">
+                        <i class="fas fa-store me-1"></i>Manage Pharmacies
+                    </a>
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-home me-1"></i>Back to Site
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Total Pharmacies</h5>
+                            <h2>{{ stats.total_pharmacies }}</h2>
+                        </div>
+                        <i class="fas fa-store fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Pending Verifications</h5>
+                            <h2>{{ stats.pending_verifications }}</h2>
+                        </div>
+                        <i class="fas fa-clock fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Verified Pharmacies</h5>
+                            <h2>{{ stats.verified_pharmacies }}</h2>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Total Customers</h5>
+                            <h2>{{ stats.total_customers }}</h2>
+                        </div>
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-pills text-primary fa-2x mb-2"></i>
+                    <h5>Total Medicines</h5>
+                    <h3 class="text-primary">{{ stats.total_medicines }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-shopping-cart text-success fa-2x mb-2"></i>
+                    <h5>Total Orders</h5>
+                    <h3 class="text-success">{{ stats.total_orders }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-prescription text-warning fa-2x mb-2"></i>
+                    <h5>Total Prescriptions</h5>
+                    <h3 class="text-warning">{{ stats.total_prescriptions }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-circle text-danger fa-2x mb-2"></i>
+                    <h5>Pending Orders</h5>
+                    <h3 class="text-danger">{{ stats.pending_orders }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2 mb-2">
+                            <a href="{% url 'admin_pharmacy_list' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-store d-block mb-1"></i>Pharmacies
+                            </a>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <a href="{% url 'admin_customer_list' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-users d-block mb-1"></i>Customers
+                            </a>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <a href="{% url 'admin_medicine_list' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-pills d-block mb-1"></i>Medicines
+                            </a>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <a href="{% url 'admin_order_list' %}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-shopping-cart d-block mb-1"></i>Orders
+                            </a>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <a href="{% url 'admin_prescription_list' %}" class="btn btn-outline-danger w-100">
+                                <i class="fas fa-file-prescription d-block mb-1"></i>Prescriptions
+                            </a>
+                        </div>
+                        <div class="col-md-2 mb-2">
+                            <a href="{% url 'admin_pharmacy_list' %}?status=pending" class="btn btn-warning w-100">
+                                <i class="fas fa-clock d-block mb-1"></i>Pending
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="row">
+        <!-- Recent Pharmacies -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-store me-2"></i>Recent Pharmacy Registrations</h6>
+                </div>
+                <div class="card-body">
+                    {% for pharmacy in recent_pharmacies %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div>
+                            <strong>{{ pharmacy.name }}</strong><br>
+                            <small class="text-muted">{{ pharmacy.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        <span class="badge bg-{% if pharmacy.verification_status == 'verified' %}success{% elif pharmacy.verification_status == 'pending' %}warning{% else %}danger{% endif %}">
+                            {{ pharmacy.get_verification_status_display }}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No recent registrations</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Prescriptions -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-file-prescription me-2"></i>Recent Prescriptions</h6>
+                </div>
+                <div class="card-body">
+                    {% for prescription in recent_prescriptions %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div>
+                            <strong>{{ prescription.customer_name }}</strong><br>
+                            <small class="text-muted">{{ prescription.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        <span class="badge bg-{% if prescription.status == 'completed' %}success{% elif prescription.status == 'pending' %}warning{% else %}danger{% endif %}">
+                            {{ prescription.get_status_display }}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No recent prescriptions</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Recent Orders</h6>
+                </div>
+                <div class="card-body">
+                    {% for order in recent_orders %}
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                        <div>
+                            <strong>{{ order.customer.name }}</strong><br>
+                            <small class="text-muted">{{ order.total_amount }} ETB • {{ order.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        <span class="badge bg-{% if order.status == 'completed' %}success{% elif order.status == 'pending' %}warning{% else %}danger{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No recent orders</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

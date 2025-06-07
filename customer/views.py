@@ -343,7 +343,7 @@ def unified_login(request):
             # Check if user is admin/superuser
             if user.is_superuser:
                 messages.success(request, 'Welcome to admin dashboard!')
-                return redirect('/admin/')
+                return redirect('admin_dashboard')
             
             # Check if user has a pharmacy
             try:
@@ -368,6 +368,205 @@ def unified_login(request):
             messages.error(request, 'Invalid username or password.')
     
     return render(request, 'customer/unified_login.html')
+
+# Admin Dashboard Views
+def admin_dashboard(request):
+    """Admin dashboard with overview of all system components"""
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    # Get statistics
+    from django.db.models import Count, Q
+    
+    stats = {
+        'total_pharmacies': Pharmacy.objects.count(),
+        'pending_verifications': Pharmacy.objects.filter(verification_status='pending').count(),
+        'verified_pharmacies': Pharmacy.objects.filter(verification_status='verified').count(),
+        'rejected_pharmacies': Pharmacy.objects.filter(verification_status='rejected').count(),
+        'total_customers': Customer.objects.count(),
+        'total_medicines': Medicine.objects.count(),
+        'total_orders': Order.objects.count(),
+        'pending_orders': Order.objects.filter(status='pending').count(),
+        'total_prescriptions': Prescription.objects.count(),
+        'pending_prescriptions': Prescription.objects.filter(status='pending').count(),
+    }
+    
+    # Recent activities
+    recent_pharmacies = Pharmacy.objects.order_by('-created_at')[:5]
+    recent_prescriptions = Prescription.objects.order_by('-created_at')[:5]
+    recent_orders = Order.objects.order_by('-created_at')[:5]
+    
+    context = {
+        'stats': stats,
+        'recent_pharmacies': recent_pharmacies,
+        'recent_prescriptions': recent_prescriptions,
+        'recent_orders': recent_orders,
+    }
+    
+    return render(request, 'admin/dashboard.html', context)
+
+def admin_pharmacy_list(request):
+    """List all pharmacies with filtering and search"""
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    pharmacies = Pharmacy.objects.all().order_by('-created_at')
+    
+    # Filter by verification status
+    status_filter = request.GET.get('status')
+    if status_filter:
+        pharmacies = pharmacies.filter(verification_status=status_filter)
+    
+    # Search functionality
+    search_query = request.GET.get('search')
+    if search_query:
+        pharmacies = pharmacies.filter(
+            Q(name__icontains=search_query) |
+            Q(license_number__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+    
+    context = {
+        'pharmacies': pharmacies,
+        'status_filter': status_filter,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'admin/pharmacy_list.html', context)
+
+def admin_approve_pharmacy(request, pharmacy_id):
+    """Approve a pharmacy"""
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
+    pharmacy.verification_status = 'verified'
+    pharmacy.verified_at = timezone.now()
+    pharmacy.save()
+    
+    messages.success(request, f'Pharmacy "{pharmacy.name}" has been approved successfully.')
+    return redirect('admin_pharmacy_list')
+
+def admin_reject_pharmacy(request, pharmacy_id):
+    """Reject a pharmacy with reason"""
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
+    
+    if request.method == 'POST':
+        rejection_reason = request.POST.get('rejection_reason')
+        if rejection_reason:
+            pharmacy.verification_status = 'rejected'
+            pharmacy.rejection_reason = rejection_reason
+            pharmacy.save()
+            messages.success(request, f'Pharmacy "{pharmacy.name}" has been rejected.')
+            return redirect('admin_pharmacy_list')
+        else:
+            messages.error(request, 'Please provide a rejection reason.')
+    
+    context = {'pharmacy': pharmacy}
+    return render(request, 'admin/reject_pharmacy.html', context)
+
+def admin_customer_list(request):
+    """List all customers"""
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    customers = Customer.objects.all().order_by('-created_at')
+    
+    # Search functionality
+    search_query = request.GET.get('search')
+    if search_query:
+        customers = customers.filter(
+            Q(name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(phone__icontains=search_query)
+        )
+    
+    context = {
+        'customers': customers,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'admin/customer_list.html', context)
+
+def admin_medicine_list(request):
+    """List all medicines"""
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    medicines = Medicine.objects.all().select_related('pharmacy').order_by('-created_at')
+    
+    # Filter by pharmacy
+    pharmacy_filter = request.GET.get('pharmacy')
+    if pharmacy_filter:
+        medicines = medicines.filter(pharmacy_id=pharmacy_filter)
+    
+    # Search functionality
+    search_query = request.GET.get('search')
+    if search_query:
+        medicines = medicines.filter(
+            Q(name__icontains=search_query) |
+            Q(description__icontains=search_query)
+        )
+    
+    pharmacies = Pharmacy.objects.filter(verification_status='verified')
+    
+    context = {
+        'medicines': medicines,
+        'pharmacies': pharmacies,
+        'pharmacy_filter': pharmacy_filter,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'admin/medicine_list.html', context)
+
+def admin_order_list(request):
+    """List all orders"""
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    orders = Order.objects.all().select_related('customer', 'pharmacy').order_by('-created_at')
+    
+    # Filter by status
+    status_filter = request.GET.get('status')
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    
+    context = {
+        'orders': orders,
+        'status_filter': status_filter,
+    }
+    
+    return render(request, 'admin/order_list.html', context)
+
+def admin_prescription_list(request):
+    """List all prescriptions"""
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    prescriptions = Prescription.objects.all().select_related('customer', 'pharmacy').order_by('-created_at')
+    
+    # Filter by status
+    status_filter = request.GET.get('status')
+    if status_filter:
+        prescriptions = prescriptions.filter(status=status_filter)
+    
+    context = {
+        'prescriptions': prescriptions,
+        'status_filter': status_filter,
+    }
+    
+    return render(request, 'admin/prescription_list.html', context)
 
 
 # Removed location-based API endpoints as requested
