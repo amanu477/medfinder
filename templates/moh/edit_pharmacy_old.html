@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ministry of Health - Edit Pharmacy Record</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #2c5530, #4a7c59);
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar {
+            background: linear-gradient(180deg, #2c5530, #4a7c59);
+            min-height: calc(100vh - 56px);
+        }
+        .sidebar .nav-link {
+            color: #ffffff;
+            border-radius: 8px;
+            margin: 4px 0;
+        }
+        .sidebar .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="{% url 'moh_dashboard' %}">
+                <i class="fas fa-hospital-alt me-2"></i>
+                Ministry of Health - Ethiopia
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'moh_logout' %}">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar">
+                <div class="p-3">
+                    <div class="nav flex-column nav-pills">
+                        <a class="nav-link" href="{% url 'moh_dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-2"></i>
+                            Dashboard
+                        </a>
+                        <a class="nav-link active" href="{% url 'moh_pharmacy_list' %}">
+                            <i class="fas fa-hospital me-2"></i>
+                            Pharmacy Database
+                        </a>
+                        <a class="nav-link" href="{% url 'moh_add_pharmacy' %}">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Register New Pharmacy
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10">
+                <div class="d-flex justify-content-between align-items-center mb-4 mt-4">
+                    <div>
+                        <h2 class="fw-bold text-dark">
+                            <i class="fas fa-edit me-2 text-primary"></i>
+                            Edit Pharmacy Record
+                        </h2>
+                        <p class="text-muted">Update pharmacy information in the government database</p>
+                    </div>
+                    <a href="{% url 'moh_pharmacy_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to Database
+                    </a>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            Pharmacy Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <!-- Basic Information -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary fw-bold mb-3">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Basic Information
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.license_number.id_for_label }}" class="form-label fw-bold">
+                                            License Number *
+                                        </label>
+                                        {{ form.license_number }}
+                                        {% if form.license_number.errors %}
+                                            <div class="text-danger small mt-1">{{ form.license_number.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Format: PH followed by 6 digits (e.g., PH001234)</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.pharmacy_name.id_for_label }}" class="form-label fw-bold">
+                                            Pharmacy Name *
+                                        </label>
+                                        {{ form.pharmacy_name }}
+                                        {% if form.pharmacy_name.errors %}
+                                            <div class="text-danger small mt-1">{{ form.pharmacy_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.owner_name.id_for_label }}" class="form-label fw-bold">
+                                            Owner Name *
+                                        </label>
+                                        {{ form.owner_name }}
+                                        {% if form.owner_name.errors %}
+                                            <div class="text-danger small mt-1">{{ form.owner_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.pharmacist_name.id_for_label }}" class="form-label fw-bold">
+                                            Pharmacist Name *
+                                        </label>
+                                        {{ form.pharmacist_name }}
+                                        {% if form.pharmacist_name.errors %}
+                                            <div class="text-danger small mt-1">{{ form.pharmacist_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="{{ form.address_detail.id_for_label }}" class="form-label fw-bold">
+                                            Address *
+                                        </label>
+                                        {{ form.address_detail }}
+                                        {% if form.address_detail.errors %}
+                                            <div class="text-danger small mt-1">{{ form.address_detail.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Location & Classification -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary fw-bold mb-3">
+                                        <i class="fas fa-map-marker-alt me-2"></i>
+                                        Location & Classification
+                                    </h6>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.region.id_for_label }}" class="form-label fw-bold">
+                                            Region *
+                                        </label>
+                                        {{ form.region }}
+                                        {% if form.region.errors %}
+                                            <div class="text-danger small mt-1">{{ form.region.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.license_type.id_for_label }}" class="form-label fw-bold">
+                                            License Type *
+                                        </label>
+                                        {{ form.license_type }}
+                                        {% if form.license_type.errors %}
+                                            <div class="text-danger small mt-1">{{ form.license_type.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- License Dates -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary fw-bold mb-3">
+                                        <i class="fas fa-calendar-alt me-2"></i>
+                                        License Validity
+                                    </h6>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ form.issue_date.id_for_label }}" class="form-label fw-bold">
+                                            Issue Date *
+                                        </label>
+                                        {{ form.issue_date }}
+                                        {% if form.issue_date.errors %}
+                                            <div class="text-danger small mt-1">{{ form.issue_date.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ form.expiry_date.id_for_label }}" class="form-label fw-bold">
+                                            Expiry Date *
+                                        </label>
+                                        {{ form.expiry_date }}
+                                        {% if form.expiry_date.errors %}
+                                            <div class="text-danger small mt-1">{{ form.expiry_date.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ form.status.id_for_label }}" class="form-label fw-bold">
+                                            Status *
+                                        </label>
+                                        {{ form.status }}
+                                        {% if form.status.errors %}
+                                            <div class="text-danger small mt-1">{{ form.status.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Additional Information -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="text-primary fw-bold mb-3">
+                                        <i class="fas fa-clipboard me-2"></i>
+                                        Additional Information
+                                    </h6>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="{{ form.notes.id_for_label }}" class="form-label fw-bold">
+                                            Notes
+                                        </label>
+                                        {{ form.notes }}
+                                        {% if form.notes.errors %}
+                                            <div class="text-danger small mt-1">{{ form.notes.errors }}</div>
+                                        {% endif %}
+                                        <div class="form-text">Additional information about the pharmacy license</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a href="{% url 'moh_pharmacy_list' %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-times me-2"></i>
+                                            Cancel
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-2"></i>
+                                            Update Record
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Record History -->
+                <div class="card mt-4">
+                    <div class="card-header bg-light">
+                        <h6 class="card-title mb-0">
+                            <i class="fas fa-history me-2"></i>
+                            Record Information
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Registered:</strong> {{ pharmacy.registered_date|date:"M d, Y g:i A" }}<br>
+                                    <strong>Last Updated:</strong> {{ pharmacy.updated_date|date:"M d, Y g:i A" }}
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>License Status:</strong> 
+                                    {% if pharmacy.status == 'active' %}
+                                        <span class="badge bg-success">{{ pharmacy.get_status_display }}</span>
+                                    {% elif pharmacy.status == 'suspended' %}
+                                        <span class="badge bg-warning">{{ pharmacy.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ pharmacy.get_status_display }}</span>
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
