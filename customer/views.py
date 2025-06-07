@@ -744,7 +744,7 @@ def moh_add_pharmacy(request):
         return redirect('moh_login')
     
     if request.method == 'POST':
-        form = MoHPharmacyForm(request.POST)
+        form = MoHPharmacyForm(request.POST, request.FILES)
         if form.is_valid():
             pharmacy = form.save(commit=False)
             pharmacy.moh_officer = request.session.get('moh_officer', 'Unknown')
@@ -769,7 +769,7 @@ def moh_edit_pharmacy(request, pharmacy_id):
     pharmacy = get_object_or_404(MoHPharmacyRecord, id=pharmacy_id)
     
     if request.method == 'POST':
-        form = MoHPharmacyForm(request.POST, instance=pharmacy)
+        form = MoHPharmacyForm(request.POST, request.FILES, instance=pharmacy)
         if form.is_valid():
             form.save()
             messages.success(request, f'Pharmacy "{pharmacy.pharmacy_name}" has been updated.')
