@@ -360,21 +360,22 @@
         if (manualToggleBtn && manualSection) {
             console.log('Manual toggle button found, adding click handler');
             
-            // Ensure the section starts hidden
-            manualSection.classList.add('d-none');
-            console.log('Forced section to be hidden initially');
+            // Ensure the section starts hidden with inline style
+            manualSection.style.display = 'none';
+            let sectionVisible = false;
+            console.log('Section initially hidden with inline style');
             
             manualToggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 console.log('Manual location button clicked');
-                console.log('Current section classes:', manualSection.classList.toString());
-                console.log('Has d-none?', manualSection.classList.contains('d-none'));
+                console.log('Section visible state:', sectionVisible);
                 
-                // Force toggle regardless of current state detection
-                if (manualSection.style.display === 'none' || manualSection.classList.contains('d-none')) {
+                // Simple toggle based on our own state tracking
+                if (!sectionVisible) {
                     console.log('Showing manual section');
-                    manualSection.classList.remove('d-none');
                     manualSection.style.display = 'block';
+                    manualSection.classList.remove('d-none');
+                    sectionVisible = true;
                     manualToggleBtn.innerHTML = '<i class="fas fa-times me-2"></i> Cancel Manual Entry';
                     manualToggleBtn.className = 'btn btn-outline-danger toggle-manual-location';
                     
@@ -385,8 +386,9 @@
                     }
                 } else {
                     console.log('Hiding manual section');
-                    manualSection.classList.add('d-none');
                     manualSection.style.display = 'none';
+                    manualSection.classList.add('d-none');
+                    sectionVisible = false;
                     manualToggleBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Enter Location Manually';
                     manualToggleBtn.className = 'btn btn-outline-secondary toggle-manual-location';
                     
