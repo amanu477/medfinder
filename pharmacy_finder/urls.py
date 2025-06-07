@@ -24,6 +24,9 @@ urlpatterns = [
     # Pharmacy Routes
     path('pharmacy/', include('pharmacy.urls')),
     
+    # Ministry of Health System (Independent Government Portal)
+    path('moh/', include('customer.urls_moh')),
+    
     # Authentication Routes are handled in individual apps
 ]
 
