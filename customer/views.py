@@ -7,7 +7,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
-from .models import Customer, Prescription, Order, OrderItem
+from .models import Customer, Prescription, Order, OrderItem, VerificationRequest
 from pharmacy.models import Pharmacy, Medicine, MoHPharmacyRecord
 from pharmacy.verification_service import MinistryOfHealthVerificationService
 from pharmacy.forms import MoHPharmacyForm, MoHLoginForm
@@ -439,39 +439,55 @@ def admin_pharmacy_list(request):
     return render(request, 'admin/pharmacy_list.html', context)
 
 def admin_verify_pharmacy(request, pharmacy_id):
-    """Run Ministry of Health verification check for a pharmacy"""
+    """Send verification request to Ministry of Health"""
     if not request.user.is_superuser:
         messages.error(request, 'Access denied. Admin privileges required.')
         return redirect('home')
     
     pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
     
-    # Run Ministry of Health verification
+    # Create verification request to MoH
+    verification_request = VerificationRequest.objects.create(
+        pharmacy=pharmacy,
+        requested_by=request.user,
+        license_number=pharmacy.license_number,
+        pharmacy_name=pharmacy.name,
+        owner_name=pharmacy.user.get_full_name() if pharmacy.user else 'Unknown',
+        status='pending'
+    )
+    
+    # Run automatic MoH database check
     moh_service = MinistryOfHealthVerificationService()
     moh_data = moh_service.verify_pharmacy(
         pharmacy_name=pharmacy.name,
         license_number=pharmacy.license_number,
-        owner_name=None  # Could extract from user data if available
+        owner_name=pharmacy.user.get_full_name() if pharmacy.user else 'Unknown'
     )
     
-    # Store verification results
-    pharmacy.moh_verification_data = moh_data
+    # Store verification results in the request
+    verification_request.moh_response = moh_data
     
-    # Update MoH verification status based on new data structure
+    # Update status based on automatic verification
     if moh_data['moh_record_found']:
         risk_assessment = moh_data['risk_assessment']
         if risk_assessment['recommendation'] == 'APPROVE':
+            verification_request.status = 'approved'
             pharmacy.moh_verification_status = 'verified'
         elif risk_assessment['recommendation'] == 'MANUAL_REVIEW':
+            verification_request.status = 'manual_review'
             pharmacy.moh_verification_status = 'manual_review'
         else:
+            verification_request.status = 'rejected'
             pharmacy.moh_verification_status = 'failed'
     else:
+        verification_request.status = 'rejected'
         pharmacy.moh_verification_status = 'failed'
     
+    verification_request.save()
+    pharmacy.moh_verification_data = moh_data
     pharmacy.save()
     
-    messages.success(request, f'Ministry of Health verification completed for "{pharmacy.name}".')
+    messages.success(request, f'Verification request sent to Ministry of Health for "{pharmacy.name}". Status: {verification_request.get_status_display()}')
     return redirect('admin_pharmacy_detail', pharmacy_id=pharmacy.id)
 
 def admin_approve_pharmacy(request, pharmacy_id):
@@ -657,15 +673,23 @@ def moh_dashboard(request):
         expiry_date__lt=date.today()
     ).count()
     
-    # Recent registrations
+    # Get verification requests from platform admins
+    pending_verifications = VerificationRequest.objects.filter(status='pending').count()
+    manual_review_requests = VerificationRequest.objects.filter(status='manual_review').count()
+    
+    # Recent registrations and verification requests
     recent_pharmacies = MoHPharmacyRecord.objects.order_by('-registration_date')[:5]
+    recent_verification_requests = VerificationRequest.objects.order_by('-created_at')[:3]
     
     context = {
         'total_pharmacies': total_pharmacies,
         'active_pharmacies': active_pharmacies,
         'suspended_pharmacies': suspended_pharmacies,
         'expired_licenses': expired_licenses,
+        'pending_verifications': pending_verifications,
+        'manual_review_requests': manual_review_requests,
         'recent_pharmacies': recent_pharmacies,
+        'recent_verification_requests': recent_verification_requests,
         'moh_officer': request.session.get('moh_officer', 'Unknown')
     }
     

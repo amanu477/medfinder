@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from pharmacy.models import Pharmacy, Medicine
+from pharmacy.models import Pharmacy
 
 class Customer(models.Model):
     """Model for storing customer information"""
@@ -14,9 +14,11 @@ class Customer(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
         return self.name
-
 
 class Order(models.Model):
     """Model for storing medicine orders"""
@@ -53,21 +55,19 @@ class Order(models.Model):
         self.save()
         return total
 
-
 class OrderItem(models.Model):
     """Model for storing individual items in an order"""
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    medicine = models.ForeignKey(Medicine, on_delete=models.CASCADE)
+    medicine = models.ForeignKey('pharmacy.Medicine', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    
+
     def __str__(self):
-        return f"{self.medicine.name} x{self.quantity}"
+        return f"{self.medicine.name} x {self.quantity}"
 
     def get_total_price(self):
         """Get total price for this item"""
         return self.quantity * self.price
-
 
 class Prescription(models.Model):
     """Model for storing prescription information"""
@@ -77,7 +77,7 @@ class Prescription(models.Model):
         ('rejected', 'Rejected'),
         ('completed', 'Completed'),
     )
-    
+
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
     customer_name = models.CharField(max_length=100)
     customer_email = models.EmailField(max_length=100)
@@ -89,5 +89,34 @@ class Prescription(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
         return f"Prescription #{self.id} - {self.customer_name}"
+
+class VerificationRequest(models.Model):
+    """Model for tracking verification requests sent to MoH"""
+    STATUS_CHOICES = (
+        ('pending', 'Pending MoH Response'),
+        ('approved', 'MoH Confirmed'),
+        ('rejected', 'MoH Denied'),
+        ('manual_review', 'Requires Manual Review'),
+    )
+    
+    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
+    requested_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    license_number = models.CharField(max_length=50)
+    pharmacy_name = models.CharField(max_length=200)
+    owner_name = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    moh_response = models.JSONField(blank=True, null=True)
+    moh_notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Verification Request: {self.pharmacy_name} ({self.license_number})"
