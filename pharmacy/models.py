@@ -57,6 +57,12 @@ class MoHPharmacyRecord(models.Model):
     phone_number = models.CharField(max_length=20)
     email = models.EmailField(blank=True, null=True)
     
+    # Document Uploads
+    business_license_document = models.FileField(upload_to='moh_documents/business_licenses/', blank=True, null=True, help_text="Business license document")
+    pharmacist_certificate_document = models.FileField(upload_to='moh_documents/pharmacist_certificates/', blank=True, null=True, help_text="Pharmacist certificate document")
+    pharmacy_permit_document = models.FileField(upload_to='moh_documents/pharmacy_permits/', blank=True, null=True, help_text="Pharmacy operating permit")
+    inspection_report_document = models.FileField(upload_to='moh_documents/inspection_reports/', blank=True, null=True, help_text="Latest inspection report")
+    
     # Administrative
     moh_officer = models.CharField(max_length=100, help_text="MoH officer who registered this pharmacy")
     registration_date = models.DateTimeField(auto_now_add=True)

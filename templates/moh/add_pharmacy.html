@@ -99,7 +99,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form method="post" class="needs-validation" novalidate>
+                        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                             {% csrf_token %}
                             
                             <!-- Section 1: Basic Information -->
@@ -310,6 +310,63 @@
                                             <div class="text-danger small mt-1">{{ form.status.errors }}</div>
                                         {% endif %}
                                         <div class="help-text">Current status of the pharmacy license</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Section 5: Document Uploads -->
+                            <div class="section-header">
+                                <i class="fas fa-file-upload me-2"></i>
+                                <strong>Section 5: Document Uploads</strong>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.business_license_document.id_for_label }}" class="form-label fw-bold">
+                                            Business License Document
+                                        </label>
+                                        {{ form.business_license_document }}
+                                        {% if form.business_license_document.errors %}
+                                            <div class="text-danger small mt-1">{{ form.business_license_document.errors }}</div>
+                                        {% endif %}
+                                        <div class="help-text">Upload business license certificate (PDF, JPG, PNG)</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.pharmacist_certificate_document.id_for_label }}" class="form-label fw-bold">
+                                            Pharmacist Certificate Document
+                                        </label>
+                                        {{ form.pharmacist_certificate_document }}
+                                        {% if form.pharmacist_certificate_document.errors %}
+                                            <div class="text-danger small mt-1">{{ form.pharmacist_certificate_document.errors }}</div>
+                                        {% endif %}
+                                        <div class="help-text">Upload pharmacist professional certificate (PDF, JPG, PNG)</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.pharmacy_permit_document.id_for_label }}" class="form-label fw-bold">
+                                            Pharmacy Operating Permit
+                                        </label>
+                                        {{ form.pharmacy_permit_document }}
+                                        {% if form.pharmacy_permit_document.errors %}
+                                            <div class="text-danger small mt-1">{{ form.pharmacy_permit_document.errors }}</div>
+                                        {% endif %}
+                                        <div class="help-text">Upload pharmacy operating permit (PDF, JPG, PNG)</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.inspection_report_document.id_for_label }}" class="form-label fw-bold">
+                                            Latest Inspection Report
+                                        </label>
+                                        {{ form.inspection_report_document }}
+                                        {% if form.inspection_report_document.errors %}
+                                            <div class="text-danger small mt-1">{{ form.inspection_report_document.errors }}</div>
+                                        {% endif %}
+                                        <div class="help-text">Upload latest MoH inspection report (PDF, JPG, PNG)</div>
                                     </div>
                                 </div>
                             </div>

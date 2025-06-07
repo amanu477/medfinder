@@ -91,8 +91,9 @@ class MoHPharmacyForm(forms.ModelForm):
             'pharmacy_name', 'license_number', 'owner_name', 'pharmacist_name', 
             'pharmacist_license', 'region', 'city', 'woreda', 'kebele', 
             'address_detail', 'license_type', 'issue_date', 'expiry_date', 
-            'status', 'phone_number', 'email', 'moh_officer', 
-            'last_inspection_date', 'notes'
+            'status', 'phone_number', 'email', 'business_license_document',
+            'pharmacist_certificate_document', 'pharmacy_permit_document',
+            'inspection_report_document', 'moh_officer', 'last_inspection_date', 'notes'
         ]
         
         widgets = {
@@ -112,6 +113,10 @@ class MoHPharmacyForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-select'}),
             'phone_number': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+251911123456'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'business_license_document': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
+            'pharmacist_certificate_document': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
+            'pharmacy_permit_document': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
+            'inspection_report_document': forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf,.jpg,.jpeg,.png'}),
             'moh_officer': forms.TextInput(attrs={'class': 'form-control'}),
             'last_inspection_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Additional notes about the pharmacy'}),
