@@ -501,6 +501,11 @@ def admin_approve_pharmacy(request, pharmacy_id):
     pharmacy.verified_at = timezone.now()
     pharmacy.save()
     
+    # Clear any existing messages to ensure no notifications appear
+    storage = messages.get_messages(request)
+    for message in storage:
+        pass  # This consumes and clears the messages
+    
     return redirect('admin_pharmacy_list')
 
 def admin_reject_pharmacy(request, pharmacy_id):
