@@ -28,6 +28,20 @@ class Pharmacy(models.Model):
     pharmacist_certificate = models.FileField(upload_to='pharmacy_documents/', null=True, blank=True)
     rejection_reason = models.TextField(blank=True, null=True)
     verified_at = models.DateTimeField(null=True, blank=True)
+    
+    # Ministry of Health verification data
+    moh_verification_data = models.JSONField(blank=True, null=True, help_text="Ministry of Health verification results")
+    moh_verification_status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'Pending Verification'),
+            ('verified', 'MoH Verified'),
+            ('failed', 'MoH Verification Failed'),
+            ('manual_review', 'Requires Manual Review')
+        ],
+        default='pending'
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
