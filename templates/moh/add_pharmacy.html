@@ -156,6 +156,39 @@
                                         {% endif %}
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.owner_name.id_for_label }}" class="form-label fw-bold">
+                                            Owner Name *
+                                        </label>
+                                        {{ form.owner_name }}
+                                        {% if form.owner_name.errors %}
+                                            <div class="text-danger small mt-1">{{ form.owner_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.pharmacist_license.id_for_label }}" class="form-label fw-bold">
+                                            Pharmacist License Number *
+                                        </label>
+                                        {{ form.pharmacist_license }}
+                                        {% if form.pharmacist_license.errors %}
+                                            <div class="text-danger small mt-1">{{ form.pharmacist_license.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.phone_number.id_for_label }}" class="form-label fw-bold">
+                                            Phone Number *
+                                        </label>
+                                        {{ form.phone_number }}
+                                        {% if form.phone_number.errors %}
+                                            <div class="text-danger small mt-1">{{ form.phone_number.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
                                 <div class="col-12">
                                     <div class="mb-3">
                                         <label for="{{ form.address_detail.id_for_label }}" class="form-label fw-bold">
@@ -177,7 +210,7 @@
                                         Location & Classification
                                     </h6>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="{{ form.region.id_for_label }}" class="form-label fw-bold">
                                             Region *
@@ -188,7 +221,18 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ form.city.id_for_label }}" class="form-label fw-bold">
+                                            City *
+                                        </label>
+                                        {{ form.city }}
+                                        {% if form.city.errors %}
+                                            <div class="text-danger small mt-1">{{ form.city.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="{{ form.license_type.id_for_label }}" class="form-label fw-bold">
                                             License Type *
@@ -196,6 +240,39 @@
                                         {{ form.license_type }}
                                         {% if form.license_type.errors %}
                                             <div class="text-danger small mt-1">{{ form.license_type.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ form.subcity.id_for_label }}" class="form-label fw-bold">
+                                            Subcity *
+                                        </label>
+                                        {{ form.subcity }}
+                                        {% if form.subcity.errors %}
+                                            <div class="text-danger small mt-1">{{ form.subcity.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ form.woreda.id_for_label }}" class="form-label fw-bold">
+                                            Woreda *
+                                        </label>
+                                        {{ form.woreda }}
+                                        {% if form.woreda.errors %}
+                                            <div class="text-danger small mt-1">{{ form.woreda.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="{{ form.kebele.id_for_label }}" class="form-label fw-bold">
+                                            Kebele *
+                                        </label>
+                                        {{ form.kebele }}
+                                        {% if form.kebele.errors %}
+                                            <div class="text-danger small mt-1">{{ form.kebele.errors }}</div>
                                         {% endif %}
                                     </div>
                                 </div>

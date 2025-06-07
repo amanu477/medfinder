@@ -651,9 +651,14 @@ def moh_login(request):
             if username == 'moh_admin' and password == 'moh123':
                 request.session['moh_authenticated'] = True
                 request.session['moh_officer'] = username
+                messages.success(request, f'Welcome to the Ministry of Health system, {username}.')
                 return redirect('moh_dashboard')
+            elif username == 'moh_admin' and password != 'moh123':
+                messages.error(request, 'Incorrect password for MoH administrator account.')
+            elif username != 'moh_admin':
+                messages.error(request, f'Username "{username}" is not authorized for Ministry of Health access.')
             else:
-                messages.error(request, 'Invalid Ministry of Health credentials.')
+                messages.error(request, 'Invalid Ministry of Health credentials. Please check your username and password.')
     else:
         form = MoHLoginForm()
     
