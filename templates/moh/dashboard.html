@@ -59,9 +59,20 @@
                 Ministry of Health - Ethiopia
             </a>
             <div class="navbar-nav ms-auto">
+                <a class="nav-link active" href="{% url 'moh_dashboard' %}">
+                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                </a>
+                <a class="nav-link" href="{% url 'moh_pharmacy_list' %}">
+                    <i class="fas fa-list me-1"></i>Pharmacies
+                </a>
+                <a class="nav-link" href="{% url 'moh_add_pharmacy' %}">
+                    <i class="fas fa-plus me-1"></i>Add Pharmacy
+                </a>
+                <a class="nav-link" href="{% url 'moh_verification_requests' %}">
+                    <i class="fas fa-clipboard-check me-1"></i>Verification Requests
+                </a>
                 <a class="nav-link" href="{% url 'moh_logout' %}">
-                    <i class="fas fa-sign-out-alt me-1"></i>
-                    Logout
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
                 </a>
             </div>
         </div>
