@@ -784,6 +784,72 @@ def moh_delete_pharmacy(request, pharmacy_id):
     
     return render(request, 'moh/delete_pharmacy.html', {'pharmacy': pharmacy})
 
+def moh_verification_requests(request):
+    """View verification requests from platform admins"""
+    if not request.session.get('moh_authenticated'):
+        return redirect('moh_login')
+    
+    # Get all verification requests with filtering
+    verification_requests = VerificationRequest.objects.all().order_by('-created_at')
+    
+    # Filter by status if provided
+    status_filter = request.GET.get('status')
+    if status_filter:
+        verification_requests = verification_requests.filter(status=status_filter)
+    
+    context = {
+        'verification_requests': verification_requests,
+        'status_filter': status_filter,
+        'moh_officer': request.session.get('moh_officer', 'Unknown')
+    }
+    
+    return render(request, 'moh/verification_requests.html', context)
+
+def moh_respond_verification(request, request_id):
+    """Respond to a verification request from platform admin"""
+    if not request.session.get('moh_authenticated'):
+        return redirect('moh_login')
+    
+    verification_request = get_object_or_404(VerificationRequest, id=request_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        moh_notes = request.POST.get('moh_notes', '')
+        
+        if action == 'approve':
+            verification_request.status = 'approved'
+            verification_request.moh_notes = moh_notes
+            # Update the associated pharmacy
+            verification_request.pharmacy.moh_verification_status = 'verified'
+            verification_request.pharmacy.save()
+            messages.success(request, f'Verification approved for {verification_request.pharmacy_name}')
+            
+        elif action == 'reject':
+            verification_request.status = 'rejected'
+            verification_request.moh_notes = moh_notes
+            # Update the associated pharmacy
+            verification_request.pharmacy.moh_verification_status = 'failed'
+            verification_request.pharmacy.save()
+            messages.success(request, f'Verification rejected for {verification_request.pharmacy_name}')
+            
+        elif action == 'manual_review':
+            verification_request.status = 'manual_review'
+            verification_request.moh_notes = moh_notes
+            # Update the associated pharmacy
+            verification_request.pharmacy.moh_verification_status = 'manual_review'
+            verification_request.pharmacy.save()
+            messages.success(request, f'Verification marked for manual review: {verification_request.pharmacy_name}')
+        
+        verification_request.save()
+        return redirect('moh_verification_requests')
+    
+    context = {
+        'verification_request': verification_request,
+        'moh_officer': request.session.get('moh_officer', 'Unknown')
+    }
+    
+    return render(request, 'moh/respond_verification.html', context)
+
 def moh_logout(request):
     """Logout from MoH system"""
     request.session.pop('moh_authenticated', None)
