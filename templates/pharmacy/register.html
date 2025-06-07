@@ -367,10 +367,14 @@
             manualToggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 console.log('Manual location button clicked');
+                console.log('Current section classes:', manualSection.classList.toString());
+                console.log('Has d-none?', manualSection.classList.contains('d-none'));
                 
-                if (manualSection.classList.contains('d-none')) {
+                // Force toggle regardless of current state detection
+                if (manualSection.style.display === 'none' || manualSection.classList.contains('d-none')) {
                     console.log('Showing manual section');
                     manualSection.classList.remove('d-none');
+                    manualSection.style.display = 'block';
                     manualToggleBtn.innerHTML = '<i class="fas fa-times me-2"></i> Cancel Manual Entry';
                     manualToggleBtn.className = 'btn btn-outline-danger toggle-manual-location';
                     
@@ -382,6 +386,7 @@
                 } else {
                     console.log('Hiding manual section');
                     manualSection.classList.add('d-none');
+                    manualSection.style.display = 'none';
                     manualToggleBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Enter Location Manually';
                     manualToggleBtn.className = 'btn btn-outline-secondary toggle-manual-location';
                     
