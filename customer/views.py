@@ -329,5 +329,45 @@ def customer_logout(request):
     messages.success(request, 'You have been logged out successfully.')
     return redirect('home')
 
+def unified_login(request):
+    """Unified login view that handles all user types based on credentials"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            
+            # Check if user is admin/superuser
+            if user.is_superuser:
+                messages.success(request, 'Welcome to admin dashboard!')
+                return redirect('/admin/')
+            
+            # Check if user has a pharmacy
+            try:
+                pharmacy = user.pharmacy
+                messages.success(request, f'Welcome back, {pharmacy.name}!')
+                return redirect('pharmacy_dashboard')
+            except:
+                pass
+            
+            # Check if user has a customer profile
+            try:
+                customer = user.customer
+                messages.success(request, f'Welcome back, {customer.name}!')
+                return redirect('customer_dashboard')
+            except:
+                pass
+            
+            # Default redirect for authenticated users without specific profiles
+            messages.success(request, 'Login successful!')
+            return redirect('home')
+        else:
+            messages.error(request, 'Invalid username or password.')
+    
+    return render(request, 'customer/unified_login.html')
+
 
 # Removed location-based API endpoints as requested

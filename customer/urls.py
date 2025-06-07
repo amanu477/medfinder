@@ -3,9 +3,12 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
+    # Unified authentication
+    path('login/', views.unified_login, name='unified_login'),
+    
     # Customer authentication
     path('register/', views.customer_register, name='customer_register'),
-    path('login/', views.customer_login, name='customer_login'),
+    path('customer/login/', views.customer_login, name='customer_login'),
     path('logout/', views.customer_logout, name='customer_logout'),
     
     # Customer dashboard and profile
