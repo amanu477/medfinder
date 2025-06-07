@@ -822,6 +822,13 @@ def moh_respond_verification(request, request_id):
     
     verification_request = get_object_or_404(VerificationRequest, id=request_id)
     
+    # Check if pharmacy exists in MoH database using license number
+    moh_pharmacy = None
+    try:
+        moh_pharmacy = MoHPharmacyRecord.objects.get(license_number=verification_request.license_number)
+    except MoHPharmacyRecord.DoesNotExist:
+        pass
+    
     if request.method == 'POST':
         action = request.POST.get('action')
         moh_notes = request.POST.get('moh_notes', '')
@@ -854,7 +861,8 @@ def moh_respond_verification(request, request_id):
         return redirect('moh_verification_requests')
     
     context = {
-        'verification_request': verification_request,
+        'request_obj': verification_request,
+        'moh_pharmacy': moh_pharmacy,
         'moh_officer': request.session.get('moh_officer', 'Unknown')
     }
     

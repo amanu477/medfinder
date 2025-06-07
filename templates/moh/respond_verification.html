@@ -116,18 +116,28 @@
                                     </div>
                                 </div>
 
-                                <!-- MoH Database Check -->
+                                <!-- Automatic MoH Database Lookup Results -->
+                                <div class="alert alert-info">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-database me-2"></i>
+                                        Automatic License Number Verification
+                                    </h6>
+                                    <p class="mb-2">System automatically checked license number <strong>{{ request_obj.license_number }}</strong> against MoH registered pharmacy database:</p>
+                                </div>
+
                                 {% if moh_pharmacy %}
                                 <div class="alert alert-success">
                                     <h6 class="alert-heading">
                                         <i class="fas fa-check-circle me-2"></i>
-                                        Pharmacy Found in MoH Database
+                                        ✓ Pharmacy Found in MoH Database
                                     </h6>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <p><strong>Registered Name:</strong> {{ moh_pharmacy.pharmacy_name }}</p>
                                             <p><strong>License Number:</strong> {{ moh_pharmacy.license_number }}</p>
+                                            <p><strong>Owner:</strong> {{ moh_pharmacy.owner_name }}</p>
                                             <p><strong>Pharmacist:</strong> {{ moh_pharmacy.pharmacist_name }}</p>
+                                            <p><strong>License Type:</strong> {{ moh_pharmacy.get_license_type_display }}</p>
                                         </div>
                                         <div class="col-md-6">
                                             <p><strong>Status:</strong> 
@@ -135,18 +145,57 @@
                                                     {{ moh_pharmacy.get_status_display }}
                                                 </span>
                                             </p>
+                                            <p><strong>Issue Date:</strong> {{ moh_pharmacy.issue_date|date:"M d, Y" }}</p>
                                             <p><strong>License Valid Until:</strong> {{ moh_pharmacy.expiry_date|date:"M d, Y" }}</p>
-                                            <p><strong>Region:</strong> {{ moh_pharmacy.get_region_display }}</p>
+                                            <p><strong>Location:</strong> {{ moh_pharmacy.city }}, {{ moh_pharmacy.woreda }}, {{ moh_pharmacy.get_region_display }}</p>
+                                            <p><strong>Phone:</strong> {{ moh_pharmacy.phone_number }}</p>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Name Comparison -->
+                                    {% if request_obj.pharmacy_name != moh_pharmacy.pharmacy_name %}
+                                    <div class="mt-3 p-2 bg-warning bg-opacity-10 border-start border-warning border-4">
+                                        <small class="text-warning fw-bold">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            Name Mismatch Warning
+                                        </small>
+                                        <br>
+                                        <small>Platform application: "{{ request_obj.pharmacy_name }}"</small>
+                                        <br>
+                                        <small>MoH registered: "{{ moh_pharmacy.pharmacy_name }}"</small>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <!-- Owner Comparison -->
+                                    {% if request_obj.owner_name and request_obj.owner_name != moh_pharmacy.owner_name %}
+                                    <div class="mt-2 p-2 bg-warning bg-opacity-10 border-start border-warning border-4">
+                                        <small class="text-warning fw-bold">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            Owner Name Mismatch Warning
+                                        </small>
+                                        <br>
+                                        <small>Platform application: "{{ request_obj.owner_name }}"</small>
+                                        <br>
+                                        <small>MoH registered: "{{ moh_pharmacy.owner_name }}"</small>
+                                    </div>
+                                    {% endif %}
                                 </div>
                                 {% else %}
-                                <div class="alert alert-warning">
+                                <div class="alert alert-danger">
                                     <h6 class="alert-heading">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>
-                                        Pharmacy Not Found in MoH Database
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        ✗ Pharmacy NOT Found in MoH Database
                                     </h6>
-                                    <p class="mb-0">The requested pharmacy with license number "{{ request_obj.license_number }}" was not found in the Ministry of Health database. This pharmacy may not be properly licensed or the license number may be incorrect.</p>
+                                    <p class="mb-2">The license number <strong>{{ request_obj.license_number }}</strong> was not found in the Ministry of Health registered pharmacy database.</p>
+                                    <div class="bg-danger bg-opacity-10 p-3 rounded">
+                                        <h6 class="text-danger mb-2"><i class="fas fa-exclamation-triangle me-1"></i> Critical Issues:</h6>
+                                        <ul class="text-danger mb-0">
+                                            <li>Pharmacy may not be legally authorized to operate</li>
+                                            <li>License number may be invalid or fabricated</li>
+                                            <li>Pharmacy not registered with Ministry of Health</li>
+                                            <li><strong>Recommendation: REJECT this verification request</strong></li>
+                                        </ul>
+                                    </div>
                                 </div>
                                 {% endif %}
                             </div>
