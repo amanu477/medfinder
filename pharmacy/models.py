@@ -1,6 +1,89 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+
+
+class MoHPharmacyRecord(models.Model):
+    """Ministry of Health pharmacy registry - pre-registered legitimate pharmacies"""
+    REGION_CHOICES = [
+        ('addis_ababa', 'Addis Ababa'),
+        ('oromia', 'Oromia'),
+        ('amhara', 'Amhara'),
+        ('tigray', 'Tigray'),
+        ('snnp', 'Southern Nations, Nationalities, and Peoples'),
+        ('afar', 'Afar'),
+        ('somali', 'Somali'),
+        ('benishangul', 'Benishangul-Gumuz'),
+        ('gambela', 'Gambela'),
+        ('harari', 'Harari'),
+        ('dire_dawa', 'Dire Dawa'),
+    ]
+    
+    LICENSE_TYPE_CHOICES = [
+        ('retail', 'Retail Pharmacy'),
+        ('hospital', 'Hospital Pharmacy'),
+        ('wholesale', 'Wholesale Pharmacy'),
+        ('manufacturing', 'Manufacturing Pharmacy'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('suspended', 'Suspended'),
+        ('revoked', 'Revoked'),
+        ('expired', 'Expired'),
+    ]
+    
+    # Basic Information
+    pharmacy_name = models.CharField(max_length=200)
+    license_number = models.CharField(max_length=50, unique=True)
+    owner_name = models.CharField(max_length=100)
+    pharmacist_name = models.CharField(max_length=100)
+    pharmacist_license = models.CharField(max_length=50)
+    
+    # Location Information
+    region = models.CharField(max_length=20, choices=REGION_CHOICES)
+    city = models.CharField(max_length=100)
+    woreda = models.CharField(max_length=100)
+    kebele = models.CharField(max_length=100)
+    address_detail = models.TextField()
+    
+    # License Details
+    license_type = models.CharField(max_length=20, choices=LICENSE_TYPE_CHOICES, default='retail')
+    issue_date = models.DateField()
+    expiry_date = models.DateField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    
+    # Contact Information
+    phone_number = models.CharField(max_length=20)
+    email = models.EmailField(blank=True, null=True)
+    
+    # Administrative
+    moh_officer = models.CharField(max_length=100, help_text="MoH officer who registered this pharmacy")
+    registration_date = models.DateTimeField(auto_now_add=True)
+    last_inspection_date = models.DateField(blank=True, null=True)
+    notes = models.TextField(blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-registration_date']
+        verbose_name = "Ministry of Health Pharmacy Record"
+        verbose_name_plural = "Ministry of Health Pharmacy Records"
+    
+    def __str__(self):
+        return f"{self.pharmacy_name} - {self.license_number}"
+    
+    @property
+    def is_license_valid(self):
+        """Check if license is still valid"""
+        from datetime import date
+        return self.status == 'active' and self.expiry_date >= date.today()
+    
+    @property
+    def days_until_expiry(self):
+        """Days until license expires"""
+        from datetime import date
+        if self.expiry_date:
+            return (self.expiry_date - date.today()).days
+        return None
 from datetime import timedelta
 
 class Pharmacy(models.Model):

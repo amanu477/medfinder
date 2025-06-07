@@ -1,215 +1,189 @@
 """
 Ministry of Health Verification Service
-Simulates verification against official government database
+Verifies pharmacies against official government database
 """
 import random
 from typing import Dict, Any, Optional
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
+from .models import MoHPharmacyRecord
 
 class MinistryOfHealthVerificationService:
     """
-    Simulates verification against Ministry of Health database
-    In production, this would connect to actual government APIs
+    Verifies pharmacies against Ministry of Health database
+    Checks real MoH records that were pre-registered by government officials
     """
     
-    # Simulated legitimate pharmacy data (would be from real MoH database)
-    LEGITIMATE_PHARMACIES = {
-        'PH001234': {
-            'name': 'Central Pharmacy',
-            'owner': 'Dr. Abebe Bekele',
-            'license_type': 'Full Service Pharmacy',
-            'issue_date': '2020-03-15',
-            'expiry_date': '2025-03-15',
-            'status': 'active',
-            'location': 'Addis Ababa',
-            'specializations': ['General Medicines', 'Prescription Drugs']
-        },
-        'PH005678': {
-            'name': 'Health Plus Pharmacy',
-            'owner': 'Dr. Meron Tadesse',
-            'license_type': 'Community Pharmacy',
-            'issue_date': '2019-07-22',
-            'expiry_date': '2024-07-22',
-            'status': 'active',
-            'location': 'Bahir Dar',
-            'specializations': ['General Medicines', 'Medical Supplies']
-        },
-        'PH009876': {
-            'name': 'Care Pharmacy',
-            'owner': 'Dr. Solomon Worku',
-            'license_type': 'Hospital Pharmacy',
-            'issue_date': '2021-01-10',
-            'expiry_date': '2026-01-10',
-            'status': 'active',
-            'location': 'Hawassa',
-            'specializations': ['Hospital Medicines', 'Prescription Drugs', 'Emergency Medicines']
-        },
-        'PH012345': {
-            'name': 'MedCare Pharmacy',
-            'owner': 'Dr. Hanna Gebremedhin',
-            'license_type': 'Full Service Pharmacy',
-            'issue_date': '2018-11-05',
-            'expiry_date': '2023-11-05',
-            'status': 'expired',
-            'location': 'Mekelle',
-            'specializations': ['General Medicines']
-        }
-    }
-    
-    # Valid pharmacist certificate patterns
-    VALID_CERTIFICATE_PATTERNS = [
-        'CERT-PH-2020-',
-        'CERT-PH-2021-',
-        'CERT-PH-2022-',
-        'CERT-PH-2023-',
-        'CERT-PH-2024-'
-    ]
-    
-    @classmethod
-    def verify_pharmacy_license(cls, license_number: str, pharmacy_name: str) -> Dict[str, Any]:
+    def verify_pharmacy(self, pharmacy_name: str, license_number: str, owner_name: str = None) -> Dict[str, Any]:
         """
-        Verify pharmacy license against Ministry of Health database
-        """
-        verification_result = {
-            'license_number': license_number,
-            'is_valid': False,
-            'status': 'not_found',
-            'details': {},
-            'verification_date': timezone.now().isoformat(),
-            'verification_id': f"VER-{random.randint(100000, 999999)}"
-        }
+        Verify pharmacy against MoH database
         
-        # Check if license exists in database
-        if license_number in cls.LEGITIMATE_PHARMACIES:
-            pharmacy_data = cls.LEGITIMATE_PHARMACIES[license_number]
+        Args:
+            pharmacy_name: Name of the pharmacy to verify
+            license_number: License number to check
+            owner_name: Optional owner name for additional verification
             
-            # Check if names match (allow for slight variations)
-            name_match = cls._check_name_similarity(pharmacy_name.lower(), pharmacy_data['name'].lower())
-            
-            if name_match:
-                verification_result.update({
-                    'is_valid': True,
-                    'status': pharmacy_data['status'],
-                    'details': {
-                        'registered_name': pharmacy_data['name'],
-                        'owner': pharmacy_data['owner'],
-                        'license_type': pharmacy_data['license_type'],
-                        'issue_date': pharmacy_data['issue_date'],
-                        'expiry_date': pharmacy_data['expiry_date'],
-                        'location': pharmacy_data['location'],
-                        'specializations': pharmacy_data['specializations']
-                    }
-                })
-                
-                # Check if license is expired
-                expiry_date = datetime.strptime(pharmacy_data['expiry_date'], '%Y-%m-%d').date()
-                if expiry_date < timezone.now().date():
-                    verification_result['status'] = 'expired'
-                    verification_result['warnings'] = ['License has expired']
-                
-            else:
-                verification_result.update({
-                    'status': 'name_mismatch',
-                    'details': {
-                        'registered_name': pharmacy_data['name'],
-                        'submitted_name': pharmacy_name
-                    },
-                    'warnings': ['Pharmacy name does not match registered name']
-                })
-        else:
-            # Simulate checking if license number format is valid
-            if cls._is_valid_license_format(license_number):
-                verification_result['status'] = 'not_found'
-                verification_result['warnings'] = ['License number not found in Ministry database']
-            else:
-                verification_result['status'] = 'invalid_format'
-                verification_result['warnings'] = ['Invalid license number format']
+        Returns:
+            Dict containing verification results
+        """
+        verification_id = f"MOH-{random.randint(100000, 999999)}-{timezone.now().strftime('%Y%m%d')}"
         
-        return verification_result
+        # Check if pharmacy exists in MoH database
+        try:
+            moh_record = MoHPharmacyRecord.objects.get(license_number=license_number)
+            
+            # Verify pharmacy details
+            license_verification = self._verify_license(moh_record, pharmacy_name, owner_name)
+            certificate_verification = self._verify_pharmacist_certificate(moh_record)
+            risk_assessment = self._assess_risk(moh_record, license_verification, certificate_verification)
+            
+            return {
+                'verification_timestamp': timezone.now().isoformat(),
+                'verification_id': verification_id,
+                'license_verification': license_verification,
+                'certificate_verification': certificate_verification,
+                'risk_assessment': risk_assessment,
+                'moh_record_found': True,
+                'moh_record_id': moh_record.id
+            }
+            
+        except MoHPharmacyRecord.DoesNotExist:
+            # Pharmacy not found in MoH database - this is a red flag
+            return {
+                'verification_timestamp': timezone.now().isoformat(),
+                'verification_id': verification_id,
+                'license_verification': {
+                    'is_valid': False,
+                    'verification_id': verification_id,
+                    'details': None,
+                    'warnings': ['Pharmacy license not found in Ministry of Health database', 
+                               'This pharmacy may not be legally authorized to operate']
+                },
+                'certificate_verification': {
+                    'is_valid': False,
+                    'verification_id': verification_id,
+                    'warnings': ['Cannot verify pharmacist certificate - pharmacy not in MoH database']
+                },
+                'risk_assessment': {
+                    'risk_level': 'CRITICAL',
+                    'risk_score': 100,
+                    'recommendation': 'REJECT',
+                    'risk_factors': [
+                        'Pharmacy not registered in Ministry of Health database',
+                        'Cannot verify legitimacy of operations',
+                        'High risk of unlicensed pharmacy operations'
+                    ]
+                },
+                'moh_record_found': False,
+                'moh_record_id': None
+            }
     
-    @classmethod
-    def verify_pharmacist_certificate(cls, certificate_data: str) -> Dict[str, Any]:
-        """
-        Verify pharmacist certificate
-        """
-        verification_result = {
-            'is_valid': False,
-            'status': 'invalid',
-            'verification_date': timezone.now().isoformat(),
-            'verification_id': f"CERT-VER-{random.randint(100000, 999999)}"
+    def _verify_license(self, moh_record: MoHPharmacyRecord, pharmacy_name: str, owner_name: str = None) -> Dict[str, Any]:
+        """Verify license details against MoH record"""
+        verification_id = f"LIC-{random.randint(100000, 999999)}"
+        warnings = []
+        
+        # Check license validity
+        is_valid = moh_record.is_license_valid
+        if not is_valid:
+            if moh_record.status != 'active':
+                warnings.append(f"License status is '{moh_record.get_status_display()}' - not active")
+            if moh_record.expiry_date < date.today():
+                warnings.append(f"License expired on {moh_record.expiry_date}")
+        
+        # Check name matching (fuzzy matching for common variations)
+        name_similarity = self._calculate_name_similarity(pharmacy_name.lower(), moh_record.pharmacy_name.lower())
+        if name_similarity < 0.8:
+            warnings.append(f"Pharmacy name mismatch: Registered as '{moh_record.pharmacy_name}', applying as '{pharmacy_name}'")
+        
+        # Check owner name if provided
+        if owner_name:
+            owner_similarity = self._calculate_name_similarity(owner_name.lower(), moh_record.owner_name.lower())
+            if owner_similarity < 0.8:
+                warnings.append(f"Owner name mismatch: Registered owner '{moh_record.owner_name}', provided '{owner_name}'")
+        
+        return {
+            'is_valid': is_valid and name_similarity >= 0.6,  # Allow some flexibility in names
+            'verification_id': verification_id,
+            'details': {
+                'registered_name': moh_record.pharmacy_name,
+                'owner': moh_record.owner_name,
+                'license_type': moh_record.get_license_type_display(),
+                'location': f"{moh_record.city}, {moh_record.woreda}, {moh_record.get_region_display()}",
+                'issue_date': moh_record.issue_date.isoformat(),
+                'expiry_date': moh_record.expiry_date.isoformat(),
+                'status': moh_record.get_status_display(),
+                'pharmacist': moh_record.pharmacist_name,
+                'pharmacist_license': moh_record.pharmacist_license
+            },
+            'warnings': warnings
         }
-        
-        # Check certificate format
-        is_valid_format = any(certificate_data.startswith(pattern) for pattern in cls.VALID_CERTIFICATE_PATTERNS)
-        
-        if is_valid_format:
-            # Simulate additional checks
-            certificate_year = certificate_data.split('-')[2]
-            current_year = timezone.now().year
-            
-            if int(certificate_year) <= current_year:
-                verification_result.update({
-                    'is_valid': True,
-                    'status': 'valid',
-                    'details': {
-                        'certificate_year': certificate_year,
-                        'valid_until': f"{int(certificate_year) + 5}-12-31"
-                    }
-                })
-            else:
-                verification_result.update({
-                    'status': 'future_date',
-                    'warnings': ['Certificate date is in the future']
-                })
-        else:
-            verification_result.update({
-                'status': 'invalid_format',
-                'warnings': ['Invalid certificate format']
-            })
-        
-        return verification_result
     
-    @classmethod
-    def get_risk_assessment(cls, pharmacy_data: dict) -> Dict[str, Any]:
-        """
-        Assess risk level based on verification results
-        """
-        risk_factors = []
+    def _verify_pharmacist_certificate(self, moh_record: MoHPharmacyRecord) -> Dict[str, Any]:
+        """Verify pharmacist certificate"""
+        verification_id = f"CERT-{random.randint(100000, 999999)}"
+        warnings = []
+        
+        # Check if pharmacist license is valid format
+        is_valid = bool(moh_record.pharmacist_license and len(moh_record.pharmacist_license) >= 6)
+        
+        if not is_valid:
+            warnings.append("Invalid or missing pharmacist license number")
+        
+        # Additional checks could be added here for pharmacist license verification
+        # In a real system, this would check against pharmacist licensing board
+        
+        return {
+            'is_valid': is_valid,
+            'verification_id': verification_id,
+            'warnings': warnings
+        }
+    
+    def _assess_risk(self, moh_record: MoHPharmacyRecord, license_verification: Dict, certificate_verification: Dict) -> Dict[str, Any]:
+        """Assess risk level and provide recommendation"""
         risk_score = 0
+        risk_factors = []
         
-        # Check license verification
-        license_verification = pharmacy_data.get('license_verification', {})
-        if not license_verification.get('is_valid'):
-            risk_factors.append('Invalid or unverified license')
-            risk_score += 30
-        elif license_verification.get('status') == 'expired':
-            risk_factors.append('Expired license')
-            risk_score += 25
-        elif license_verification.get('status') == 'name_mismatch':
-            risk_factors.append('Name mismatch with registered records')
+        # License validity (40 points)
+        if not license_verification['is_valid']:
+            risk_score += 40
+            risk_factors.append("Invalid or expired pharmacy license")
+        
+        # Certificate validity (20 points)
+        if not certificate_verification['is_valid']:
             risk_score += 20
+            risk_factors.append("Invalid pharmacist certification")
         
-        # Check certificate verification
-        cert_verification = pharmacy_data.get('certificate_verification', {})
-        if not cert_verification.get('is_valid'):
-            risk_factors.append('Invalid pharmacist certificate')
-            risk_score += 25
-        
-        # Additional risk factors
-        if not pharmacy_data.get('business_license'):
-            risk_factors.append('Missing business license document')
-            risk_score += 15
-        
-        if not pharmacy_data.get('address_verified'):
-            risk_factors.append('Address not verified')
+        # License expiry warning (10 points)
+        if moh_record.days_until_expiry is not None and moh_record.days_until_expiry < 90:
             risk_score += 10
+            risk_factors.append(f"License expires in {moh_record.days_until_expiry} days")
         
-        # Determine risk level
-        if risk_score >= 50:
+        # Status checks (15 points)
+        if moh_record.status == 'suspended':
+            risk_score += 15
+            risk_factors.append("Pharmacy is currently suspended by MoH")
+        elif moh_record.status == 'revoked':
+            risk_score += 40
+            risk_factors.append("Pharmacy license has been revoked")
+        
+        # Name mismatches from warnings (10 points)
+        if any('mismatch' in warning.lower() for warning in license_verification.get('warnings', [])):
+            risk_score += 10
+            risk_factors.append("Name inconsistencies detected")
+        
+        # Last inspection date (5 points)
+        if moh_record.last_inspection_date:
+            days_since_inspection = (date.today() - moh_record.last_inspection_date).days
+            if days_since_inspection > 365:
+                risk_score += 5
+                risk_factors.append(f"Last inspection was {days_since_inspection} days ago")
+        
+        # Determine risk level and recommendation
+        if risk_score >= 30:
             risk_level = 'HIGH'
             recommendation = 'REJECT'
-        elif risk_score >= 25:
+        elif risk_score >= 15:
             risk_level = 'MEDIUM'
             recommendation = 'MANUAL_REVIEW'
         else:
@@ -217,38 +191,42 @@ class MinistryOfHealthVerificationService:
             recommendation = 'APPROVE'
         
         return {
-            'risk_score': risk_score,
             'risk_level': risk_level,
-            'risk_factors': risk_factors,
+            'risk_score': min(risk_score, 100),  # Cap at 100
             'recommendation': recommendation,
-            'assessment_date': timezone.now().isoformat()
+            'risk_factors': risk_factors
         }
     
-    @classmethod
-    def _check_name_similarity(cls, name1: str, name2: str) -> bool:
-        """
-        Check if two pharmacy names are similar enough
-        """
-        # Simple similarity check - in production would use more sophisticated methods
-        name1_words = set(name1.replace('pharmacy', '').replace('ph', '').split())
-        name2_words = set(name2.replace('pharmacy', '').replace('ph', '').split())
+    def _calculate_name_similarity(self, name1: str, name2: str) -> float:
+        """Calculate similarity between two names (simple implementation)"""
+        # Remove common words and normalize
+        common_words = ['pharmacy', 'medical', 'health', 'center', 'clinic', 'drug', 'store']
         
-        if not name1_words or not name2_words:
-            return False
+        def normalize_name(name):
+            words = name.lower().split()
+            return ' '.join([word for word in words if word not in common_words])
         
-        common_words = name1_words.intersection(name2_words)
-        similarity_ratio = len(common_words) / max(len(name1_words), len(name2_words))
+        norm_name1 = normalize_name(name1)
+        norm_name2 = normalize_name(name2)
         
-        return similarity_ratio >= 0.6  # 60% similarity threshold
-    
-    @classmethod
-    def _is_valid_license_format(cls, license_number: str) -> bool:
-        """
-        Check if license number follows valid format
-        """
-        # Ethiopian pharmacy license format: PH + 6 digits
-        return (
-            len(license_number) == 8 and
-            license_number.startswith('PH') and
-            license_number[2:].isdigit()
-        )
+        if norm_name1 == norm_name2:
+            return 1.0
+        
+        # Simple character-based similarity
+        if len(norm_name1) == 0 or len(norm_name2) == 0:
+            return 0.0
+        
+        # Calculate Jaccard similarity on character bigrams
+        def get_bigrams(text):
+            return set([text[i:i+2] for i in range(len(text)-1)])
+        
+        bigrams1 = get_bigrams(norm_name1)
+        bigrams2 = get_bigrams(norm_name2)
+        
+        if len(bigrams1) == 0 and len(bigrams2) == 0:
+            return 1.0
+        
+        intersection = len(bigrams1.intersection(bigrams2))
+        union = len(bigrams1.union(bigrams2))
+        
+        return intersection / union if union > 0 else 0.0
