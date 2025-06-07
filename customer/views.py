@@ -8,8 +8,9 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
 from .models import Customer, Prescription, Order, OrderItem
-from pharmacy.models import Pharmacy, Medicine
+from pharmacy.models import Pharmacy, Medicine, MoHPharmacyRecord
 from pharmacy.verification_service import MinistryOfHealthVerificationService
+from pharmacy.forms import MoHPharmacyForm, MoHLoginForm
 from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm
 
 def home(request):
@@ -446,39 +447,25 @@ def admin_verify_pharmacy(request, pharmacy_id):
     pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
     
     # Run Ministry of Health verification
-    license_verification = MinistryOfHealthVerificationService.verify_pharmacy_license(
-        pharmacy.license_number, pharmacy.name
+    moh_service = MinistryOfHealthVerificationService()
+    moh_data = moh_service.verify_pharmacy(
+        pharmacy_name=pharmacy.name,
+        license_number=pharmacy.license_number,
+        owner_name=None  # Could extract from user data if available
     )
-    
-    # Simulate certificate verification (extract from certificate file name or use license)
-    certificate_data = f"CERT-PH-2023-{pharmacy.license_number[-4:]}"
-    certificate_verification = MinistryOfHealthVerificationService.verify_pharmacist_certificate(
-        certificate_data
-    )
-    
-    # Get risk assessment
-    verification_data = {
-        'license_verification': license_verification,
-        'certificate_verification': certificate_verification,
-        'business_license': bool(pharmacy.business_license),
-        'address_verified': bool(pharmacy.latitude and pharmacy.longitude)
-    }
-    
-    risk_assessment = MinistryOfHealthVerificationService.get_risk_assessment(verification_data)
     
     # Store verification results
-    pharmacy.moh_verification_data = {
-        'license_verification': license_verification,
-        'certificate_verification': certificate_verification,
-        'risk_assessment': risk_assessment,
-        'verification_timestamp': timezone.now().isoformat()
-    }
+    pharmacy.moh_verification_data = moh_data
     
-    # Update MoH verification status
-    if license_verification['is_valid'] and certificate_verification['is_valid']:
-        pharmacy.moh_verification_status = 'verified'
-    elif risk_assessment['recommendation'] == 'MANUAL_REVIEW':
-        pharmacy.moh_verification_status = 'manual_review'
+    # Update MoH verification status based on new data structure
+    if moh_data['moh_record_found']:
+        risk_assessment = moh_data['risk_assessment']
+        if risk_assessment['recommendation'] == 'APPROVE':
+            pharmacy.moh_verification_status = 'verified'
+        elif risk_assessment['recommendation'] == 'MANUAL_REVIEW':
+            pharmacy.moh_verification_status = 'manual_review'
+        else:
+            pharmacy.moh_verification_status = 'failed'
     else:
         pharmacy.moh_verification_status = 'failed'
     
@@ -635,4 +622,147 @@ def admin_pharmacy_detail(request, pharmacy_id):
     return render(request, 'admin/pharmacy_detail.html', context)
 
 
-# Removed location-based API endpoints as requested
+# Ministry of Health Admin Views (Separate System)
+def moh_login(request):
+    """Ministry of Health login page"""
+    if request.method == 'POST':
+        form = MoHLoginForm(request.POST)
+        if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
+            
+            # Simple authentication for MoH officials
+            if username == 'moh_admin' and password == 'moh123':
+                request.session['moh_authenticated'] = True
+                request.session['moh_officer'] = username
+                return redirect('moh_dashboard')
+            else:
+                messages.error(request, 'Invalid Ministry of Health credentials.')
+    else:
+        form = MoHLoginForm()
+    
+    return render(request, 'moh/login.html', {'form': form})
+
+def moh_dashboard(request):
+    """Ministry of Health dashboard"""
+    if not request.session.get('moh_authenticated'):
+        return redirect('moh_login')
+    
+    # Get statistics
+    total_pharmacies = MoHPharmacyRecord.objects.count()
+    active_pharmacies = MoHPharmacyRecord.objects.filter(status='active').count()
+    suspended_pharmacies = MoHPharmacyRecord.objects.filter(status='suspended').count()
+    from datetime import date
+    expired_licenses = MoHPharmacyRecord.objects.filter(
+        expiry_date__lt=date.today()
+    ).count()
+    
+    # Recent registrations
+    recent_pharmacies = MoHPharmacyRecord.objects.order_by('-registration_date')[:5]
+    
+    context = {
+        'total_pharmacies': total_pharmacies,
+        'active_pharmacies': active_pharmacies,
+        'suspended_pharmacies': suspended_pharmacies,
+        'expired_licenses': expired_licenses,
+        'recent_pharmacies': recent_pharmacies,
+        'moh_officer': request.session.get('moh_officer', 'Unknown')
+    }
+    
+    return render(request, 'moh/dashboard.html', context)
+
+def moh_pharmacy_list(request):
+    """List all pharmacies in MoH database"""
+    if not request.session.get('moh_authenticated'):
+        return redirect('moh_login')
+    
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    region_filter = request.GET.get('region', '')
+    
+    pharmacies = MoHPharmacyRecord.objects.all()
+    
+    if search_query:
+        from django.db.models import Q
+        pharmacies = pharmacies.filter(
+            Q(pharmacy_name__icontains=search_query) |
+            Q(license_number__icontains=search_query) |
+            Q(owner_name__icontains=search_query)
+        )
+    
+    if status_filter:
+        pharmacies = pharmacies.filter(status=status_filter)
+    
+    if region_filter:
+        pharmacies = pharmacies.filter(region=region_filter)
+    
+    pharmacies = pharmacies.order_by('-registration_date')
+    
+    context = {
+        'pharmacies': pharmacies,
+        'search': search_query,
+        'status_filter': status_filter,
+        'region_filter': region_filter,
+        'regions': MoHPharmacyRecord.REGION_CHOICES,
+        'statuses': MoHPharmacyRecord.STATUS_CHOICES
+    }
+    
+    return render(request, 'moh/pharmacy_list.html', context)
+
+def moh_add_pharmacy(request):
+    """Add new pharmacy to MoH database"""
+    if not request.session.get('moh_authenticated'):
+        return redirect('moh_login')
+    
+    if request.method == 'POST':
+        form = MoHPharmacyForm(request.POST)
+        if form.is_valid():
+            pharmacy = form.save(commit=False)
+            pharmacy.moh_officer = request.session.get('moh_officer', 'Unknown')
+            pharmacy.save()
+            messages.success(request, f'Pharmacy "{pharmacy.pharmacy_name}" has been registered in the MoH database.')
+            return redirect('moh_pharmacy_list')
+    else:
+        form = MoHPharmacyForm()
+    
+    return render(request, 'moh/add_pharmacy.html', {'form': form})
+
+def moh_edit_pharmacy(request, pharmacy_id):
+    """Edit pharmacy record in MoH database"""
+    if not request.session.get('moh_authenticated'):
+        return redirect('moh_login')
+    
+    pharmacy = get_object_or_404(MoHPharmacyRecord, id=pharmacy_id)
+    
+    if request.method == 'POST':
+        form = MoHPharmacyForm(request.POST, instance=pharmacy)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Pharmacy "{pharmacy.pharmacy_name}" has been updated.')
+            return redirect('moh_pharmacy_list')
+    else:
+        form = MoHPharmacyForm(instance=pharmacy)
+    
+    return render(request, 'moh/edit_pharmacy.html', {'form': form, 'pharmacy': pharmacy})
+
+def moh_delete_pharmacy(request, pharmacy_id):
+    """Delete pharmacy record from MoH database"""
+    if not request.session.get('moh_authenticated'):
+        return redirect('moh_login')
+    
+    pharmacy = get_object_or_404(MoHPharmacyRecord, id=pharmacy_id)
+    
+    if request.method == 'POST':
+        pharmacy_name = pharmacy.pharmacy_name
+        pharmacy.delete()
+        messages.success(request, f'Pharmacy "{pharmacy_name}" has been removed from the MoH database.')
+        return redirect('moh_pharmacy_list')
+    
+    return render(request, 'moh/delete_pharmacy.html', {'pharmacy': pharmacy})
+
+def moh_logout(request):
+    """Logout from MoH system"""
+    request.session.pop('moh_authenticated', None)
+    request.session.pop('moh_officer', None)
+    messages.success(request, 'You have been logged out from the Ministry of Health system.')
+    return redirect('moh_login')
