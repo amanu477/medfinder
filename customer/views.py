@@ -746,6 +746,11 @@ def moh_add_pharmacy(request):
             pharmacy.save()
             messages.success(request, f'Pharmacy "{pharmacy.pharmacy_name}" has been registered in the MoH database.')
             return redirect('moh_pharmacy_list')
+        else:
+            # Debug form errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Error in {field}: {error}")
     else:
         form = MoHPharmacyForm()
     
