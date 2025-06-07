@@ -501,7 +501,6 @@ def admin_approve_pharmacy(request, pharmacy_id):
     pharmacy.verified_at = timezone.now()
     pharmacy.save()
     
-    messages.success(request, f'Pharmacy "{pharmacy.name}" has been approved successfully.')
     return redirect('admin_pharmacy_list')
 
 def admin_reject_pharmacy(request, pharmacy_id):
