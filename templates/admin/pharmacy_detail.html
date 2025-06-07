@@ -1,0 +1,337 @@
+{% extends 'base.html' %}
+
+{% block title %}Pharmacy Details - Ministry of Health Verification{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-hospital-symbol me-2"></i>{{ pharmacy.name }} - MoH Verification</h2>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'admin_verify_pharmacy' pharmacy.id %}" class="btn btn-warning">
+                        <i class="fas fa-search me-1"></i>Run MoH Verification
+                    </a>
+                    <a href="{% url 'admin_pharmacy_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pharmacy Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Pharmacy Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-4"><strong>Name:</strong></div>
+                        <div class="col-sm-8">{{ pharmacy.name }}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>License Number:</strong></div>
+                        <div class="col-sm-8">{{ pharmacy.license_number }}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>Email:</strong></div>
+                        <div class="col-sm-8">{{ pharmacy.email }}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>Phone:</strong></div>
+                        <div class="col-sm-8">{{ pharmacy.phone }}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>Address:</strong></div>
+                        <div class="col-sm-8">{{ pharmacy.address }}</div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-sm-4"><strong>Current Status:</strong></div>
+                        <div class="col-sm-8">
+                            <span class="badge bg-{% if pharmacy.verification_status == 'verified' %}success{% elif pharmacy.verification_status == 'pending' %}warning{% else %}danger{% endif %}">
+                                {{ pharmacy.get_verification_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Uploaded Documents</h5>
+                </div>
+                <div class="card-body">
+                    {% if pharmacy.business_license %}
+                    <div class="mb-3">
+                        <strong>Business License:</strong>
+                        <a href="{{ pharmacy.business_license.url }}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+                            <i class="fas fa-download me-1"></i>View Document
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if pharmacy.pharmacist_certificate %}
+                    <div class="mb-3">
+                        <strong>Pharmacist Certificate:</strong>
+                        <a href="{{ pharmacy.pharmacist_certificate.url }}" target="_blank" class="btn btn-sm btn-outline-primary ms-2">
+                            <i class="fas fa-download me-1"></i>View Certificate
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if pharmacy.verification_documents %}
+                    <div class="mb-3">
+                        <strong>Additional Documents:</strong>
+                        <a href="{{ pharmacy.verification_documents.url }}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
+                            <i class="fas fa-download me-1"></i>View Documents
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    {% if not pharmacy.business_license and not pharmacy.pharmacist_certificate %}
+                    <p class="text-muted">No documents uploaded</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ministry of Health Verification Results -->
+    {% if moh_data %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Ministry of Health Verification Results</h5>
+                </div>
+                <div class="card-body">
+                    <!-- MoH Status -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>MoH Verification Status:</h6>
+                            <span class="badge bg-{% if pharmacy.moh_verification_status == 'verified' %}success{% elif pharmacy.moh_verification_status == 'manual_review' %}warning{% else %}danger{% endif %} fs-6">
+                                {% if pharmacy.moh_verification_status == 'verified' %}
+                                <i class="fas fa-check-circle me-1"></i>Ministry Verified
+                                {% elif pharmacy.moh_verification_status == 'manual_review' %}
+                                <i class="fas fa-exclamation-triangle me-1"></i>Requires Manual Review
+                                {% elif pharmacy.moh_verification_status == 'failed' %}
+                                <i class="fas fa-times-circle me-1"></i>Verification Failed
+                                {% else %}
+                                <i class="fas fa-clock me-1"></i>Pending Verification
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Verification Date:</h6>
+                            {% if moh_data.verification_timestamp %}
+                            <span class="text-muted">{{ moh_data.verification_timestamp|slice:":19" }}</span>
+                            {% else %}
+                            <span class="text-muted">Not verified</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- License Verification -->
+                    {% if moh_data.license_verification %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6><i class="fas fa-certificate me-2"></i>License Verification Results</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>License Status:</strong>
+                                            <span class="badge bg-{% if moh_data.license_verification.is_valid %}success{% else %}danger{% endif %} ms-2">
+                                                {% if moh_data.license_verification.is_valid %}Valid{% else %}Invalid{% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Verification ID:</strong> {{ moh_data.license_verification.verification_id }}
+                                        </div>
+                                    </div>
+                                    
+                                    {% if moh_data.license_verification.details %}
+                                    <hr>
+                                    <h6>License Details from MoH Database:</h6>
+                                    <div class="row">
+                                        {% if moh_data.license_verification.details.registered_name %}
+                                        <div class="col-md-6">
+                                            <strong>Registered Name:</strong> {{ moh_data.license_verification.details.registered_name }}
+                                        </div>
+                                        {% endif %}
+                                        {% if moh_data.license_verification.details.owner %}
+                                        <div class="col-md-6">
+                                            <strong>Owner:</strong> {{ moh_data.license_verification.details.owner }}
+                                        </div>
+                                        {% endif %}
+                                        {% if moh_data.license_verification.details.license_type %}
+                                        <div class="col-md-6">
+                                            <strong>License Type:</strong> {{ moh_data.license_verification.details.license_type }}
+                                        </div>
+                                        {% endif %}
+                                        {% if moh_data.license_verification.details.location %}
+                                        <div class="col-md-6">
+                                            <strong>Registered Location:</strong> {{ moh_data.license_verification.details.location }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    {% if moh_data.license_verification.warnings %}
+                                    <div class="alert alert-warning mt-3">
+                                        <strong>Warnings:</strong>
+                                        <ul class="mb-0">
+                                            {% for warning in moh_data.license_verification.warnings %}
+                                            <li>{{ warning }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Certificate Verification -->
+                    {% if moh_data.certificate_verification %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6><i class="fas fa-award me-2"></i>Pharmacist Certificate Verification</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Certificate Status:</strong>
+                                            <span class="badge bg-{% if moh_data.certificate_verification.is_valid %}success{% else %}danger{% endif %} ms-2">
+                                                {% if moh_data.certificate_verification.is_valid %}Valid{% else %}Invalid{% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Verification ID:</strong> {{ moh_data.certificate_verification.verification_id }}
+                                        </div>
+                                    </div>
+                                    
+                                    {% if moh_data.certificate_verification.warnings %}
+                                    <div class="alert alert-warning mt-3">
+                                        <strong>Warnings:</strong>
+                                        <ul class="mb-0">
+                                            {% for warning in moh_data.certificate_verification.warnings %}
+                                            <li>{{ warning }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Risk Assessment -->
+                    {% if moh_data.risk_assessment %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Risk Assessment</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <strong>Risk Level:</strong>
+                                            <span class="badge bg-{% if moh_data.risk_assessment.risk_level == 'LOW' %}success{% elif moh_data.risk_assessment.risk_level == 'MEDIUM' %}warning{% else %}danger{% endif %} ms-2 fs-6">
+                                                {{ moh_data.risk_assessment.risk_level }}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <strong>Risk Score:</strong> {{ moh_data.risk_assessment.risk_score }}/100
+                                        </div>
+                                        <div class="col-md-4">
+                                            <strong>Recommendation:</strong>
+                                            <span class="badge bg-{% if moh_data.risk_assessment.recommendation == 'APPROVE' %}success{% elif moh_data.risk_assessment.recommendation == 'MANUAL_REVIEW' %}warning{% else %}danger{% endif %} ms-2">
+                                                {{ moh_data.risk_assessment.recommendation }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if moh_data.risk_assessment.risk_factors %}
+                                    <hr>
+                                    <strong>Risk Factors:</strong>
+                                    <ul class="mt-2">
+                                        {% for factor in moh_data.risk_assessment.risk_factors %}
+                                        <li class="text-warning">{{ factor }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Admin Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Admin Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if pharmacy.verification_status == 'pending' %}
+                    <div class="d-flex gap-3">
+                        {% if not moh_data %}
+                        <a href="{% url 'admin_verify_pharmacy' pharmacy.id %}" class="btn btn-warning">
+                            <i class="fas fa-search me-1"></i>Run Ministry of Health Verification
+                        </a>
+                        {% else %}
+                        {% if moh_data.risk_assessment.recommendation == 'APPROVE' or pharmacy.moh_verification_status == 'verified' %}
+                        <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-success" onclick="return confirm('Approve this pharmacy based on MoH verification?')">
+                            <i class="fas fa-check me-1"></i>Approve (MoH Verified)
+                        </a>
+                        {% elif moh_data.risk_assessment.recommendation == 'REJECT' %}
+                        <a href="{% url 'admin_reject_pharmacy' pharmacy.id %}" class="btn btn-danger">
+                            <i class="fas fa-times me-1"></i>Reject (Failed MoH Verification)
+                        </a>
+                        {% else %}
+                        <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-success" onclick="return confirm('Approve this pharmacy? Manual review recommended.')">
+                            <i class="fas fa-check me-1"></i>Approve (Manual Override)
+                        </a>
+                        <a href="{% url 'admin_reject_pharmacy' pharmacy.id %}" class="btn btn-danger">
+                            <i class="fas fa-times me-1"></i>Reject
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    {% elif pharmacy.verification_status == 'rejected' %}
+                    <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-success" onclick="return confirm('Approve this previously rejected pharmacy?')">
+                        <i class="fas fa-check me-1"></i>Approve Pharmacy
+                    </a>
+                    {% else %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>This pharmacy has been verified and approved.
+                        {% if pharmacy.verified_at %}
+                        <br><small>Verified on: {{ pharmacy.verified_at|date:"M d, Y H:i" }}</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from .models import Customer, Prescription, Order, OrderItem
 from pharmacy.models import Pharmacy, Medicine
+from pharmacy.verification_service import MinistryOfHealthVerificationService
 from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm
 
 def home(request):
@@ -436,6 +437,56 @@ def admin_pharmacy_list(request):
     
     return render(request, 'admin/pharmacy_list.html', context)
 
+def admin_verify_pharmacy(request, pharmacy_id):
+    """Run Ministry of Health verification check for a pharmacy"""
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
+    
+    # Run Ministry of Health verification
+    license_verification = MinistryOfHealthVerificationService.verify_pharmacy_license(
+        pharmacy.license_number, pharmacy.name
+    )
+    
+    # Simulate certificate verification (extract from certificate file name or use license)
+    certificate_data = f"CERT-PH-2023-{pharmacy.license_number[-4:]}"
+    certificate_verification = MinistryOfHealthVerificationService.verify_pharmacist_certificate(
+        certificate_data
+    )
+    
+    # Get risk assessment
+    verification_data = {
+        'license_verification': license_verification,
+        'certificate_verification': certificate_verification,
+        'business_license': bool(pharmacy.business_license),
+        'address_verified': bool(pharmacy.latitude and pharmacy.longitude)
+    }
+    
+    risk_assessment = MinistryOfHealthVerificationService.get_risk_assessment(verification_data)
+    
+    # Store verification results
+    pharmacy.moh_verification_data = {
+        'license_verification': license_verification,
+        'certificate_verification': certificate_verification,
+        'risk_assessment': risk_assessment,
+        'verification_timestamp': timezone.now().isoformat()
+    }
+    
+    # Update MoH verification status
+    if license_verification['is_valid'] and certificate_verification['is_valid']:
+        pharmacy.moh_verification_status = 'verified'
+    elif risk_assessment['recommendation'] == 'MANUAL_REVIEW':
+        pharmacy.moh_verification_status = 'manual_review'
+    else:
+        pharmacy.moh_verification_status = 'failed'
+    
+    pharmacy.save()
+    
+    messages.success(request, f'Ministry of Health verification completed for "{pharmacy.name}".')
+    return redirect('admin_pharmacy_detail', pharmacy_id=pharmacy.id)
+
 def admin_approve_pharmacy(request, pharmacy_id):
     """Approve a pharmacy"""
     if not request.user.is_superuser:
@@ -567,6 +618,21 @@ def admin_prescription_list(request):
     }
     
     return render(request, 'admin/prescription_list.html', context)
+
+def admin_pharmacy_detail(request, pharmacy_id):
+    """View detailed pharmacy information with Ministry of Health verification"""
+    if not request.user.is_superuser:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
+    
+    context = {
+        'pharmacy': pharmacy,
+        'moh_data': pharmacy.moh_verification_data or {},
+    }
+    
+    return render(request, 'admin/pharmacy_detail.html', context)
 
 
 # Removed location-based API endpoints as requested

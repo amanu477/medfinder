@@ -27,6 +27,8 @@ urlpatterns = [
     # Admin panel
     path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
     path('admin/pharmacies/', views.admin_pharmacy_list, name='admin_pharmacy_list'),
+    path('admin/pharmacy/<int:pharmacy_id>/', views.admin_pharmacy_detail, name='admin_pharmacy_detail'),
+    path('admin/pharmacy/verify/<int:pharmacy_id>/', views.admin_verify_pharmacy, name='admin_verify_pharmacy'),
     path('admin/pharmacy/approve/<int:pharmacy_id>/', views.admin_approve_pharmacy, name='admin_approve_pharmacy'),
     path('admin/pharmacy/reject/<int:pharmacy_id>/', views.admin_reject_pharmacy, name='admin_reject_pharmacy'),
     path('admin/customers/', views.admin_customer_list, name='admin_customer_list'),

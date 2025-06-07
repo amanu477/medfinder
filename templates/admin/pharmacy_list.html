@@ -65,6 +65,7 @@
                                     <th>Contact</th>
                                     <th>Location</th>
                                     <th>Status</th>
+                                    <th>MoH Verification</th>
                                     <th>Registration Date</th>
                                     <th>Actions</th>
                                 </tr>
@@ -111,9 +112,31 @@
                                         <br><small class="text-muted">{{ pharmacy.rejection_reason|truncatechars:40 }}</small>
                                         {% endif %}
                                     </td>
+                                    <td>
+                                        {% if pharmacy.moh_verification_status == 'verified' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-shield-alt me-1"></i>MoH Verified
+                                        </span>
+                                        {% elif pharmacy.moh_verification_status == 'manual_review' %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>Manual Review
+                                        </span>
+                                        {% elif pharmacy.moh_verification_status == 'failed' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle me-1"></i>MoH Failed
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">
+                                            <i class="fas fa-clock me-1"></i>Pending
+                                        </span>
+                                        {% endif %}
+                                    </td>
                                     <td>{{ pharmacy.created_at|date:"M d, Y" }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
+                                            <a href="{% url 'admin_pharmacy_detail' pharmacy.id %}" class="btn btn-sm btn-info">
+                                                <i class="fas fa-eye me-1"></i>Details
+                                            </a>
                                             {% if pharmacy.verification_status == 'pending' %}
                                             <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success" onclick="return confirm('Approve this pharmacy?')">
                                                 <i class="fas fa-check me-1"></i>Approve
@@ -125,13 +148,6 @@
                                             <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success" onclick="return confirm('Approve this pharmacy?')">
                                                 <i class="fas fa-check me-1"></i>Approve
                                             </a>
-                                            {% endif %}
-                                            
-                                            <!-- View Documents Button -->
-                                            {% if pharmacy.business_license or pharmacy.pharmacist_certificate or pharmacy.verification_documents %}
-                                            <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#documentsModal{{ pharmacy.id }}">
-                                                <i class="fas fa-file-alt me-1"></i>Documents
-                                            </button>
                                             {% endif %}
                                         </div>
                                     </td>
