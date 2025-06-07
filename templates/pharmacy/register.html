@@ -359,12 +359,14 @@
         
         if (manualToggleBtn && manualSection) {
             console.log('Manual toggle button found, adding click handler');
-            console.log('Initial section visibility:', manualSection.classList.contains('d-none'));
+            
+            // Ensure the section starts hidden
+            manualSection.classList.add('d-none');
+            console.log('Forced section to be hidden initially');
             
             manualToggleBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 console.log('Manual location button clicked');
-                console.log('Section has d-none class:', manualSection.classList.contains('d-none'));
                 
                 if (manualSection.classList.contains('d-none')) {
                     console.log('Showing manual section');
@@ -392,8 +394,6 @@
             });
         } else {
             console.log('Manual toggle button or section not found');
-            console.log('Toggle button:', manualToggleBtn);
-            console.log('Manual section:', manualSection);
         }
         
         // Manual coordinate input handling
