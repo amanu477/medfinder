@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Respond to Verification Request - Ministry of Health</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .card-header {
+            font-weight: 600;
+        }
+        .btn-group .btn {
+            margin-right: 5px;
+        }
+        .status-badge {
+            font-size: 0.9em;
+        }
+        .verification-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'moh_dashboard' %}">
+                <i class="fas fa-hospital me-2"></i>
+                Ministry of Health - Ethiopia
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'moh_dashboard' %}">
+                    <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                </a>
+                <a class="nav-link" href="{% url 'moh_pharmacy_list' %}">
+                    <i class="fas fa-list me-1"></i>Pharmacies
+                </a>
+                <a class="nav-link" href="{% url 'moh_verification_requests' %}">
+                    <i class="fas fa-clipboard-check me-1"></i>Verification Requests
+                </a>
+                <a class="nav-link" href="{% url 'moh_logout' %}">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="mb-1">
+                            <i class="fas fa-clipboard-check me-2 text-warning"></i>
+                            Verification Request Response
+                        </h2>
+                        <p class="text-muted mb-0">Review and respond to platform administrator verification request</p>
+                    </div>
+                    <a href="{% url 'moh_verification_requests' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Requests
+                    </a>
+                </div>
+
+                <!-- Messages -->
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Verification Request Details -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Verification Request Details
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="verification-info">
+                                    <h6 class="fw-bold text-primary">Request Information</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Request ID:</strong> #{{ request_obj.id }}</p>
+                                            <p><strong>Pharmacy Name:</strong> {{ request_obj.pharmacy_name }}</p>
+                                            <p><strong>License Number:</strong> {{ request_obj.license_number }}</p>
+                                            <p><strong>Owner Name:</strong> {{ request_obj.owner_name|default:"Not provided" }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Status:</strong> 
+                                                {% if request_obj.status == 'pending' %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% elif request_obj.status == 'approved' %}
+                                                    <span class="badge bg-success">Approved</span>
+                                                {% elif request_obj.status == 'rejected' %}
+                                                    <span class="badge bg-danger">Rejected</span>
+                                                {% endif %}
+                                            </p>
+                                            <p><strong>Requested By:</strong> {{ request_obj.requested_by.username }}</p>
+                                            <p><strong>Request Date:</strong> {{ request_obj.created_at|date:"M d, Y H:i" }}</p>
+                                            <p><strong>Last Updated:</strong> {{ request_obj.updated_at|date:"M d, Y H:i" }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- MoH Database Check -->
+                                {% if moh_pharmacy %}
+                                <div class="alert alert-success">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        Pharmacy Found in MoH Database
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p><strong>Registered Name:</strong> {{ moh_pharmacy.pharmacy_name }}</p>
+                                            <p><strong>License Number:</strong> {{ moh_pharmacy.license_number }}</p>
+                                            <p><strong>Pharmacist:</strong> {{ moh_pharmacy.pharmacist_name }}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Status:</strong> 
+                                                <span class="badge bg-{% if moh_pharmacy.status == 'active' %}success{% elif moh_pharmacy.status == 'suspended' %}warning{% else %}danger{% endif %}">
+                                                    {{ moh_pharmacy.get_status_display }}
+                                                </span>
+                                            </p>
+                                            <p><strong>License Valid Until:</strong> {{ moh_pharmacy.expiry_date|date:"M d, Y" }}</p>
+                                            <p><strong>Region:</strong> {{ moh_pharmacy.get_region_display }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="alert alert-warning">
+                                    <h6 class="alert-heading">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        Pharmacy Not Found in MoH Database
+                                    </h6>
+                                    <p class="mb-0">The requested pharmacy with license number "{{ request_obj.license_number }}" was not found in the Ministry of Health database. This pharmacy may not be properly licensed or the license number may be incorrect.</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Response Form -->
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-reply me-2"></i>
+                                    MoH Response
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                {% if request_obj.status == 'pending' %}
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label for="response_status" class="form-label fw-bold">Response Decision *</label>
+                                            <select class="form-select" id="response_status" name="response_status" required>
+                                                <option value="">Select Response</option>
+                                                <option value="approved">Approve - Pharmacy is legitimate</option>
+                                                <option value="rejected">Reject - Pharmacy not found/invalid</option>
+                                                <option value="manual_review">Requires Manual Review</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="moh_notes" class="form-label fw-bold">Official Notes</label>
+                                            <textarea class="form-control" id="moh_notes" name="moh_notes" rows="4" 
+                                                      placeholder="Provide official notes regarding this verification decision..."></textarea>
+                                        </div>
+
+                                        <div class="d-grid gap-2">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-paper-plane me-2"></i>
+                                                Submit Official Response
+                                            </button>
+                                        </div>
+                                    </form>
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        <h6 class="alert-heading">Response Already Submitted</h6>
+                                        <p><strong>Status:</strong> {{ request_obj.get_status_display }}</p>
+                                        {% if request_obj.moh_notes %}
+                                            <p><strong>Notes:</strong> {{ request_obj.moh_notes }}</p>
+                                        {% endif %}
+                                        <small class="text-muted">Responded on {{ request_obj.updated_at|date:"M d, Y H:i" }}</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Previous Response History -->
+                        {% if request_obj.moh_response %}
+                        <div class="card mt-3">
+                            <div class="card-header bg-light">
+                                <h6 class="card-title mb-0">
+                                    <i class="fas fa-history me-2"></i>
+                                    Response History
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <small class="text-muted">
+                                    <strong>Previous Response:</strong><br>
+                                    {{ request_obj.moh_response|truncatewords:20 }}
+                                </small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
