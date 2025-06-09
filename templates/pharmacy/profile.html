@@ -22,7 +22,7 @@
                         </div>
                         {% endif %}
                         
-                        <form method="post">
+                        <form method="post" enctype="multipart/form-data">
                             {% csrf_token %}
                             
                             {% if form.non_field_errors %}
@@ -125,6 +125,80 @@
                                         {{ form.closing_time.errors }}
                                     </div>
                                     {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Verification Documents -->
+                            <h5 class="mb-3">Verification Documents</h5>
+                            <div class="mb-4">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.business_license.id_for_label }}" class="form-label">Business License</label>
+                                        {{ form.business_license }}
+                                        {% if form.business_license.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.business_license.errors }}
+                                        </div>
+                                        {% endif %}
+                                        {% if pharmacy.business_license %}
+                                        <div class="form-text text-success">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            Current file: <a href="{{ pharmacy.business_license.url }}" target="_blank">{{ pharmacy.business_license.name|slice:"30:" }}</a>
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.business_license.help_text }}</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.pharmacist_certificate.id_for_label }}" class="form-label">Pharmacist Certificate</label>
+                                        {{ form.pharmacist_certificate }}
+                                        {% if form.pharmacist_certificate.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.pharmacist_certificate.errors }}
+                                        </div>
+                                        {% endif %}
+                                        {% if pharmacy.pharmacist_certificate %}
+                                        <div class="form-text text-success">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            Current file: <a href="{{ pharmacy.pharmacist_certificate.url }}" target="_blank">{{ pharmacy.pharmacist_certificate.name|slice:"30:" }}</a>
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.pharmacist_certificate.help_text }}</div>
+                                    </div>
+                                    <div class="col-12 mb-3">
+                                        <label for="{{ form.verification_documents.id_for_label }}" class="form-label">Additional Documents</label>
+                                        {{ form.verification_documents }}
+                                        {% if form.verification_documents.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.verification_documents.errors }}
+                                        </div>
+                                        {% endif %}
+                                        {% if pharmacy.verification_documents %}
+                                        <div class="form-text text-success">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            Current file: <a href="{{ pharmacy.verification_documents.url }}" target="_blank">{{ pharmacy.verification_documents.name|slice:"30:" }}</a>
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">{{ form.verification_documents.help_text }}</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Verification Status Display -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="alert {% if pharmacy.verification_status == 'verified' %}alert-success{% elif pharmacy.verification_status == 'rejected' %}alert-danger{% else %}alert-warning{% endif %}">
+                                            <strong>Verification Status:</strong>
+                                            {% if pharmacy.verification_status == 'verified' %}
+                                                <i class="fas fa-check-circle me-1"></i> Verified
+                                            {% elif pharmacy.verification_status == 'rejected' %}
+                                                <i class="fas fa-times-circle me-1"></i> Rejected
+                                                {% if pharmacy.rejection_reason %}
+                                                    <br><small>Reason: {{ pharmacy.rejection_reason }}</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <i class="fas fa-clock me-1"></i> Pending Verification
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             

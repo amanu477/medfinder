@@ -34,9 +34,17 @@ class PharmacyUserForm(UserCreationForm):
 
 class PharmacyProfileForm(forms.ModelForm):
     """Form for editing pharmacy profile"""
+    
+    latitude = forms.FloatField(widget=forms.HiddenInput(), required=False)
+    longitude = forms.FloatField(widget=forms.HiddenInput(), required=False)
+    
     class Meta:
         model = Pharmacy
-        fields = ['name', 'license_type', 'address', 'phone', 'email', 'opening_time', 'closing_time', 'is_active']
+        fields = [
+            'name', 'license_type', 'address', 'phone', 'email', 'opening_time', 
+            'closing_time', 'is_active', 'business_license', 'pharmacist_certificate', 
+            'verification_documents', 'latitude', 'longitude'
+        ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'license_type': forms.Select(attrs={'class': 'form-select'}),
@@ -46,6 +54,24 @@ class PharmacyProfileForm(forms.ModelForm):
             'opening_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
             'closing_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'business_license': forms.FileInput(attrs={
+                'class': 'form-control', 
+                'accept': '.pdf,.jpg,.jpeg,.png'
+            }),
+            'pharmacist_certificate': forms.FileInput(attrs={
+                'class': 'form-control', 
+                'accept': '.pdf,.jpg,.jpeg,.png'
+            }),
+            'verification_documents': forms.FileInput(attrs={
+                'class': 'form-control', 
+                'accept': '.pdf,.jpg,.jpeg,.png'
+            }),
+        }
+        
+        help_texts = {
+            'business_license': 'Upload your business license (PDF, JPG, PNG)',
+            'pharmacist_certificate': 'Upload pharmacist certification (PDF, JPG, PNG)',
+            'verification_documents': 'Upload any additional verification documents (Optional)',
         }
 
 class MedicineForm(forms.ModelForm):
