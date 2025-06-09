@@ -15,7 +15,11 @@ from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm, Incide
 
 def home(request):
     """Home page view with search functionality"""
-    return render(request, 'home.html')
+    # Ensure no MoH notifications appear on main homepage
+    context = {
+        'suppress_moh_notifications': True,
+    }
+    return render(request, 'home.html', context)
 
 def search_medicines(request):
     """Search medicines and return results sorted by proximity"""
