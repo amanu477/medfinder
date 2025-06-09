@@ -1,7 +1,7 @@
 // Location-related functionality for the platform
 
 // Store user's location
-let userLocation = null;
+var userLocation = null;
 
 // Get user's current location
 function getUserLocation() {

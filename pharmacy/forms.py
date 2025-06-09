@@ -41,12 +41,13 @@ class PharmacyProfileForm(forms.ModelForm):
     class Meta:
         model = Pharmacy
         fields = [
-            'name', 'license_type', 'address', 'phone', 'email', 'opening_time', 
+            'name', 'license_number', 'license_type', 'address', 'phone', 'email', 'opening_time', 
             'closing_time', 'is_active', 'business_license', 'pharmacist_certificate', 
             'verification_documents', 'latitude', 'longitude'
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'license_number': forms.TextInput(attrs={'class': 'form-control'}),
             'license_type': forms.Select(attrs={'class': 'form-select'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),

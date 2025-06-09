@@ -1,5 +1,5 @@
 // Location-based search functionality
-let userLocation = null;
+var userLocation = null;
 
 // Get user's current location
 function getUserLocation() {
