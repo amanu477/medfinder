@@ -227,7 +227,7 @@ def pharmacy_profile(request):
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
     
     if request.method == 'POST':
-        form = PharmacyProfileForm(request.POST, instance=pharmacy)
+        form = PharmacyProfileForm(request.POST, request.FILES, instance=pharmacy)
         if form.is_valid():
             updated_pharmacy = form.save(commit=False)
             
