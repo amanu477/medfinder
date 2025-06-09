@@ -185,7 +185,7 @@
                                                 {% for pharmacy in recent_pharmacies %}
                                                 <tr>
                                                     <td><code>{{ pharmacy.license_number }}</code></td>
-                                                    <td>{{ pharmacy.name }}</td>
+                                                    <td>{{ pharmacy.pharmacy_name }}</td>
                                                     <td>{{ pharmacy.get_region_display }}</td>
                                                     <td>
                                                         {% if pharmacy.status == 'active' %}
@@ -196,7 +196,7 @@
                                                             <span class="badge bg-danger">{{ pharmacy.get_status_display }}</span>
                                                         {% endif %}
                                                     </td>
-                                                    <td>{{ pharmacy.registered_date|date:"M d, Y" }}</td>
+                                                    <td>{{ pharmacy.registration_date|date:"M d, Y" }}</td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>
