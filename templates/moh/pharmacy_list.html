@@ -169,8 +169,8 @@
                                         <tr>
                                             <td><code>{{ pharmacy.license_number }}</code></td>
                                             <td>
-                                                <strong>{{ pharmacy.name }}</strong><br>
-                                                <small class="text-muted">{{ pharmacy.address|truncatechars:50 }}</small>
+                                                <strong>{{ pharmacy.pharmacy_name }}</strong><br>
+                                                <small class="text-muted">{{ pharmacy.address_detail|truncatechars:50 }}</small>
                                             </td>
                                             <td>{{ pharmacy.owner_name }}</td>
                                             <td>{{ pharmacy.get_region_display }}</td>
@@ -185,10 +185,10 @@
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                {{ pharmacy.license_expiry_date|date:"M d, Y" }}
-                                                {% if pharmacy.license_expiry_date < today %}
+                                                {{ pharmacy.expiry_date|date:"M d, Y" }}
+                                                {% if pharmacy.expiry_date < today %}
                                                     <i class="fas fa-exclamation-triangle text-danger ms-1" title="Expired"></i>
-                                                {% elif pharmacy.license_expiry_date < warning_date %}
+                                                {% elif pharmacy.expiry_date < warning_date %}
                                                     <i class="fas fa-clock text-warning ms-1" title="Expiring Soon"></i>
                                                 {% endif %}
                                             </td>
