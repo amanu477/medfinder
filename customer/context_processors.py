@@ -54,9 +54,13 @@ def moh_context(request):
         'moh_officer': None,
     }
     
-    # Only add MoH context for MoH pages
+    # Only add MoH context for MoH pages - never for main website
     if request.path.startswith('/moh/'):
         context['is_moh_authenticated'] = request.session.get('moh_authenticated', False)
         context['moh_officer'] = request.session.get('moh_officer', 'Unknown')
+    else:
+        # Explicitly set to False for non-MoH pages
+        context['is_moh_authenticated'] = False
+        context['moh_officer'] = None
     
     return context
