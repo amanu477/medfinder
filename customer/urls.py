@@ -36,6 +36,16 @@ urlpatterns = [
     path('admin/orders/', views.admin_order_list, name='admin_order_list'),
     path('admin/prescriptions/', views.admin_prescription_list, name='admin_prescription_list'),
     
+    # Admin Reporting System
+    path('admin/incidents/', views.admin_incident_reports, name='admin_incident_reports'),
+    path('admin/incidents/create/', views.admin_create_incident, name='admin_create_incident'),
+    path('admin/incidents/<int:incident_id>/', views.admin_incident_detail, name='admin_incident_detail'),
+    path('admin/security-alerts/', views.admin_security_alerts, name='admin_security_alerts'),
+    path('admin/security-alerts/create/', views.admin_create_security_alert, name='admin_create_security_alert'),
+    path('admin/notifications/', views.admin_notifications, name='admin_notifications'),
+    path('admin/system-health/', views.admin_system_health, name='admin_system_health'),
+    path('report-incident/', views.quick_report_incident, name='quick_report_incident'),
+    
     # Ministry of Health Admin (separate system)
     path('moh/', views.moh_login, name='moh_login'),
     path('moh/dashboard/', views.moh_dashboard, name='moh_dashboard'),

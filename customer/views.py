@@ -7,11 +7,11 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
-from .models import Customer, Prescription, Order, OrderItem, VerificationRequest
+from .models import Customer, Prescription, Order, OrderItem, VerificationRequest, IncidentReport, SecurityAlert, AdminNotification
 from pharmacy.models import Pharmacy, Medicine, MoHPharmacyRecord
 from pharmacy.verification_service import MinistryOfHealthVerificationService
 from pharmacy.forms import MoHPharmacyForm, MoHLoginForm
-from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm
+from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm, IncidentReportForm, QuickIncidentForm, SecurityAlertForm
 
 def home(request):
     """Home page view with search functionality"""
@@ -878,3 +878,297 @@ def moh_logout(request):
     request.session.pop('moh_officer', None)
     messages.success(request, 'You have been logged out from the Ministry of Health system.')
     return redirect('moh_login')
+
+
+# Admin Reporting and Issue Tracking Views
+
+def admin_incident_reports(request):
+    """View all incident reports for admin"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    # Filter incidents
+    status_filter = request.GET.get('status', '')
+    severity_filter = request.GET.get('severity', '')
+    category_filter = request.GET.get('category', '')
+    
+    incidents = IncidentReport.objects.all()
+    
+    if status_filter:
+        incidents = incidents.filter(status=status_filter)
+    if severity_filter:
+        incidents = incidents.filter(severity=severity_filter)
+    if category_filter:
+        incidents = incidents.filter(category=category_filter)
+    
+    # Get statistics
+    total_incidents = IncidentReport.objects.count()
+    open_incidents = IncidentReport.objects.filter(status='open').count()
+    critical_incidents = IncidentReport.objects.filter(severity='critical').count()
+    security_incidents = IncidentReport.objects.filter(category='security').count()
+    
+    context = {
+        'incidents': incidents,
+        'total_incidents': total_incidents,
+        'open_incidents': open_incidents,
+        'critical_incidents': critical_incidents,
+        'security_incidents': security_incidents,
+        'status_filter': status_filter,
+        'severity_filter': severity_filter,
+        'category_filter': category_filter,
+        'status_choices': IncidentReport.STATUS_CHOICES,
+        'severity_choices': IncidentReport.SEVERITY_CHOICES,
+        'category_choices': IncidentReport.CATEGORY_CHOICES,
+    }
+    
+    return render(request, 'admin/incident_reports.html', context)
+
+
+def admin_create_incident(request):
+    """Create new incident report"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = IncidentReportForm(request.POST, request.FILES)
+        if form.is_valid():
+            incident = form.save(commit=False)
+            incident.reported_by = request.user
+            incident.save()
+            
+            # Create notification for admins
+            admin_users = User.objects.filter(is_staff=True).exclude(id=request.user.id)
+            for admin in admin_users:
+                AdminNotification.objects.create(
+                    notification_type='incident',
+                    priority='high' if incident.severity in ['high', 'critical'] else 'normal',
+                    title=f'New {incident.get_severity_display()} Incident Report',
+                    message=f'A new {incident.get_severity_display().lower()} incident has been reported: {incident.title}',
+                    recipient=admin,
+                    related_incident=incident,
+                    action_url=f'/admin/incidents/{incident.id}/'
+                )
+            
+            messages.success(request, f'Incident report #{incident.id} has been created successfully.')
+            return redirect('admin_incident_reports')
+    else:
+        form = IncidentReportForm()
+    
+    return render(request, 'admin/create_incident.html', {'form': form})
+
+
+def admin_incident_detail(request, incident_id):
+    """View incident details and manage resolution"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    incident = get_object_or_404(IncidentReport, id=incident_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'assign':
+            assignee_id = request.POST.get('assignee')
+            if assignee_id:
+                assignee = get_object_or_404(User, id=assignee_id)
+                incident.assigned_to = assignee
+                incident.status = 'investigating'
+                incident.save()
+                messages.success(request, f'Incident assigned to {assignee.username}.')
+        
+        elif action == 'resolve':
+            resolution_notes = request.POST.get('resolution_notes')
+            incident.status = 'resolved'
+            incident.resolution_notes = resolution_notes
+            incident.resolution_date = timezone.now()
+            incident.save()
+            messages.success(request, 'Incident has been marked as resolved.')
+        
+        elif action == 'escalate':
+            incident.status = 'escalated'
+            incident.save()
+            messages.warning(request, 'Incident has been escalated.')
+        
+        return redirect('admin_incident_detail', incident_id=incident.id)
+    
+    # Get staff users for assignment
+    staff_users = User.objects.filter(is_staff=True)
+    
+    context = {
+        'incident': incident,
+        'staff_users': staff_users,
+    }
+    
+    return render(request, 'admin/incident_detail.html', context)
+
+
+def admin_security_alerts(request):
+    """View all security alerts"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    alerts = SecurityAlert.objects.all()
+    
+    # Filter by risk level
+    risk_filter = request.GET.get('risk_level', '')
+    if risk_filter:
+        alerts = alerts.filter(risk_level=risk_filter)
+    
+    # Get statistics
+    total_alerts = SecurityAlert.objects.count()
+    critical_alerts = SecurityAlert.objects.filter(risk_level='critical').count()
+    unresolved_alerts = SecurityAlert.objects.filter(investigated_at__isnull=True).count()
+    
+    context = {
+        'alerts': alerts,
+        'total_alerts': total_alerts,
+        'critical_alerts': critical_alerts,
+        'unresolved_alerts': unresolved_alerts,
+        'risk_filter': risk_filter,
+        'risk_choices': SecurityAlert.RISK_LEVEL_CHOICES,
+    }
+    
+    return render(request, 'admin/security_alerts.html', context)
+
+
+def admin_create_security_alert(request):
+    """Create new security alert"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    if request.method == 'POST':
+        form = SecurityAlertForm(request.POST)
+        if form.is_valid():
+            alert = form.save()
+            
+            # Create notifications for critical alerts
+            if alert.risk_level in ['high', 'critical']:
+                admin_users = User.objects.filter(is_staff=True)
+                for admin in admin_users:
+                    AdminNotification.objects.create(
+                        notification_type='security',
+                        priority='urgent' if alert.risk_level == 'critical' else 'high',
+                        title=f'{alert.get_risk_level_display()} Security Alert',
+                        message=f'A {alert.get_risk_level_display().lower()} security alert has been detected: {alert.get_alert_type_display()}',
+                        recipient=admin,
+                        related_security_alert=alert,
+                        action_url=f'/admin/security-alerts/{alert.id}/'
+                    )
+            
+            messages.success(request, f'Security alert #{alert.id} has been created.')
+            return redirect('admin_security_alerts')
+    else:
+        form = SecurityAlertForm()
+    
+    return render(request, 'admin/create_security_alert.html', {'form': form})
+
+
+def admin_notifications(request):
+    """View admin notifications"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    notifications = AdminNotification.objects.filter(recipient=request.user)
+    
+    # Mark as read if requested
+    if request.GET.get('mark_read'):
+        notification_id = request.GET.get('mark_read')
+        try:
+            notification = notifications.get(id=notification_id)
+            notification.is_read = True
+            notification.read_at = timezone.now()
+            notification.save()
+            messages.success(request, 'Notification marked as read.')
+        except AdminNotification.DoesNotExist:
+            messages.error(request, 'Notification not found.')
+        return redirect('admin_notifications')
+    
+    # Get unread count
+    unread_count = notifications.filter(is_read=False).count()
+    
+    context = {
+        'notifications': notifications,
+        'unread_count': unread_count,
+    }
+    
+    return render(request, 'admin/notifications.html', context)
+
+
+def quick_report_incident(request):
+    """Quick incident reporting form for urgent issues"""
+    if request.method == 'POST':
+        form = QuickIncidentForm(request.POST)
+        if form.is_valid():
+            # Create incident report
+            incident = IncidentReport.objects.create(
+                title=form.cleaned_data['title'],
+                description=form.cleaned_data['description'],
+                category=form.cleaned_data['category'],
+                severity=form.cleaned_data['severity'],
+                reporter_email=form.cleaned_data.get('contact_email'),
+                reported_by=request.user if request.user.is_authenticated else None,
+                ip_address=request.META.get('REMOTE_ADDR'),
+                user_agent=request.META.get('HTTP_USER_AGENT'),
+                url_path=request.META.get('HTTP_REFERER', '')
+            )
+            
+            # Create urgent notifications for critical incidents
+            if incident.severity == 'critical':
+                admin_users = User.objects.filter(is_staff=True)
+                for admin in admin_users:
+                    AdminNotification.objects.create(
+                        notification_type='incident',
+                        priority='urgent',
+                        title='URGENT: Critical System Issue Reported',
+                        message=f'A critical incident has been reported: {incident.title}. Immediate attention required.',
+                        recipient=admin,
+                        related_incident=incident,
+                        action_url=f'/admin/incidents/{incident.id}/'
+                    )
+            
+            messages.success(request, f'Incident report #{incident.id} has been submitted. Our team will investigate shortly.')
+            return render(request, 'admin/quick_report_success.html', {'incident': incident})
+    else:
+        form = QuickIncidentForm()
+    
+    return render(request, 'admin/quick_report.html', {'form': form})
+
+
+def admin_system_health(request):
+    """System health dashboard for admins"""
+    if not request.user.is_staff:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('home')
+    
+    # Get system statistics
+    recent_incidents = IncidentReport.objects.filter(
+        created_at__gte=timezone.now() - timezone.timedelta(days=7)
+    ).count()
+    
+    recent_alerts = SecurityAlert.objects.filter(
+        detected_at__gte=timezone.now() - timezone.timedelta(days=7)
+    ).count()
+    
+    open_incidents = IncidentReport.objects.filter(status='open').count()
+    critical_incidents = IncidentReport.objects.filter(severity='critical', status__in=['open', 'investigating']).count()
+    
+    # Recent activity
+    recent_incidents_list = IncidentReport.objects.all()[:5]
+    recent_alerts_list = SecurityAlert.objects.all()[:5]
+    
+    context = {
+        'recent_incidents_count': recent_incidents,
+        'recent_alerts_count': recent_alerts,
+        'open_incidents': open_incidents,
+        'critical_incidents': critical_incidents,
+        'recent_incidents_list': recent_incidents_list,
+        'recent_alerts_list': recent_alerts_list,
+    }
+    
+    return render(request, 'admin/system_health.html', context)

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Incident Report - Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .severity-critical { border-left: 5px solid #dc3545; }
+        .severity-high { border-left: 5px solid #fd7e14; }
+        .severity-medium { border-left: 5px solid #ffc107; }
+        .severity-low { border-left: 5px solid #198754; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'admin_dashboard' %}">
+                <i class="fas fa-shield-alt me-2"></i>Admin Panel
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{% url 'admin_dashboard' %}">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h4 class="card-title mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Report System Issue
+                        </h4>
+                        <p class="mb-0">Quick reporting for urgent technical issues, security concerns, or system problems</p>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Issue Title *</label>
+                                        {{ form.title }}
+                                        <div class="form-text">Brief, clear description of the problem</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Severity Level *</label>
+                                        {{ form.severity }}
+                                        <div class="form-text">
+                                            <small>
+                                                <strong>Critical:</strong> System down<br>
+                                                <strong>High:</strong> Major functionality affected<br>
+                                                <strong>Medium:</strong> Minor issues<br>
+                                                <strong>Low:</strong> Cosmetic problems
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Category *</label>
+                                        {{ form.category }}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Contact Email</label>
+                                        {{ form.contact_email }}
+                                        <div class="form-text">For follow-up communication</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Detailed Description *</label>
+                                {{ form.description }}
+                                <div class="form-text">
+                                    Include steps to reproduce the issue, what you expected to happen, and what actually happened
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Note:</strong> Critical incidents will immediately notify all admin staff. 
+                                Security issues will be escalated to the security team.
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-paper-plane me-2"></i>Submit Report
+                                </button>
+                                <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Quick Access Information -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-question-circle me-2"></i>Need Other Admin Functions?
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>System Management</h6>
+                                <ul class="list-unstyled">
+                                    <li><a href="{% url 'admin_incident_reports' %}" class="text-decoration-none">
+                                        <i class="fas fa-list me-2"></i>View All Incidents
+                                    </a></li>
+                                    <li><a href="{% url 'admin_security_alerts' %}" class="text-decoration-none">
+                                        <i class="fas fa-shield-alt me-2"></i>Security Alerts
+                                    </a></li>
+                                    <li><a href="{% url 'admin_system_health' %}" class="text-decoration-none">
+                                        <i class="fas fa-heartbeat me-2"></i>System Health
+                                    </a></li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Platform Management</h6>
+                                <ul class="list-unstyled">
+                                    <li><a href="{% url 'admin_pharmacy_list' %}" class="text-decoration-none">
+                                        <i class="fas fa-hospital me-2"></i>Manage Pharmacies
+                                    </a></li>
+                                    <li><a href="{% url 'admin_customer_list' %}" class="text-decoration-none">
+                                        <i class="fas fa-users me-2"></i>Manage Customers
+                                    </a></li>
+                                    <li><a href="{% url 'admin_notifications' %}" class="text-decoration-none">
+                                        <i class="fas fa-bell me-2"></i>Notifications
+                                    </a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Auto-highlight severity based on selection
+        document.getElementById('id_severity').addEventListener('change', function() {
+            const card = document.querySelector('.card');
+            card.className = card.className.replace(/severity-\w+/g, '');
+            if (this.value) {
+                card.classList.add('severity-' + this.value);
+            }
+        });
+        
+        // Add validation for critical incidents
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const severity = document.getElementById('id_severity').value;
+            const category = document.getElementById('id_category').value;
+            
+            if (severity === 'critical' || category === 'security') {
+                if (!confirm('This will immediately notify all admin staff. Continue?')) {
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
