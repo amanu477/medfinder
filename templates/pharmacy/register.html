@@ -101,6 +101,16 @@
                                     <div class="form-text">Your pharmacy's official license number</div>
                                 </div>
                                 <div class="col-md-6 mb-3">
+                                    <label for="{{ pharmacy_form.license_type.id_for_label }}" class="form-label">License Type <span class="text-danger">*</span></label>
+                                    {{ pharmacy_form.license_type }}
+                                    {% if pharmacy_form.license_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ pharmacy_form.license_type.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">Type of pharmacy license you hold</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
                                     <label for="{{ pharmacy_form.phone.id_for_label }}" class="form-label">Phone <span class="text-danger">*</span></label>
                                     {{ pharmacy_form.phone }}
                                     {% if pharmacy_form.phone.errors %}

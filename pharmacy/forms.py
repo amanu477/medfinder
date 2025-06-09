@@ -7,6 +7,7 @@ class PharmacyRegistrationForm(forms.ModelForm):
     """Form for pharmacy registration"""
     name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
     license_number = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    license_type = forms.ChoiceField(choices=Pharmacy.LICENSE_TYPE_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
     address = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}))
     phone = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'class': 'form-control'}))
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
@@ -18,7 +19,7 @@ class PharmacyRegistrationForm(forms.ModelForm):
     
     class Meta:
         model = Pharmacy
-        fields = ['name', 'license_number', 'address', 'phone', 'email', 'opening_time', 'closing_time', 'latitude', 'longitude']
+        fields = ['name', 'license_number', 'license_type', 'address', 'phone', 'email', 'opening_time', 'closing_time', 'latitude', 'longitude']
 
 class PharmacyUserForm(UserCreationForm):
     """Form for creating user account for pharmacy"""
@@ -35,9 +36,10 @@ class PharmacyProfileForm(forms.ModelForm):
     """Form for editing pharmacy profile"""
     class Meta:
         model = Pharmacy
-        fields = ['name', 'address', 'phone', 'email', 'opening_time', 'closing_time', 'is_active']
+        fields = ['name', 'license_type', 'address', 'phone', 'email', 'opening_time', 'closing_time', 'is_active']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'license_type': forms.Select(attrs={'class': 'form-select'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),

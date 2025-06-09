@@ -100,9 +100,17 @@ class Pharmacy(models.Model):
         ('rejected', 'Rejected'),
     ]
     
+    LICENSE_TYPE_CHOICES = [
+        ('retail', 'Retail Pharmacy'),
+        ('hospital', 'Hospital Pharmacy'),
+        ('wholesale', 'Wholesale Pharmacy'),
+        ('manufacturing', 'Manufacturing Pharmacy'),
+    ]
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     license_number = models.CharField(max_length=50, unique=True)
+    license_type = models.CharField(max_length=20, choices=LICENSE_TYPE_CHOICES, default='retail')
     address = models.TextField()
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
