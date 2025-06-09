@@ -106,12 +106,39 @@
                                     </button>
                                 </div>
                                 
+                                <div class="text-center mb-3">
+                                    <button type="button" class="btn btn-link btn-sm" id="manual-location-toggle">
+                                        Enter Coordinates Manually
+                                    </button>
+                                </div>
+                                
+                                <div id="manual-location-section" style="display: none;" class="mb-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="manual-latitude" class="form-label">Latitude</label>
+                                            <input type="number" step="any" class="form-control" id="manual-latitude" 
+                                                   placeholder="9.0307" min="-90" max="90">
+                                            <div class="form-text">Between -90 and 90</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="manual-longitude" class="form-label">Longitude</label>
+                                            <input type="number" step="any" class="form-control" id="manual-longitude" 
+                                                   placeholder="38.7578" min="-180" max="180">
+                                            <div class="form-text">Between -180 and 180</div>
+                                        </div>
+                                    </div>
+                                    <div class="form-text mt-2">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        You can find your coordinates using Google Maps or GPS coordinates finder tools.
+                                    </div>
+                                </div>
+                                
                                 <input type="hidden" id="user-latitude" name="latitude" value="{{ pharmacy.latitude|default:'' }}">
                                 <input type="hidden" id="user-longitude" name="longitude" value="{{ pharmacy.longitude|default:'' }}">
                                 
                                 <div id="location-status" class="alert alert-info d-none">
                                     <i class="fas fa-info-circle me-2"></i>
-                                    <span id="location-message">Click the button above to get your current location.</span>
+                                    <span id="location-message">Click the button above to get your current location or enter coordinates manually.</span>
                                 </div>
                             </div>
                             
@@ -244,29 +271,148 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/location.js"></script>
 <script>
+// Pharmacy profile location functionality
+(function() {
+    var userLocation = null;
+    
+    function getUserLocation() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error('Geolocation is not supported by this browser'));
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lon: position.coords.longitude
+                    };
+                    resolve(userLocation);
+                },
+                (error) => {
+                    let errorMsg = 'Unknown error occurred';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg = 'Location access denied by user';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg = 'Location information unavailable';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg = 'Location request timeout';
+                            break;
+                    }
+                    reject(new Error(errorMsg));
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000
+                }
+            );
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const latField = document.getElementById('user-latitude');
         const lngField = document.getElementById('user-longitude');
         const locationStatus = document.getElementById('location-status');
         const locationMessage = document.getElementById('location-message');
+        const locationBtn = document.querySelector('.get-location-btn');
+        const manualToggleBtn = document.getElementById('manual-location-toggle');
+        const manualSection = document.getElementById('manual-location-section');
+        const manualLatInput = document.getElementById('manual-latitude');
+        const manualLonInput = document.getElementById('manual-longitude');
         
-        // Show location status if we have coordinates
-        if (latField.value && lngField.value) {
-            locationStatus.classList.remove('d-none');
-            locationStatus.classList.remove('alert-info');
+        // Show current location status if coordinates exist
+        if (latField && lngField && latField.value && lngField.value) {
+            locationStatus.classList.remove('d-none', 'alert-info');
             locationStatus.classList.add('alert-success');
-            locationMessage.textContent = 'Location successfully set.';
+            locationMessage.textContent = `Current location: ${parseFloat(latField.value).toFixed(6)}, ${parseFloat(lngField.value).toFixed(6)}`;
         }
         
-        // Listen for location obtained event
-        document.addEventListener('userLocationObtained', function(e) {
-            locationStatus.classList.remove('d-none');
-            locationStatus.classList.remove('alert-info');
-            locationStatus.classList.add('alert-success');
-            locationMessage.textContent = 'Location successfully updated.';
-        });
+        // Handle automatic location button
+        if (locationBtn) {
+            locationBtn.addEventListener('click', function() {
+                locationBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Getting Location...';
+                locationBtn.disabled = true;
+                
+                locationStatus.classList.remove('d-none', 'alert-success', 'alert-danger');
+                locationStatus.classList.add('alert-info');
+                locationMessage.textContent = 'Getting your current location...';
+                
+                getUserLocation()
+                    .then(location => {
+                        latField.value = location.lat;
+                        lngField.value = location.lon;
+                        
+                        locationStatus.classList.remove('alert-info');
+                        locationStatus.classList.add('alert-success');
+                        locationMessage.textContent = `Location updated: ${location.lat.toFixed(6)}, ${location.lon.toFixed(6)}`;
+                        
+                        locationBtn.innerHTML = '<i class="fas fa-check me-2"></i> Location Updated';
+                        locationBtn.className = 'btn btn-success';
+                        
+                        // Reset manual inputs if they exist
+                        if (manualLatInput) manualLatInput.value = '';
+                        if (manualLonInput) manualLonInput.value = '';
+                    })
+                    .catch(error => {
+                        locationStatus.classList.remove('alert-info');
+                        locationStatus.classList.add('alert-danger');
+                        locationMessage.textContent = error.message;
+                        
+                        locationBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> Try Again';
+                        locationBtn.className = 'btn btn-warning';
+                        locationBtn.disabled = false;
+                    });
+            });
+        }
+        
+        // Handle manual location toggle
+        if (manualToggleBtn && manualSection) {
+            manualToggleBtn.addEventListener('click', function() {
+                const isHidden = manualSection.style.display === 'none';
+                manualSection.style.display = isHidden ? 'block' : 'none';
+                manualToggleBtn.textContent = isHidden ? 'Hide Manual Entry' : 'Enter Coordinates Manually';
+            });
+        }
+        
+        // Handle manual coordinate inputs
+        if (manualLatInput && manualLonInput) {
+            function validateAndUpdateLocation() {
+                const lat = parseFloat(manualLatInput.value);
+                const lon = parseFloat(manualLonInput.value);
+                
+                if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+                    latField.value = lat;
+                    lngField.value = lon;
+                    
+                    locationStatus.classList.remove('d-none', 'alert-info', 'alert-danger');
+                    locationStatus.classList.add('alert-success');
+                    locationMessage.textContent = `Manual location set: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                    
+                    // Reset automatic button
+                    if (locationBtn) {
+                        locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Get Current Location';
+                        locationBtn.className = 'btn btn-outline-primary';
+                        locationBtn.disabled = false;
+                    }
+                } else if (manualLatInput.value !== '' || manualLonInput.value !== '') {
+                    locationStatus.classList.remove('d-none', 'alert-success', 'alert-info');
+                    locationStatus.classList.add('alert-warning');
+                    locationMessage.textContent = 'Please enter valid coordinates (Latitude: -90 to 90, Longitude: -180 to 180)';
+                }
+            }
+            
+            manualLatInput.addEventListener('input', validateAndUpdateLocation);
+            manualLonInput.addEventListener('input', validateAndUpdateLocation);
+            manualLatInput.addEventListener('change', validateAndUpdateLocation);
+            manualLonInput.addEventListener('change', validateAndUpdateLocation);
+        }
     });
+})();
 </script>
 {% endblock %}
