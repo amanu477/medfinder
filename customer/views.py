@@ -131,6 +131,9 @@ def prescription_success(request):
 
 def customer_login(request):
     """Custom customer login view"""
+    # Get the next parameter for redirect after login
+    next_url = request.GET.get('next') or request.POST.get('next')
+    
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
@@ -142,13 +145,18 @@ def customer_login(request):
                 customer = user.customer
                 login(request, user)
                 messages.success(request, f'Welcome back, {customer.name}!')
+                # If there's a next URL, redirect to intended page
+                if next_url and 'place_order' in next_url:
+                    return redirect(next_url)
                 return redirect('customer_dashboard')
             except Customer.DoesNotExist:
                 messages.error(request, 'This account is not registered as a customer.')
         else:
             messages.error(request, 'Invalid username or password.')
     
-    return render(request, 'customer/login.html')
+    # Pass the next parameter to the template
+    context = {'next': next_url} if next_url else {}
+    return render(request, 'customer/login.html', context)
 
 def customer_register(request):
     """Customer registration view"""
@@ -337,6 +345,9 @@ def customer_logout(request):
 
 def unified_login(request):
     """Unified login view that handles all user types based on credentials"""
+    # Get the next parameter for redirect after login
+    next_url = request.GET.get('next') or request.POST.get('next')
+    
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -363,17 +374,24 @@ def unified_login(request):
             try:
                 customer = user.customer
                 messages.success(request, f'Welcome back, {customer.name}!')
+                # If there's a next URL and user is a customer, redirect to intended page
+                if next_url and 'place_order' in next_url:
+                    return redirect(next_url)
                 return redirect('customer_dashboard')
             except:
                 pass
             
             # Default redirect for authenticated users without specific profiles
             messages.success(request, 'Login successful!')
+            if next_url:
+                return redirect(next_url)
             return redirect('home')
         else:
             messages.error(request, 'Invalid username or password.')
     
-    return render(request, 'customer/unified_login.html')
+    # Pass the next parameter to the template
+    context = {'next': next_url} if next_url else {}
+    return render(request, 'customer/unified_login.html', context)
 
 # Admin Dashboard Views
 def admin_dashboard(request):
