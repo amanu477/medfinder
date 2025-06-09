@@ -1,125 +1,11 @@
+"""
+Admin Reporting and Issue Tracking System
+Models for tracking technical issues, security concerns, and system reports
+"""
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 from pharmacy.models import Pharmacy
-
-class Customer(models.Model):
-    """Model for storing customer information"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=100)
-    email = models.EmailField(max_length=100, unique=True)
-    phone = models.CharField(max_length=20)
-    address = models.TextField(blank=True, null=True)
-    latitude = models.FloatField(null=True, blank=True)
-    longitude = models.FloatField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return self.name
-
-class Order(models.Model):
-    """Model for storing medicine orders"""
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('completed', 'Completed'),
-        ('cancelled', 'Cancelled'),
-    )
-
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    notes = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"Order #{self.id} - {self.customer.name}"
-
-    def get_total_items(self):
-        """Get total number of items in the order"""
-        return sum(item.quantity for item in self.orderitem_set.all())
-
-    def calculate_total(self):
-        """Calculate total amount for the order"""
-        total = sum(item.get_total_price() for item in self.orderitem_set.all())
-        self.total_amount = total
-        self.save()
-        return total
-
-class OrderItem(models.Model):
-    """Model for storing individual items in an order"""
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    medicine = models.ForeignKey('pharmacy.Medicine', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-
-    def __str__(self):
-        return f"{self.medicine.name} x {self.quantity}"
-
-    def get_total_price(self):
-        """Get total price for this item"""
-        return self.quantity * self.price
-
-class Prescription(models.Model):
-    """Model for storing prescription information"""
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('completed', 'Completed'),
-    )
-
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
-    customer_name = models.CharField(max_length=100)
-    customer_email = models.EmailField(max_length=100)
-    customer_phone = models.CharField(max_length=20)
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, null=True, blank=True)
-    prescription_image = models.ImageField(upload_to='prescriptions/')
-    notes = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"Prescription #{self.id} - {self.customer_name}"
-
-class VerificationRequest(models.Model):
-    """Model for tracking verification requests sent to MoH"""
-    STATUS_CHOICES = (
-        ('pending', 'Pending MoH Response'),
-        ('approved', 'MoH Confirmed'),
-        ('rejected', 'MoH Denied'),
-        ('manual_review', 'Requires Manual Review'),
-    )
-    
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
-    requested_by = models.ForeignKey(User, on_delete=models.CASCADE)
-    license_number = models.CharField(max_length=50)
-    pharmacy_name = models.CharField(max_length=200)
-    owner_name = models.CharField(max_length=100, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    moh_response = models.JSONField(blank=True, null=True)
-    moh_notes = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return f"Verification Request: {self.pharmacy_name} ({self.license_number})"
 
 
 class IncidentReport(models.Model):
@@ -190,9 +76,33 @@ class IncidentReport(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        verbose_name = "Incident Report"
+        verbose_name_plural = "Incident Reports"
     
     def __str__(self):
         return f"#{self.id} - {self.title} ({self.get_severity_display()})"
+    
+    def mark_resolved(self, resolution_notes=None, resolved_by=None):
+        """Mark incident as resolved"""
+        self.status = 'resolved'
+        self.resolution_date = timezone.now()
+        if resolution_notes:
+            self.resolution_notes = resolution_notes
+        if resolved_by:
+            self.assigned_to = resolved_by
+        self.save()
+    
+    @property
+    def is_critical(self):
+        """Check if incident is critical severity"""
+        return self.severity == 'critical'
+    
+    @property
+    def days_open(self):
+        """Calculate days since incident was opened"""
+        if self.status in ['resolved', 'closed']:
+            return (self.resolution_date or self.updated_at).date() - self.created_at.date()
+        return (timezone.now().date() - self.created_at.date()).days
 
 
 class SecurityAlert(models.Model):
@@ -245,9 +155,55 @@ class SecurityAlert(models.Model):
     
     class Meta:
         ordering = ['-detected_at']
+        verbose_name = "Security Alert"
+        verbose_name_plural = "Security Alerts"
     
     def __str__(self):
         return f"Security Alert #{self.id} - {self.get_alert_type_display()} ({self.get_risk_level_display()})"
+
+
+class SystemHealthMetric(models.Model):
+    """Model for tracking system health and performance metrics"""
+    METRIC_TYPE_CHOICES = [
+        ('response_time', 'Response Time'),
+        ('error_rate', 'Error Rate'),
+        ('user_sessions', 'Active User Sessions'),
+        ('database_performance', 'Database Performance'),
+        ('memory_usage', 'Memory Usage'),
+        ('cpu_usage', 'CPU Usage'),
+        ('disk_space', 'Disk Space'),
+        ('network_traffic', 'Network Traffic'),
+    ]
+    
+    metric_type = models.CharField(max_length=20, choices=METRIC_TYPE_CHOICES)
+    value = models.FloatField()
+    unit = models.CharField(max_length=20)  # e.g., 'ms', '%', 'MB', 'requests/min'
+    threshold_warning = models.FloatField(blank=True, null=True)
+    threshold_critical = models.FloatField(blank=True, null=True)
+    
+    # Additional Data
+    details = models.JSONField(blank=True, null=True)
+    source = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Timestamps
+    recorded_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-recorded_at']
+        verbose_name = "System Health Metric"
+        verbose_name_plural = "System Health Metrics"
+    
+    def __str__(self):
+        return f"{self.get_metric_type_display()}: {self.value}{self.unit}"
+    
+    @property
+    def status(self):
+        """Determine metric status based on thresholds"""
+        if self.threshold_critical and self.value >= self.threshold_critical:
+            return 'critical'
+        elif self.threshold_warning and self.value >= self.threshold_warning:
+            return 'warning'
+        return 'normal'
 
 
 class AdminNotification(models.Model):
@@ -292,6 +248,14 @@ class AdminNotification(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        verbose_name = "Admin Notification"
+        verbose_name_plural = "Admin Notifications"
     
     def __str__(self):
         return f"Notification for {self.recipient.username}: {self.title}"
+    
+    def mark_read(self):
+        """Mark notification as read"""
+        self.is_read = True
+        self.read_at = timezone.now()
+        self.save()
