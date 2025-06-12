@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-app_name = 'platform_admin'
+app_name = 'padmin'
 
 urlpatterns = [
     # Main admin dashboard
