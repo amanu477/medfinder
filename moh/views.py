@@ -9,29 +9,28 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 
 from .models import MoHPharmacyRecord, VerificationRequest, MoHOfficer, ComplianceAlert
+from .forms import MoHLoginForm
 from pharmacy.models import Pharmacy
 from customer.models import Customer
 
 
 def moh_login(request):
-    """MoH officer login"""
+    """MoH officer login with improved form handling"""
     if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            # Check if user is MoH officer
-            try:
-                moh_officer = MoHOfficer.objects.get(user=user, is_active=True)
-                login(request, user)
-                return redirect('moh_dashboard')
-            except MoHOfficer.DoesNotExist:
-                messages.error(request, 'Access denied. MoH officer credentials required.')
+        form = MoHLoginForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, f'Welcome, {user.get_full_name()}! You have successfully logged into the MoH system.')
+            return redirect('moh_dashboard')
         else:
-            messages.error(request, 'Invalid credentials.')
+            # Form errors will be displayed in the template
+            for error in form.non_field_errors():
+                messages.error(request, error)
+    else:
+        form = MoHLoginForm()
     
-    return render(request, 'moh/login.html')
+    return render(request, 'moh/login.html', {'form': form})
 
 
 @login_required
