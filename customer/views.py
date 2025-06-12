@@ -43,28 +43,41 @@ def search_medicines(request):
     if user_lat and user_lon:
         try:
             from .utils import haversine_distance
+            import logging
+            logger = logging.getLogger(__name__)
+            
             user_lat = float(user_lat)
             user_lon = float(user_lon)
+            
+            logger.info(f"User location: {user_lat}, {user_lon}")
             
             # Calculate distances and add to medicines
             medicine_list = []
             for medicine in medicines:
                 if medicine.pharmacy.latitude and medicine.pharmacy.longitude:
+                    pharmacy_lat = float(medicine.pharmacy.latitude)
+                    pharmacy_lon = float(medicine.pharmacy.longitude)
+                    
                     distance = haversine_distance(
                         user_lat, user_lon,
-                        float(medicine.pharmacy.latitude),
-                        float(medicine.pharmacy.longitude)
+                        pharmacy_lat, pharmacy_lon
                     )
                     medicine.distance = round(distance, 1)
+                    
+                    logger.info(f"Pharmacy {medicine.pharmacy.name}: {pharmacy_lat}, {pharmacy_lon} - Distance: {distance} km")
                 else:
                     medicine.distance = None  # No location data
+                    logger.info(f"Pharmacy {medicine.pharmacy.name}: No coordinates")
                 medicine_list.append(medicine)
             
             # Sort by distance (nearest first, None values last)
             medicines = sorted(medicine_list, key=lambda x: x.distance if x.distance is not None else float('inf'))
             
-        except (ValueError, ImportError):
+        except (ValueError, ImportError) as e:
             # Fall back to name ordering if location processing fails
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Location processing failed: {e}")
             medicines = medicines.order_by('name')
     else:
         medicines = medicines.order_by('name')
