@@ -4,6 +4,7 @@ from . import views
 # Ministry of Health URLs (Independent Government System)
 urlpatterns = [
     path('', views.moh_login, name='moh_login'),
+    path('login/', views.moh_login, name='moh_login_explicit'),
     path('dashboard/', views.moh_dashboard, name='moh_dashboard'),
     path('pharmacies/', views.moh_pharmacy_list, name='moh_pharmacy_list'),
     path('pharmacy/add/', views.moh_add_pharmacy, name='moh_add_pharmacy'),

@@ -17,9 +17,9 @@ def create_moh_officer():
     """Create a test MoH officer account"""
     
     # Create Django user first
-    username = 'moh_officer'
-    password = 'moh123456'
-    email = 'officer@moh.gov.et'
+    username = 'moh_admin'
+    password = 'moh123'
+    email = 'admin@moh.gov.et'
     
     try:
         # Check if user already exists
@@ -45,10 +45,10 @@ def create_moh_officer():
     except MoHOfficer.DoesNotExist:
         moh_officer = MoHOfficer.objects.create(
             user=user,
-            officer_id='MOH-2025-001',
+            officer_id='MOH-2025-002',
             department='licensing',
-            position='Senior Pharmacy Licensing Officer',
-            phone='+251-911-123456',
+            position='Senior Pharmacy Licensing Administrator',
+            phone='+251-911-123457',
             email=email,
             is_active=True
         )
