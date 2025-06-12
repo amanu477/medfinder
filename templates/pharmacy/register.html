@@ -503,113 +503,210 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial button state
     updateSubmitButton();
-});
-</script>
-{% endblock %}
-        // Form validation
-        const form = document.querySelector('.needs-validation');
-        
-        form.addEventListener('submit', function(event) {
-            if (!form.checkValidity() || !document.getElementById('terms').checked) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            
-            form.classList.add('was-validated');
-        }, false);
-        
-        // Location handling
-        const locationStatus = document.getElementById('location-status');
-        const locationMessage = document.getElementById('location-message');
-        
-        document.addEventListener('userLocationObtained', function(e) {
-            locationStatus.classList.remove('d-none');
-            locationStatus.classList.remove('alert-info');
-            locationStatus.classList.add('alert-success');
-            locationMessage.textContent = 'Location successfully obtained.';
-        });
-        
-        // Manual location toggle - Simple implementation
-        const manualToggleBtn = document.querySelector('.toggle-manual-location');
-        const manualSection = document.getElementById('manual-location-section');
-        
-        if (manualToggleBtn && manualSection) {
-            console.log('Manual toggle button found, adding click handler');
-            
-            // Ensure the section starts hidden with inline style
-            manualSection.style.display = 'none';
-            let sectionVisible = false;
-            console.log('Section initially hidden with inline style');
-            
-            manualToggleBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                console.log('Manual location button clicked');
-                console.log('Section visible state:', sectionVisible);
-                
-                // Simple toggle based on our own state tracking
-                if (!sectionVisible) {
-                    console.log('Showing manual section');
-                    manualSection.style.display = 'block';
-                    manualSection.classList.remove('d-none');
-                    sectionVisible = true;
-                    manualToggleBtn.innerHTML = '<i class="fas fa-times me-2"></i> Cancel Manual Entry';
-                    manualToggleBtn.className = 'btn btn-outline-danger toggle-manual-location';
-                    
-                    if (locationStatus) {
-                        locationStatus.classList.remove('d-none', 'alert-success', 'alert-warning');
-                        locationStatus.classList.add('alert-info');
-                        locationMessage.textContent = 'Enter your pharmacy coordinates manually below.';
-                    }
-                } else {
-                    console.log('Hiding manual section');
-                    manualSection.style.display = 'none';
-                    manualSection.classList.add('d-none');
-                    sectionVisible = false;
-                    manualToggleBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Enter Location Manually';
-                    manualToggleBtn.className = 'btn btn-outline-secondary toggle-manual-location';
-                    
-                    // Clear manual inputs
-                    const manualLat = document.getElementById('manual-latitude');
-                    const manualLon = document.getElementById('manual-longitude');
-                    if (manualLat) manualLat.value = '';
-                    if (manualLon) manualLon.value = '';
-                }
-            });
-        } else {
-            console.log('Manual toggle button or section not found');
-        }
-        
-        // Manual coordinate input handling
-        const manualLatInput = document.getElementById('manual-latitude');
-        const manualLonInput = document.getElementById('manual-longitude');
-        
-        if (manualLatInput && manualLonInput) {
-            console.log('Manual coordinate inputs found');
-            
-            function updateCoordinates() {
-                const lat = parseFloat(manualLatInput.value);
-                const lon = parseFloat(manualLonInput.value);
-                
-                console.log('Manual coordinates:', lat, lon);
-                
-                const latInput = document.querySelector('input[name="latitude"]');
-                const lonInput = document.querySelector('input[name="longitude"]');
-                
-                if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
-                    if (latInput) latInput.value = lat;
-                    if (lonInput) lonInput.value = lon;
-                    
-                    locationStatus.classList.remove('d-none', 'alert-info', 'alert-warning');
-                    locationStatus.classList.add('alert-success');
-                    locationMessage.textContent = `Manual coordinates set: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-                    
-                    console.log('Coordinates updated in form fields');
-                }
-            }
-            
-            manualLatInput.addEventListener('input', updateCoordinates);
-            manualLonInput.addEventListener('input', updateCoordinates);
+
+    // Comprehensive form validation
+    const allInputs = form.querySelectorAll('input, select, textarea');
+    
+    // Add real-time validation to all form fields
+    allInputs.forEach(input => {
+        if (input.type !== 'file' && input.type !== 'hidden') {
+            input.addEventListener('blur', validateField);
+            input.addEventListener('input', clearFieldError);
         }
     });
+
+    function validateField(e) {
+        const field = e.target;
+        const fieldName = field.name;
+        const value = field.value.trim();
+        let isValid = true;
+        let errorMessage = '';
+
+        // Remove existing error
+        clearFieldError(e);
+
+        // Required field validation
+        if (field.hasAttribute('required') && !value) {
+            isValid = false;
+            errorMessage = 'This field is required';
+        }
+        // Email validation
+        else if (field.type === 'email' && value) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(value)) {
+                isValid = false;
+                errorMessage = 'Please enter a valid email address';
+            }
+        }
+        // Phone validation
+        else if (fieldName === 'phone' && value) {
+            const phoneRegex = /^[+]?[\d\s\-\(\)]{10,15}$/;
+            if (!phoneRegex.test(value)) {
+                isValid = false;
+                errorMessage = 'Please enter a valid phone number (10-15 digits)';
+            }
+        }
+        // License number validation
+        else if (fieldName === 'license_number' && value) {
+            if (value.length < 5) {
+                isValid = false;
+                errorMessage = 'License number must be at least 5 characters';
+            }
+        }
+        // Username validation
+        else if (fieldName === 'username' && value) {
+            const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
+            if (!usernameRegex.test(value)) {
+                isValid = false;
+                errorMessage = 'Username must be 3-30 characters, letters, numbers, and underscore only';
+            }
+        }
+        // Password validation
+        else if (fieldName === 'password1' && value) {
+            if (value.length < 8) {
+                isValid = false;
+                errorMessage = 'Password must be at least 8 characters long';
+            } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
+                isValid = false;
+                errorMessage = 'Password must contain uppercase, lowercase, and numbers';
+            }
+        }
+        // Password confirmation
+        else if (fieldName === 'password2' && value) {
+            const password1 = form.querySelector('[name="password1"]').value;
+            if (value !== password1) {
+                isValid = false;
+                errorMessage = 'Passwords do not match';
+            }
+        }
+        // Time validation
+        else if (field.type === 'time' && value) {
+            if (fieldName === 'closing_time') {
+                const openingTime = form.querySelector('[name="opening_time"]').value;
+                if (openingTime && value <= openingTime) {
+                    isValid = false;
+                    errorMessage = 'Closing time must be after opening time';
+                }
+            }
+        }
+        // Address validation
+        else if (fieldName === 'address' && value) {
+            if (value.length < 10) {
+                isValid = false;
+                errorMessage = 'Please provide a detailed address (at least 10 characters)';
+            }
+        }
+        // Name validation
+        else if ((fieldName === 'name' || fieldName === 'first_name' || fieldName === 'last_name') && value) {
+            const nameRegex = /^[a-zA-Z\s]{2,50}$/;
+            if (!nameRegex.test(value)) {
+                isValid = false;
+                errorMessage = 'Name must be 2-50 characters, letters and spaces only';
+            }
+        }
+
+        if (!isValid) {
+            showFieldError(field, errorMessage);
+        }
+
+        return isValid;
+    }
+
+    function clearFieldError(e) {
+        const field = e.target;
+        const existingError = field.parentNode.querySelector('.field-validation-error');
+        if (existingError) {
+            existingError.remove();
+        }
+        field.classList.remove('is-invalid');
+    }
+
+    function showFieldError(field, message) {
+        field.classList.add('is-invalid');
+        const errorElement = document.createElement('div');
+        errorElement.className = 'invalid-feedback field-validation-error';
+        errorElement.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>' + message;
+        field.parentNode.appendChild(errorElement);
+    }
+
+    // Enhanced form submission with comprehensive validation
+    form.addEventListener('submit', function(e) {
+        let hasErrors = false;
+        
+        // Validate all fields
+        allInputs.forEach(input => {
+            if (input.type !== 'file' && input.type !== 'hidden') {
+                const event = { target: input };
+                if (!validateField(event)) {
+                    hasErrors = true;
+                }
+            }
+        });
+
+        // Check terms and conditions
+        const termsCheckbox = document.getElementById('terms');
+        if (!termsCheckbox.checked) {
+            hasErrors = true;
+            alert('Please accept the Terms and Conditions to continue.');
+            termsCheckbox.focus();
+        }
+
+        // Check required documents
+        const businessLicenseFile = businessLicenseInput.files[0];
+        const pharmacistCertFile = pharmacistCertInput.files[0];
+        
+        if (!businessLicenseFile) {
+            hasErrors = true;
+            showFieldError(businessLicenseInput, 'Business license document is required');
+        }
+        
+        if (!pharmacistCertFile) {
+            hasErrors = true;
+            showFieldError(pharmacistCertInput, 'Pharmacist certificate is required');
+        }
+
+        if (hasErrors) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Scroll to first error
+            const firstError = document.querySelector('.is-invalid');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstError.focus();
+            }
+            
+            // Show error summary
+            const errorSummary = document.createElement('div');
+            errorSummary.className = 'alert alert-danger mt-3';
+            errorSummary.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>Please fix the following errors:</strong><ul class="mb-0 mt-2">';
+            
+            const errors = document.querySelectorAll('.field-validation-error');
+            errors.forEach(error => {
+                errorSummary.innerHTML += '<li>' + error.textContent.replace('', '') + '</li>';
+            });
+            
+            errorSummary.innerHTML += '</ul>';
+            
+            // Remove existing error summary
+            const existingSummary = document.querySelector('.error-summary');
+            if (existingSummary) {
+                existingSummary.remove();
+            }
+            
+            errorSummary.classList.add('error-summary');
+            form.insertBefore(errorSummary, form.firstChild);
+            
+            return false;
+        }
+        
+        // Show loading state
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering...';
+    });
+});
 </script>
+
+{% block extra_js %}
+<script src="{% load static %}{% static 'js/location.js' %}"></script>
 {% endblock %}

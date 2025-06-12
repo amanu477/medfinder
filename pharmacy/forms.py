@@ -75,16 +75,138 @@ class PharmacyRegistrationForm(forms.ModelForm):
                 raise forms.ValidationError("Pharmacist certificate must be PDF, JPG, JPEG, or PNG format.")
         return file
 
+    def clean_phone(self):
+        """Validate phone number"""
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            import re
+            # Remove spaces, dashes, parentheses
+            cleaned_phone = re.sub(r'[\s\-\(\)]', '', phone)
+            if not re.match(r'^[+]?[\d]{10,15}$', cleaned_phone):
+                raise forms.ValidationError("Please enter a valid phone number (10-15 digits).")
+        return phone
+
+    def clean_license_number(self):
+        """Validate license number"""
+        license_number = self.cleaned_data.get('license_number')
+        if license_number:
+            if len(license_number.strip()) < 5:
+                raise forms.ValidationError("License number must be at least 5 characters long.")
+            
+            # Check if license number already exists
+            from .models import Pharmacy
+            if Pharmacy.objects.filter(license_number=license_number).exists():
+                raise forms.ValidationError("A pharmacy with this license number already exists.")
+        return license_number
+
+    def clean_email(self):
+        """Validate email"""
+        email = self.cleaned_data.get('email')
+        if email:
+            # Check if email already exists
+            from .models import Pharmacy
+            if Pharmacy.objects.filter(email=email).exists():
+                raise forms.ValidationError("A pharmacy with this email address already exists.")
+        return email
+
+    def clean_name(self):
+        """Validate pharmacy name"""
+        name = self.cleaned_data.get('name')
+        if name:
+            if len(name.strip()) < 3:
+                raise forms.ValidationError("Pharmacy name must be at least 3 characters long.")
+            
+            # Check if name already exists
+            from .models import Pharmacy
+            if Pharmacy.objects.filter(name__iexact=name.strip()).exists():
+                raise forms.ValidationError("A pharmacy with this name already exists.")
+        return name.strip()
+
+    def clean_address(self):
+        """Validate address"""
+        address = self.cleaned_data.get('address')
+        if address and len(address.strip()) < 10:
+            raise forms.ValidationError("Please provide a detailed address (at least 10 characters).")
+        return address.strip() if address else address
+
+    def clean(self):
+        """Cross-field validation"""
+        cleaned_data = super().clean()
+        opening_time = cleaned_data.get('opening_time')
+        closing_time = cleaned_data.get('closing_time')
+        
+        if opening_time and closing_time:
+            if closing_time <= opening_time:
+                raise forms.ValidationError("Closing time must be after opening time.")
+        
+        return cleaned_data
+
 class PharmacyUserForm(UserCreationForm):
     """Form for creating user account for pharmacy"""
-    username = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
-    password1 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    password2 = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
+    username = forms.CharField(
+        max_length=30, 
+        widget=forms.TextInput(attrs={'class': 'form-control'}),
+        help_text="3-30 characters, letters, numbers, and underscore only"
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'class': 'form-control'}),
+        help_text="Valid email address for account verification"
+    )
+    password1 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        help_text="At least 8 characters with uppercase, lowercase, and numbers"
+    )
+    password2 = forms.CharField(
+        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
+        help_text="Confirm your password"
+    )
     
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
+
+    def clean_username(self):
+        """Validate username"""
+        username = self.cleaned_data.get('username')
+        if username:
+            import re
+            if not re.match(r'^[a-zA-Z0-9_]{3,30}$', username):
+                raise forms.ValidationError("Username must be 3-30 characters, letters, numbers, and underscore only.")
+            
+            # Check if username already exists
+            from django.contrib.auth.models import User
+            if User.objects.filter(username=username).exists():
+                raise forms.ValidationError("This username is already taken.")
+        return username
+
+    def clean_email(self):
+        """Validate email"""
+        email = self.cleaned_data.get('email')
+        if email:
+            # Check if email already exists
+            from django.contrib.auth.models import User
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError("An account with this email already exists.")
+        return email
+
+    def clean_password1(self):
+        """Validate password strength"""
+        password1 = self.cleaned_data.get('password1')
+        if password1:
+            import re
+            if len(password1) < 8:
+                raise forms.ValidationError("Password must be at least 8 characters long.")
+            
+            if not re.search(r'[a-z]', password1):
+                raise forms.ValidationError("Password must contain at least one lowercase letter.")
+            
+            if not re.search(r'[A-Z]', password1):
+                raise forms.ValidationError("Password must contain at least one uppercase letter.")
+            
+            if not re.search(r'\d', password1):
+                raise forms.ValidationError("Password must contain at least one number.")
+                
+        return password1
 
 class PharmacyProfileForm(forms.ModelForm):
     """Form for editing pharmacy profile"""
