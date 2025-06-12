@@ -332,7 +332,7 @@ def unified_login(request):
             # Redirect based on user type
             if user.is_superuser:
                 messages.success(request, f'Welcome back, {user.username}!')
-                return redirect('platform_admin:admin_dashboard')
+                return redirect('padmin:admin_dashboard')
             elif hasattr(user, 'customer'):
                 messages.success(request, f'Welcome back, {user.customer.name}!')
                 return redirect('customer_dashboard')
