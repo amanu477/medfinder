@@ -24,26 +24,7 @@ urlpatterns = [
     path('prescription/upload/', views.upload_prescription, name='upload_prescription'),
     path('prescription/success/', views.prescription_success, name='prescription_success'),
     
-    # Admin panel
-    path('admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('admin/pharmacies/', views.admin_pharmacy_list, name='admin_pharmacy_list'),
-    path('admin/pharmacy/<int:pharmacy_id>/', views.admin_pharmacy_detail, name='admin_pharmacy_detail'),
-    path('admin/pharmacy/verify/<int:pharmacy_id>/', views.admin_verify_pharmacy, name='admin_verify_pharmacy'),
-    path('admin/pharmacy/approve/<int:pharmacy_id>/', views.admin_approve_pharmacy, name='admin_approve_pharmacy'),
-    path('admin/pharmacy/reject/<int:pharmacy_id>/', views.admin_reject_pharmacy, name='admin_reject_pharmacy'),
-    path('admin/customers/', views.admin_customer_list, name='admin_customer_list'),
-    path('admin/medicines/', views.admin_medicine_list, name='admin_medicine_list'),
-    path('admin/orders/', views.admin_order_list, name='admin_order_list'),
-    path('admin/prescriptions/', views.admin_prescription_list, name='admin_prescription_list'),
-    
-    # Admin Reporting System
-    path('admin/incidents/', views.admin_incident_reports, name='admin_incident_reports'),
-    path('admin/incidents/create/', views.admin_create_incident, name='admin_create_incident'),
-    path('admin/incidents/<int:incident_id>/', views.admin_incident_detail, name='admin_incident_detail'),
-    path('admin/security-alerts/', views.admin_security_alerts, name='admin_security_alerts'),
-    path('admin/security-alerts/create/', views.admin_create_security_alert, name='admin_create_security_alert'),
-    path('admin/notifications/', views.admin_notifications, name='admin_notifications'),
-    path('admin/system-health/', views.admin_system_health, name='admin_system_health'),
+    # Quick incident reporting (moved from admin)
     path('report-incident/', views.quick_report_incident, name='quick_report_incident'),
     
     # Ministry of Health Admin (separate system)

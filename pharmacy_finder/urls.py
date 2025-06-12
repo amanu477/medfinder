@@ -27,6 +27,9 @@ urlpatterns = [
     # Ministry of Health System (Independent Government Portal)
     path('moh/', include('moh.urls')),
     
+    # Platform Admin Dashboard (Independent Admin System)
+    path('platform-admin/', include('platform_admin.urls')),
+    
     # Authentication Routes are handled in individual apps
 ]
 
