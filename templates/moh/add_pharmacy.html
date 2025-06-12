@@ -341,12 +341,51 @@
                                 </div>
                             </div>
 
+                            <!-- Section 4: Operating Hours -->
+                            <div class="section-header">
+                                <i class="fas fa-clock me-2"></i>
+                                <strong>Section 4: Operating Hours</strong>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.opening_time.id_for_label }}" class="form-label fw-bold">
+                                            Opening Time <span class="required-field">*</span>
+                                        </label>
+                                        {{ form.opening_time }}
+                                        {% if form.opening_time.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {% for error in form.opening_time.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        {% if form.opening_time.help_text %}
+                                            <div class="help-text">{{ form.opening_time.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="{{ form.closing_time.id_for_label }}" class="form-label fw-bold">
+                                            Closing Time <span class="required-field">*</span>
+                                        </label>
+                                        {{ form.closing_time }}
+                                        {% if form.closing_time.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {% for error in form.closing_time.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                        {% if form.closing_time.help_text %}
+                                            <div class="help-text">{{ form.closing_time.help_text }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
 
-
-                            <!-- Section 4: License Validity -->
+                            <!-- Section 5: License Validity -->
                             <div class="section-header">
                                 <i class="fas fa-calendar-alt me-2"></i>
-                                <strong>Section 4: License Validity</strong>
+                                <strong>Section 5: License Validity</strong>
                             </div>
                             
                             <div class="row mb-4">
@@ -400,10 +439,10 @@
                                 </div>
                             </div>
 
-                            <!-- Section 5: Document Uploads -->
+                            <!-- Section 6: Document Uploads -->
                             <div class="section-header">
                                 <i class="fas fa-file-upload me-2"></i>
-                                <strong>Section 5: Document Uploads</strong>
+                                <strong>Section 6: Document Uploads</strong>
                             </div>
                             
                             <div class="row mb-4">

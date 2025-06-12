@@ -290,6 +290,23 @@ class MoHPharmacyRegistrationForm(forms.Form):
         help_text="Detailed address description"
     )
     
+    # Operating Hours
+    opening_time = forms.TimeField(
+        widget=forms.TimeInput(attrs={
+            'class': 'form-control',
+            'type': 'time'
+        }),
+        help_text="Pharmacy opening time"
+    )
+    
+    closing_time = forms.TimeField(
+        widget=forms.TimeInput(attrs={
+            'class': 'form-control',
+            'type': 'time'
+        }),
+        help_text="Pharmacy closing time"
+    )
+    
     # License Validity Information
     issue_date = forms.DateField(
         widget=forms.DateInput(attrs={

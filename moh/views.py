@@ -223,6 +223,8 @@ def moh_add_pharmacy(request):
                     phone=form.cleaned_data['phone_number'],
                     email=form.cleaned_data.get('email', ''),
                     address=form.cleaned_data['address_detail'],
+                    opening_time=form.cleaned_data['opening_time'],
+                    closing_time=form.cleaned_data['closing_time'],
                     is_active=True
                 )
                 
