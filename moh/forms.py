@@ -130,6 +130,44 @@ class MoHPharmacyRegistrationForm(forms.Form):
         ('dire_dawa', 'Dire Dawa'),
     ]
     
+    WOREDA_CHOICES = [
+        ('', 'Select Woreda'),
+        ('arada', 'Arada'),
+        ('addis_ketema', 'Addis Ketema'),
+        ('akaki_kality', 'Akaki Kality'),
+        ('bole', 'Bole'),
+        ('gullele', 'Gullele'),
+        ('kirkos', 'Kirkos'),
+        ('kolfe_keranio', 'Kolfe Keranio'),
+        ('lideta', 'Lideta'),
+        ('nifas_silk', 'Nifas Silk-Lafto'),
+        ('yeka', 'Yeka'),
+        ('lemi_kura', 'Lemi Kura'),
+        ('sebeta', 'Sebeta'),
+        ('sululta', 'Sululta'),
+        ('sendafa', 'Sendafa'),
+        ('holeta', 'Holeta'),
+    ]
+    
+    KEBELE_CHOICES = [
+        ('', 'Select Kebele'),
+        ('kebele_01', 'Kebele 01'),
+        ('kebele_02', 'Kebele 02'),
+        ('kebele_03', 'Kebele 03'),
+        ('kebele_04', 'Kebele 04'),
+        ('kebele_05', 'Kebele 05'),
+        ('kebele_06', 'Kebele 06'),
+        ('kebele_07', 'Kebele 07'),
+        ('kebele_08', 'Kebele 08'),
+        ('kebele_09', 'Kebele 09'),
+        ('kebele_10', 'Kebele 10'),
+        ('kebele_11', 'Kebele 11'),
+        ('kebele_12', 'Kebele 12'),
+        ('kebele_13', 'Kebele 13'),
+        ('kebele_14', 'Kebele 14'),
+        ('kebele_15', 'Kebele 15'),
+    ]
+    
     LICENSE_TYPE_CHOICES = [
         ('', 'Select License Type'),
         ('retail', 'Retail Pharmacy'),
@@ -225,7 +263,23 @@ class MoHPharmacyRegistrationForm(forms.Form):
         help_text="City where pharmacy is located"
     )
     
-
+    woreda = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Woreda name'
+        }),
+        help_text="Woreda (district) where pharmacy is located"
+    )
+    
+    kebele = forms.CharField(
+        max_length=100,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Kebele name'
+        }),
+        help_text="Kebele (neighborhood) where pharmacy is located"
+    )
     
     address_detail = forms.CharField(
         widget=forms.Textarea(attrs={
