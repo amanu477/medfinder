@@ -341,24 +341,7 @@
                                 </div>
                             </div>
 
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label for="{{ form.address_detail.id_for_label }}" class="form-label fw-bold">
-                                            Detailed Address <span class="required-field">*</span>
-                                        </label>
-                                        {{ form.address_detail }}
-                                        {% if form.address_detail.errors %}
-                                            <div class="text-danger small mt-1">
-                                                {% for error in form.address_detail.errors %}{{ error }}{% endfor %}
-                                            </div>
-                                        {% endif %}
-                                        {% if form.address_detail.help_text %}
-                                            <div class="help-text">{{ form.address_detail.help_text }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
+
 
                             <!-- Section 4: License Validity -->
                             <div class="section-header">
@@ -475,7 +458,7 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="{{ form.inspection_report.id_for_label }}" class="form-label fw-bold">
-                                            Latest Inspection Report
+                                            Latest Inspection Report <span class="required-field">*</span>
                                         </label>
                                         {{ form.inspection_report }}
                                         {% if form.inspection_report.errors %}

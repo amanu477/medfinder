@@ -347,12 +347,11 @@ class MoHPharmacyRegistrationForm(forms.Form):
     )
     
     inspection_report = forms.FileField(
-        required=False,
         widget=forms.FileInput(attrs={
             'class': 'form-control',
             'accept': 'image/*,.pdf,.doc,.docx'
         }),
-        help_text="Upload latest inspection report if available (optional)"
+        help_text="Upload latest inspection report (PDF, DOC, or image)"
     )
     
     # Additional Information
