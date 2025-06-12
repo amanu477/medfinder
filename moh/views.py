@@ -258,6 +258,8 @@ def moh_add_pharmacy(request):
                     license_status='active',
                     verified_by=request.user,
                     verification_date=timezone.now(),
+                    inspection_date=timezone.now().date(),
+                    compliance_score=100,  # Newly registered pharmacies start with full score
                     business_license_verified=True,
                     pharmacist_certificate_verified=True,
                     pharmacy_permit_verified=True,
