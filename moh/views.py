@@ -9,7 +9,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 
 from .models import MoHPharmacyRecord, VerificationRequest, MoHOfficer, ComplianceAlert
-from .forms import MoHLoginForm
+from .forms import MoHLoginForm, MoHPharmacyRegistrationForm
 from pharmacy.models import Pharmacy
 from customer.models import Customer
 
@@ -206,43 +206,63 @@ def moh_respond_verification(request, request_id):
 
 @login_required
 def moh_add_pharmacy(request):
-    """Add new pharmacy to MoH records"""
+    """Add new pharmacy to MoH records with comprehensive form and document uploads"""
     try:
         moh_officer = MoHOfficer.objects.get(user=request.user, is_active=True)
     except MoHOfficer.DoesNotExist:
         return redirect('moh_login')
     
     if request.method == 'POST':
-        # Handle pharmacy creation
-        name = request.POST.get('name')
-        license_number = request.POST.get('license_number')
-        address = request.POST.get('address')
-        phone = request.POST.get('phone')
-        email = request.POST.get('email')
-        
-        # Create pharmacy (simplified for MoH direct entry)
-        pharmacy = Pharmacy.objects.create(
-            name=name,
-            license_number=license_number,
-            address=address,
-            phone=phone,
-            email=email,
-            is_active=True
-        )
-        
-        # Create MoH record
-        MoHPharmacyRecord.objects.create(
-            pharmacy=pharmacy,
-            license_status='active',
-            verified_by=request.user,
-            verification_date=timezone.now(),
-        )
-        
-        messages.success(request, f'Pharmacy "{name}" added successfully.')
-        return redirect('moh_pharmacy_list')
+        form = MoHPharmacyRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                # Create pharmacy record
+                pharmacy = Pharmacy.objects.create(
+                    name=form.cleaned_data['pharmacy_name'],
+                    license_number=form.cleaned_data['license_number'],
+                    phone=form.cleaned_data['phone_number'],
+                    email=form.cleaned_data.get('email', ''),
+                    address=form.cleaned_data['address_detail'],
+                    is_active=True
+                )
+                
+                # Create comprehensive MoH record with document uploads
+                moh_record = MoHPharmacyRecord.objects.create(
+                    pharmacy=pharmacy,
+                    license_status='active',
+                    verified_by=request.user,
+                    verification_date=timezone.now(),
+                    business_license_verified=True,
+                    pharmacist_certificate_verified=True,
+                    pharmacy_permit_verified=True,
+                    # Store uploaded documents
+                    business_license_document=form.cleaned_data['business_license'],
+                    pharmacist_certificate_document=form.cleaned_data['pharmacist_certificate'],
+                    pharmacy_permit_document=form.cleaned_data['pharmacy_permit'],
+                    inspection_report=form.cleaned_data.get('inspection_report'),
+                )
+                
+                messages.success(
+                    request, 
+                    f'Pharmacy "{form.cleaned_data["pharmacy_name"]}" has been successfully registered '
+                    f'with license number {form.cleaned_data["license_number"]}. '
+                    f'All required documents have been uploaded and verified.'
+                )
+                return redirect('moh_pharmacy_list')
+                
+            except Exception as e:
+                messages.error(request, f'Error creating pharmacy record: {str(e)}')
+        else:
+            # Display form errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field.replace("_", " ").title()}: {error}')
+    else:
+        form = MoHPharmacyRegistrationForm()
     
     context = {
         'moh_officer': moh_officer,
+        'form': form,
     }
     
     return render(request, 'moh/add_pharmacy.html', context)
