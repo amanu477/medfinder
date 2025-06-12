@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 from .models import MoHPharmacyRecord, VerificationRequest, MoHOfficer, ComplianceAlert
 from .forms import MoHLoginForm, MoHPharmacyRegistrationForm
-from pharmacy.models import Pharmacy
+from pharmacy.models import Pharmacy, MoHPharmacyRecord as PharmacyMoHRecord
 from customer.models import Customer
 
 
@@ -84,7 +84,8 @@ def moh_pharmacy_list(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
     
-    pharmacies = Pharmacy.objects.all()
+    # Get pharmacies with their MoH records
+    pharmacies = Pharmacy.objects.select_related('moh_record').order_by('-created_at')
     
     if search_query:
         pharmacies = pharmacies.filter(
@@ -94,7 +95,11 @@ def moh_pharmacy_list(request):
         )
     
     if status_filter:
-        pharmacies = pharmacies.filter(moh_record__license_status=status_filter)
+        if status_filter == 'no_record':
+            # Show pharmacies without MoH records
+            pharmacies = pharmacies.filter(moh_record__isnull=True)
+        else:
+            pharmacies = pharmacies.filter(moh_record__license_status=status_filter)
     
     # Pagination
     paginator = Paginator(pharmacies, 20)
