@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
@@ -216,15 +217,30 @@ def moh_add_pharmacy(request):
         form = MoHPharmacyRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                # Create pharmacy record
+                # Create a temporary user account for MoH-registered pharmacy
+                # Use license number as username to ensure uniqueness
+                temp_username = f"moh_pharmacy_{form.cleaned_data['license_number']}"
+                temp_user = User.objects.create_user(
+                    username=temp_username,
+                    email=form.cleaned_data.get('email', ''),
+                    password=User.objects.make_random_password(),
+                    first_name=form.cleaned_data['pharmacy_name'][:30],  # Truncate if needed
+                    is_active=False  # Inactive until pharmacy claims account
+                )
+                
+                # Create pharmacy record with user
                 pharmacy = Pharmacy.objects.create(
+                    user=temp_user,
                     name=form.cleaned_data['pharmacy_name'],
                     license_number=form.cleaned_data['license_number'],
+                    license_type=form.cleaned_data.get('license_type', 'retail'),
                     phone=form.cleaned_data['phone_number'],
                     email=form.cleaned_data.get('email', ''),
                     address=form.cleaned_data['address_detail'],
                     opening_time=form.cleaned_data['opening_time'],
                     closing_time=form.cleaned_data['closing_time'],
+                    verification_status='verified',
+                    moh_verification_status='verified',
                     is_active=True
                 )
                 
