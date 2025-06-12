@@ -84,22 +84,19 @@ def moh_pharmacy_list(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
     
-    # Get pharmacies with their MoH records
-    pharmacies = Pharmacy.objects.select_related('moh_record').order_by('-created_at')
+    # Get pharmacy records from the pharmacy app's MoHPharmacyRecord model
+    pharmacies = PharmacyMoHRecord.objects.all().order_by('-registration_date')
     
     if search_query:
         pharmacies = pharmacies.filter(
-            Q(name__icontains=search_query) |
+            Q(pharmacy_name__icontains=search_query) |
             Q(license_number__icontains=search_query) |
-            Q(address__icontains=search_query)
+            Q(owner_name__icontains=search_query) |
+            Q(address_detail__icontains=search_query)
         )
     
     if status_filter:
-        if status_filter == 'no_record':
-            # Show pharmacies without MoH records
-            pharmacies = pharmacies.filter(moh_record__isnull=True)
-        else:
-            pharmacies = pharmacies.filter(moh_record__license_status=status_filter)
+        pharmacies = pharmacies.filter(status=status_filter)
     
     # Pagination
     paginator = Paginator(pharmacies, 20)
@@ -109,9 +106,10 @@ def moh_pharmacy_list(request):
     context = {
         'moh_officer': moh_officer,
         'page_obj': page_obj,
+        'pharmacies': page_obj,  # For template compatibility
         'search_query': search_query,
         'status_filter': status_filter,
-        'status_choices': MoHPharmacyRecord._meta.get_field('license_status').choices,
+        'status_choices': PharmacyMoHRecord.STATUS_CHOICES,
     }
     
     return render(request, 'moh/pharmacy_list.html', context)
