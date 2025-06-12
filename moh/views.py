@@ -44,9 +44,9 @@ def moh_dashboard(request):
         return redirect('moh_login')
     
     # Dashboard statistics
-    total_pharmacies = Pharmacy.objects.count()
+    total_pharmacies = PharmacyMoHRecord.objects.count()
     pending_verifications = VerificationRequest.objects.filter(status='pending').count()
-    active_pharmacies = MoHPharmacyRecord.objects.filter(license_status='active').count()
+    active_pharmacies = PharmacyMoHRecord.objects.filter(status='active').count()
     critical_alerts = ComplianceAlert.objects.filter(severity='critical', is_resolved=False).count()
     
     # Recent verification requests
@@ -59,6 +59,13 @@ def moh_dashboard(request):
         is_resolved=False
     ).order_by('-created_at')[:5]
     
+    # Recent pharmacy registrations
+    recent_pharmacies = PharmacyMoHRecord.objects.order_by('-registration_date')[:5]
+    
+    # Additional statistics for dashboard
+    expired_licenses = PharmacyMoHRecord.objects.filter(status='expired').count()
+    pending_renewals = PharmacyMoHRecord.objects.filter(status='suspended').count()
+    
     context = {
         'moh_officer': moh_officer,
         'total_pharmacies': total_pharmacies,
@@ -67,6 +74,9 @@ def moh_dashboard(request):
         'critical_alerts': critical_alerts,
         'recent_requests': recent_requests,
         'recent_alerts': recent_alerts,
+        'recent_pharmacies': recent_pharmacies,
+        'expired_licenses': expired_licenses,
+        'pending_renewals': pending_renewals,
     }
     
     return render(request, 'moh/dashboard.html', context)
