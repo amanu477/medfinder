@@ -306,38 +306,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label for="{{ form.woreda.id_for_label }}" class="form-label fw-bold">
-                                            Woreda <span class="required-field">*</span>
-                                        </label>
-                                        {{ form.woreda }}
-                                        {% if form.woreda.errors %}
-                                            <div class="text-danger small mt-1">
-                                                {% for error in form.woreda.errors %}{{ error }}{% endfor %}
-                                            </div>
-                                        {% endif %}
-                                        {% if form.woreda.help_text %}
-                                            <div class="help-text">{{ form.woreda.help_text }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label for="{{ form.kebele.id_for_label }}" class="form-label fw-bold">
-                                            Kebele <span class="required-field">*</span>
-                                        </label>
-                                        {{ form.kebele }}
-                                        {% if form.kebele.errors %}
-                                            <div class="text-danger small mt-1">
-                                                {% for error in form.kebele.errors %}{{ error }}{% endfor %}
-                                            </div>
-                                        {% endif %}
-                                        {% if form.kebele.help_text %}
-                                            <div class="help-text">{{ form.kebele.help_text }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
+
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label for="{{ form.woreda.id_for_label }}" class="form-label fw-bold">
@@ -376,9 +345,13 @@
                                         </label>
                                         {{ form.issue_date }}
                                         {% if form.issue_date.errors %}
-                                            <div class="text-danger small mt-1">{{ form.issue_date.errors }}</div>
+                                            <div class="text-danger small mt-1">
+                                                {% for error in form.issue_date.errors %}{{ error }}{% endfor %}
+                                            </div>
                                         {% endif %}
-                                        <div class="help-text">Date when license was issued</div>
+                                        {% if form.issue_date.help_text %}
+                                            <div class="help-text">{{ form.issue_date.help_text }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -388,9 +361,13 @@
                                         </label>
                                         {{ form.expiry_date }}
                                         {% if form.expiry_date.errors %}
-                                            <div class="text-danger small mt-1">{{ form.expiry_date.errors }}</div>
+                                            <div class="text-danger small mt-1">
+                                                {% for error in form.expiry_date.errors %}{{ error }}{% endfor %}
+                                            </div>
                                         {% endif %}
-                                        <div class="help-text">Date when license expires</div>
+                                        {% if form.expiry_date.help_text %}
+                                            <div class="help-text">{{ form.expiry_date.help_text }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -400,9 +377,13 @@
                                         </label>
                                         {{ form.status }}
                                         {% if form.status.errors %}
-                                            <div class="text-danger small mt-1">{{ form.status.errors }}</div>
+                                            <div class="text-danger small mt-1">
+                                                {% for error in form.status.errors %}{{ error }}{% endfor %}
+                                            </div>
                                         {% endif %}
-                                        <div class="help-text">Current status of the pharmacy license</div>
+                                        {% if form.status.help_text %}
+                                            <div class="help-text">{{ form.status.help_text }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -416,50 +397,66 @@
                             <div class="row mb-4">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="{{ form.business_license_document.id_for_label }}" class="form-label fw-bold">
-                                            Business License Document
+                                        <label for="{{ form.business_license.id_for_label }}" class="form-label fw-bold">
+                                            Business License Document <span class="required-field">*</span>
                                         </label>
-                                        {{ form.business_license_document }}
-                                        {% if form.business_license_document.errors %}
-                                            <div class="text-danger small mt-1">{{ form.business_license_document.errors }}</div>
+                                        {{ form.business_license }}
+                                        {% if form.business_license.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {% for error in form.business_license.errors %}{{ error }}{% endfor %}
+                                            </div>
                                         {% endif %}
-                                        <div class="help-text">Upload business license certificate (PDF, JPG, PNG)</div>
+                                        {% if form.business_license.help_text %}
+                                            <div class="help-text">{{ form.business_license.help_text }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="{{ form.pharmacist_certificate_document.id_for_label }}" class="form-label fw-bold">
-                                            Pharmacist Certificate Document
+                                        <label for="{{ form.pharmacist_certificate.id_for_label }}" class="form-label fw-bold">
+                                            Pharmacist Certificate <span class="required-field">*</span>
                                         </label>
-                                        {{ form.pharmacist_certificate_document }}
-                                        {% if form.pharmacist_certificate_document.errors %}
-                                            <div class="text-danger small mt-1">{{ form.pharmacist_certificate_document.errors }}</div>
+                                        {{ form.pharmacist_certificate }}
+                                        {% if form.pharmacist_certificate.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {% for error in form.pharmacist_certificate.errors %}{{ error }}{% endfor %}
+                                            </div>
                                         {% endif %}
-                                        <div class="help-text">Upload pharmacist professional certificate (PDF, JPG, PNG)</div>
+                                        {% if form.pharmacist_certificate.help_text %}
+                                            <div class="help-text">{{ form.pharmacist_certificate.help_text }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="{{ form.pharmacy_permit_document.id_for_label }}" class="form-label fw-bold">
-                                            Pharmacy Operating Permit
+                                        <label for="{{ form.pharmacy_permit.id_for_label }}" class="form-label fw-bold">
+                                            Pharmacy Operating Permit <span class="required-field">*</span>
                                         </label>
-                                        {{ form.pharmacy_permit_document }}
-                                        {% if form.pharmacy_permit_document.errors %}
-                                            <div class="text-danger small mt-1">{{ form.pharmacy_permit_document.errors }}</div>
+                                        {{ form.pharmacy_permit }}
+                                        {% if form.pharmacy_permit.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {% for error in form.pharmacy_permit.errors %}{{ error }}{% endfor %}
+                                            </div>
                                         {% endif %}
-                                        <div class="help-text">Upload pharmacy operating permit (PDF, JPG, PNG)</div>
+                                        {% if form.pharmacy_permit.help_text %}
+                                            <div class="help-text">{{ form.pharmacy_permit.help_text }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="{{ form.inspection_report_document.id_for_label }}" class="form-label fw-bold">
+                                        <label for="{{ form.inspection_report.id_for_label }}" class="form-label fw-bold">
                                             Latest Inspection Report
                                         </label>
-                                        {{ form.inspection_report_document }}
-                                        {% if form.inspection_report_document.errors %}
-                                            <div class="text-danger small mt-1">{{ form.inspection_report_document.errors }}</div>
+                                        {{ form.inspection_report }}
+                                        {% if form.inspection_report.errors %}
+                                            <div class="text-danger small mt-1">
+                                                {% for error in form.inspection_report.errors %}{{ error }}{% endfor %}
+                                            </div>
                                         {% endif %}
-                                        <div class="help-text">Upload latest MoH inspection report (PDF, JPG, PNG)</div>
+                                        {% if form.inspection_report.help_text %}
+                                            <div class="help-text">{{ form.inspection_report.help_text }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>

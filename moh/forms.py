@@ -225,23 +225,7 @@ class MoHPharmacyRegistrationForm(forms.Form):
         help_text="City where pharmacy is located"
     )
     
-    woreda = forms.CharField(
-        max_length=100,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Woreda name'
-        }),
-        help_text="Woreda (district) name"
-    )
-    
-    kebele = forms.CharField(
-        max_length=100,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Kebele name'
-        }),
-        help_text="Kebele (neighborhood) name"
-    )
+
     
     address_detail = forms.CharField(
         widget=forms.Textarea(attrs={
@@ -250,6 +234,37 @@ class MoHPharmacyRegistrationForm(forms.Form):
             'placeholder': 'Complete address including street name, building number, and landmarks'
         }),
         help_text="Detailed address description"
+    )
+    
+    # License Validity Information
+    issue_date = forms.DateField(
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        help_text="Date when license was issued"
+    )
+    
+    expiry_date = forms.DateField(
+        widget=forms.DateInput(attrs={
+            'class': 'form-control',
+            'type': 'date'
+        }),
+        help_text="Date when license expires"
+    )
+    
+    STATUS_CHOICES = [
+        ('', 'Select Status'),
+        ('active', 'Active'),
+        ('suspended', 'Suspended'),
+        ('expired', 'Expired'),
+        ('pending_renewal', 'Pending Renewal'),
+    ]
+    
+    status = forms.ChoiceField(
+        choices=STATUS_CHOICES,
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text="Current status of the pharmacy license"
     )
     
     # Required Document Uploads
