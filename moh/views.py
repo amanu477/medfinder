@@ -220,10 +220,18 @@ def moh_add_pharmacy(request):
                 # Create a temporary user account for MoH-registered pharmacy
                 # Use license number as username to ensure uniqueness
                 temp_username = f"moh_pharmacy_{form.cleaned_data['license_number']}"
+                from django.contrib.auth.models import User
+                import secrets
+                import string
+                
+                # Generate random password
+                alphabet = string.ascii_letters + string.digits
+                temp_password = ''.join(secrets.choice(alphabet) for i in range(12))
+                
                 temp_user = User.objects.create_user(
                     username=temp_username,
                     email=form.cleaned_data.get('email', ''),
-                    password=User.objects.make_random_password(),
+                    password=temp_password,
                     first_name=form.cleaned_data['pharmacy_name'][:30],  # Truncate if needed
                     is_active=False  # Inactive until pharmacy claims account
                 )
