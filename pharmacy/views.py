@@ -32,15 +32,15 @@ def pharmacy_login(request):
     return render(request, 'pharmacy/login.html', {'form': form})
 
 def register(request):
-    """Register a new pharmacy"""
+    """Register a new pharmacy with mandatory document uploads"""
     if request.method == 'POST':
         user_form = PharmacyUserForm(request.POST)
-        pharmacy_form = PharmacyRegistrationForm(request.POST)
+        pharmacy_form = PharmacyRegistrationForm(request.POST, request.FILES)
         
         if user_form.is_valid() and pharmacy_form.is_valid():
             user = user_form.save()
             
-            # Create pharmacy profile
+            # Create pharmacy profile with uploaded documents
             pharmacy = pharmacy_form.save(commit=False)
             pharmacy.user = user
             
@@ -53,10 +53,16 @@ def register(request):
             
             pharmacy.save()
             
-            # Log the user in automatically and redirect to verification
+            # Log the user in automatically and redirect to dashboard
             login(request, user)
-            messages.success(request, 'Registration successful! Please upload verification documents to complete your pharmacy setup.')
-            return redirect('pharmacy_verification')
+            messages.success(request, 'Registration successful! Your documents have been uploaded and are pending verification.')
+            return redirect('pharmacy_dashboard')
+        else:
+            # Display form errors
+            if not pharmacy_form.is_valid():
+                for field, errors in pharmacy_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field}: {error}")
     else:
         user_form = PharmacyUserForm()
         pharmacy_form = PharmacyRegistrationForm()

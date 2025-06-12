@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from .models import Pharmacy, Medicine, MoHPharmacyRecord
 
 class PharmacyRegistrationForm(forms.ModelForm):
-    """Form for pharmacy registration"""
+    """Form for pharmacy registration with mandatory document uploads"""
     name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
     license_number = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'class': 'form-control'}))
     license_type = forms.ChoiceField(choices=Pharmacy.LICENSE_TYPE_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
@@ -14,12 +14,66 @@ class PharmacyRegistrationForm(forms.ModelForm):
     opening_time = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}))
     closing_time = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}))
     
+    # Mandatory document uploads
+    business_license = forms.FileField(
+        required=True,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control', 
+            'accept': '.pdf,.jpg,.jpeg,.png'
+        }),
+        help_text="Business license document is required (PDF, JPG, PNG)"
+    )
+    pharmacist_certificate = forms.FileField(
+        required=True,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control', 
+            'accept': '.pdf,.jpg,.jpeg,.png'
+        }),
+        help_text="Pharmacist certificate is required (PDF, JPG, PNG)"
+    )
+    verification_documents = forms.FileField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control', 
+            'accept': '.pdf,.jpg,.jpeg,.png'
+        }),
+        help_text="Additional verification documents (Optional)"
+    )
+    
     latitude = forms.FloatField(widget=forms.HiddenInput(), required=False)
     longitude = forms.FloatField(widget=forms.HiddenInput(), required=False)
     
     class Meta:
         model = Pharmacy
-        fields = ['name', 'license_number', 'license_type', 'address', 'phone', 'email', 'opening_time', 'closing_time', 'latitude', 'longitude']
+        fields = [
+            'name', 'license_number', 'license_type', 'address', 'phone', 'email', 
+            'opening_time', 'closing_time', 'business_license', 'pharmacist_certificate', 
+            'verification_documents', 'latitude', 'longitude'
+        ]
+    
+    def clean_business_license(self):
+        """Validate business license file"""
+        file = self.cleaned_data.get('business_license')
+        if file:
+            if file.size > 10 * 1024 * 1024:  # 10MB limit
+                raise forms.ValidationError("Business license file size cannot exceed 10MB.")
+            
+            valid_extensions = ['.pdf', '.jpg', '.jpeg', '.png']
+            if not any(file.name.lower().endswith(ext) for ext in valid_extensions):
+                raise forms.ValidationError("Business license must be PDF, JPG, JPEG, or PNG format.")
+        return file
+    
+    def clean_pharmacist_certificate(self):
+        """Validate pharmacist certificate file"""
+        file = self.cleaned_data.get('pharmacist_certificate')
+        if file:
+            if file.size > 10 * 1024 * 1024:  # 10MB limit
+                raise forms.ValidationError("Pharmacist certificate file size cannot exceed 10MB.")
+            
+            valid_extensions = ['.pdf', '.jpg', '.jpeg', '.png']
+            if not any(file.name.lower().endswith(ext) for ext in valid_extensions):
+                raise forms.ValidationError("Pharmacist certificate must be PDF, JPG, JPEG, or PNG format.")
+        return file
 
 class PharmacyUserForm(UserCreationForm):
     """Form for creating user account for pharmacy"""

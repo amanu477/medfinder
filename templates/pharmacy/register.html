@@ -22,7 +22,7 @@
                         </div>
                         {% endif %}
                         
-                        <form method="post" class="needs-validation" novalidate>
+                        <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                             {% csrf_token %}
                             
                             {% if user_form.non_field_errors or pharmacy_form.non_field_errors %}
@@ -225,6 +225,68 @@
                                 </div>
                             </div>
                             
+                            <!-- Required Documents Upload -->
+                            <h5 class="mb-3 text-danger">
+                                <i class="fas fa-file-upload me-2"></i>Required Documents
+                            </h5>
+                            <div class="alert alert-warning mb-4">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Important:</strong> You must upload both documents to complete registration. Without these documents, your pharmacy cannot be registered.
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ pharmacy_form.business_license.id_for_label }}" class="form-label">
+                                        Business License <span class="text-danger">*</span>
+                                    </label>
+                                    {{ pharmacy_form.business_license }}
+                                    {% if pharmacy_form.business_license.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ pharmacy_form.business_license.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">{{ pharmacy_form.business_license.help_text }}</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ pharmacy_form.pharmacist_certificate.id_for_label }}" class="form-label">
+                                        Pharmacist Certificate <span class="text-danger">*</span>
+                                    </label>
+                                    {{ pharmacy_form.pharmacist_certificate }}
+                                    {% if pharmacy_form.pharmacist_certificate.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ pharmacy_form.pharmacist_certificate.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">{{ pharmacy_form.pharmacist_certificate.help_text }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <label for="{{ pharmacy_form.verification_documents.id_for_label }}" class="form-label">
+                                        Additional Verification Documents (Optional)
+                                    </label>
+                                    {{ pharmacy_form.verification_documents }}
+                                    {% if pharmacy_form.verification_documents.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ pharmacy_form.verification_documents.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">{{ pharmacy_form.verification_documents.help_text }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Document Requirements:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li>File formats: PDF, JPG, JPEG, PNG</li>
+                                    <li>Maximum file size: 10MB per document</li>
+                                    <li>Documents must be clear and readable</li>
+                                    <li>All documents will be reviewed by Ministry of Health officials</li>
+                                </ul>
+                            </div>
+                            
                             <!-- Terms and Conditions -->
                             <div class="mb-4">
                                 <div class="form-check">
@@ -335,11 +397,115 @@
         </div>
     </div>
 </section>
-{% endblock %}
 
-{% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+// Document upload validation and preview
+document.addEventListener('DOMContentLoaded', function() {
+    const businessLicenseInput = document.getElementById('{{ pharmacy_form.business_license.id_for_label }}');
+    const pharmacistCertInput = document.getElementById('{{ pharmacy_form.pharmacist_certificate.id_for_label }}');
+    const verificationDocsInput = document.getElementById('{{ pharmacy_form.verification_documents.id_for_label }}');
+    const submitButton = document.querySelector('button[type="submit"]');
+    const form = document.querySelector('form');
+
+    // File validation function
+    function validateFile(file) {
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+        
+        if (file.size > maxSize) {
+            return 'File size cannot exceed 10MB';
+        }
+        
+        if (!allowedTypes.includes(file.type)) {
+            return 'File must be PDF, JPG, JPEG, or PNG format';
+        }
+        
+        return null;
+    }
+
+    // Add file validation to inputs
+    function addFileValidation(input, required = false) {
+        input.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const errorDiv = input.parentNode.querySelector('.file-error');
+            
+            // Remove existing error message
+            if (errorDiv) {
+                errorDiv.remove();
+            }
+            
+            if (file) {
+                const error = validateFile(file);
+                if (error) {
+                    const errorElement = document.createElement('div');
+                    errorElement.className = 'text-danger mt-1 file-error';
+                    errorElement.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>' + error;
+                    input.parentNode.appendChild(errorElement);
+                    input.value = ''; // Clear invalid file
+                } else {
+                    // Show success message
+                    const successElement = document.createElement('div');
+                    successElement.className = 'text-success mt-1 file-error';
+                    successElement.innerHTML = '<i class="fas fa-check-circle me-1"></i>File selected: ' + file.name;
+                    input.parentNode.appendChild(successElement);
+                }
+            }
+            
+            updateSubmitButton();
+        });
+    }
+
+    // Update submit button state
+    function updateSubmitButton() {
+        const businessLicenseFile = businessLicenseInput.files[0];
+        const pharmacistCertFile = pharmacistCertInput.files[0];
+        const hasErrors = document.querySelectorAll('.file-error.text-danger').length > 0;
+        
+        if (!businessLicenseFile || !pharmacistCertFile || hasErrors) {
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Upload Required Documents';
+            submitButton.className = 'btn btn-secondary btn-lg';
+        } else {
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-user-plus me-2"></i>Register Pharmacy';
+            submitButton.className = 'btn btn-primary btn-lg';
+        }
+    }
+
+    // Add validation to file inputs
+    addFileValidation(businessLicenseInput, true);
+    addFileValidation(pharmacistCertInput, true);
+    addFileValidation(verificationDocsInput, false);
+
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        const businessLicenseFile = businessLicenseInput.files[0];
+        const pharmacistCertFile = pharmacistCertInput.files[0];
+        
+        if (!businessLicenseFile) {
+            e.preventDefault();
+            alert('Please upload your business license document.');
+            businessLicenseInput.focus();
+            return false;
+        }
+        
+        if (!pharmacistCertFile) {
+            e.preventDefault();
+            alert('Please upload your pharmacist certificate.');
+            pharmacistCertInput.focus();
+            return false;
+        }
+        
+        // Show loading state
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering...';
+    });
+
+    // Initial button state
+    updateSubmitButton();
+});
+</script>
+{% endblock %}
         // Form validation
         const form = document.querySelector('.needs-validation');
         

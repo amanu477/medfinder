@@ -690,7 +690,7 @@ MoHPharmacyRecords → Pharmacies (verification_data JSON)
 
 ### Production Setup
 ```python
-# Key production settings
+# Key production settings cd 
 DEBUG = False
 ALLOWED_HOSTS = ['pharmacy-platform.et', 'www.pharmacy-platform.et']
 SECURE_SSL_REDIRECT = True
