@@ -26,13 +26,4 @@ urlpatterns = [
     
     # Quick incident reporting (moved from admin)
     path('report-incident/', views.quick_report_incident, name='quick_report_incident'),
-    
-    # Ministry of Health Admin (separate system)
-    path('moh/', views.moh_login, name='moh_login'),
-    path('moh/dashboard/', views.moh_dashboard, name='moh_dashboard'),
-    path('moh/pharmacies/', views.moh_pharmacy_list, name='moh_pharmacy_list'),
-    path('moh/pharmacy/add/', views.moh_add_pharmacy, name='moh_add_pharmacy'),
-    path('moh/pharmacy/<int:pharmacy_id>/edit/', views.moh_edit_pharmacy, name='moh_edit_pharmacy'),
-    path('moh/pharmacy/<int:pharmacy_id>/delete/', views.moh_delete_pharmacy, name='moh_delete_pharmacy'),
-    path('moh/logout/', views.moh_logout, name='moh_logout'),
 ]
