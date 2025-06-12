@@ -59,8 +59,8 @@ def moh_dashboard(request):
         is_resolved=False
     ).order_by('-created_at')[:5]
     
-    # Recent pharmacy registrations
-    recent_pharmacies = PharmacyMoHRecord.objects.order_by('-registration_date')[:5]
+    # All pharmacy registrations (show all instead of just recent 5)
+    recent_pharmacies = PharmacyMoHRecord.objects.order_by('-registration_date')
     
     # Additional statistics for dashboard
     expired_licenses = PharmacyMoHRecord.objects.filter(status='expired').count()
