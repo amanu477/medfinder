@@ -104,8 +104,8 @@ class VerificationRequest(models.Model):
         ('manual_review', 'Requires Manual Review'),
     )
     
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
-    requested_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, related_name='customer_verification_requests')
+    requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='customer_verification_requests')
     license_number = models.CharField(max_length=50)
     pharmacy_name = models.CharField(max_length=200)
     owner_name = models.CharField(max_length=100, blank=True, null=True)

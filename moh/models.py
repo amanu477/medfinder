@@ -43,7 +43,7 @@ class MoHPharmacyRecord(models.Model):
 
 class VerificationRequest(models.Model):
     """Pharmacy verification requests to MoH"""
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
+    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, related_name='moh_verification_requests')
     request_type = models.CharField(max_length=30, choices=[
         ('initial', 'Initial License'),
         ('renewal', 'License Renewal'),
@@ -60,7 +60,7 @@ class VerificationRequest(models.Model):
     
     submitted_date = models.DateTimeField(auto_now_add=True)
     reviewed_date = models.DateTimeField(null=True, blank=True)
-    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='moh_verification_reviews')
     
     notes = models.TextField(blank=True)
     rejection_reason = models.TextField(blank=True)
