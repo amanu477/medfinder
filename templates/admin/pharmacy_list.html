@@ -134,18 +134,18 @@
                                     <td>{{ pharmacy.created_at|date:"M d, Y" }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'admin_pharmacy_detail' pharmacy.id %}" class="btn btn-sm btn-info">
+                                            <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#documentsModal{{ pharmacy.id }}">
                                                 <i class="fas fa-eye me-1"></i>Details
-                                            </a>
+                                            </button>
                                             {% if pharmacy.verification_status == 'pending' %}
-                                            <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success">
+                                            <a href="{% url 'padmin:admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success">
                                                 <i class="fas fa-check me-1"></i>Approve
                                             </a>
-                                            <a href="{% url 'admin_reject_pharmacy' pharmacy.id %}" class="btn btn-sm btn-danger">
+                                            <a href="{% url 'padmin:admin_reject_pharmacy' pharmacy.id %}" class="btn btn-sm btn-danger">
                                                 <i class="fas fa-times me-1"></i>Reject
                                             </a>
                                             {% elif pharmacy.verification_status == 'rejected' %}
-                                            <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success">
+                                            <a href="{% url 'padmin:admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success">
                                                 <i class="fas fa-check me-1"></i>Approve
                                             </a>
                                             {% endif %}
@@ -192,10 +192,10 @@
                                             </div>
                                             <div class="modal-footer">
                                                 {% if pharmacy.verification_status == 'pending' %}
-                                                <a href="{% url 'admin_approve_pharmacy' pharmacy.id %}" class="btn btn-success" onclick="return confirm('Approve this pharmacy?')">
+                                                <a href="{% url 'padmin:admin_approve_pharmacy' pharmacy.id %}" class="btn btn-success" onclick="return confirm('Approve this pharmacy?')">
                                                     <i class="fas fa-check me-1"></i>Approve
                                                 </a>
-                                                <a href="{% url 'admin_reject_pharmacy' pharmacy.id %}" class="btn btn-danger">
+                                                <a href="{% url 'padmin:admin_reject_pharmacy' pharmacy.id %}" class="btn btn-danger">
                                                     <i class="fas fa-times me-1"></i>Reject
                                                 </a>
                                                 {% endif %}
