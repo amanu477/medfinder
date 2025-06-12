@@ -338,7 +338,7 @@ def unified_login(request):
                 return redirect('customer_dashboard')
             elif hasattr(user, 'pharmacy'):
                 messages.success(request, f'Welcome back, {user.pharmacy.name}!')
-                return redirect('pharmacy:pharmacy_dashboard')
+                return redirect('pharmacy_dashboard')
             else:
                 messages.success(request, f'Welcome back, {user.username}!')
             
