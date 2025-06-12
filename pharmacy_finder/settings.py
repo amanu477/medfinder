@@ -64,7 +64,6 @@ INSTALLED_APPS = [
     'pharmacy',
     'customer',
     'moh',
-    'admin_portal',
 ]
 
 MIDDLEWARE = [
