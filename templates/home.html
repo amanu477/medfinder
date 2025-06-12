@@ -121,6 +121,7 @@ document.addEventListener('DOMContentLoaded', function() {
         getLocationBtn.innerHTML = '<i class="fas fa-check me-1"></i> Location Set';
         getLocationBtn.classList.remove('btn-outline-light');
         getLocationBtn.classList.add('btn-success');
+        console.log('Loaded saved location:', savedLat, savedLon);
     }
     
     getLocationBtn.addEventListener('click', function() {
@@ -139,11 +140,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     localStorage.setItem('customer_lat', lat);
                     localStorage.setItem('customer_lon', lon);
                     
-                    locationStatus.innerHTML = '<i class="fas fa-check-circle me-1"></i> Location detected - results will be sorted by distance';
+                    locationStatus.innerHTML = `<i class="fas fa-check-circle me-1"></i> Location detected: ${lat.toFixed(4)}, ${lon.toFixed(4)} - results will be sorted by distance`;
                     getLocationBtn.innerHTML = '<i class="fas fa-check me-1"></i> Location Set';
                     getLocationBtn.classList.remove('btn-outline-light');
                     getLocationBtn.classList.add('btn-success');
                     getLocationBtn.disabled = false;
+                    console.log('Location obtained and stored:', lat, lon);
                 },
                 function(error) {
                     let errorMsg = 'Unable to get location. ';
