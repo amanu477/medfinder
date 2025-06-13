@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
-from .forms import PlatformAdminLoginForm
+
 
 # Import models from other apps
 from pharmacy.models import Pharmacy, Medicine
