@@ -99,14 +99,13 @@ def moh_pharmacy_list(request):
     
     if search_query:
         pharmacies = pharmacies.filter(
-            Q(pharmacy_name__icontains=search_query) |
-            Q(license_number__icontains=search_query) |
-            Q(owner_name__icontains=search_query) |
-            Q(address_detail__icontains=search_query)
+            Q(pharmacy__name__icontains=search_query) |
+            Q(pharmacy__license_number__icontains=search_query) |
+            Q(pharmacy__address__icontains=search_query)
         )
     
     if status_filter:
-        pharmacies = pharmacies.filter(status=status_filter)
+        pharmacies = pharmacies.filter(license_status=status_filter)
     
     # Show all pharmacies without pagination
     context = {
