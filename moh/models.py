@@ -81,6 +81,7 @@ class MoHPharmacyRegistry(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     
     class Meta:
+        db_table = 'moh_mohpharmacyrecord'
         verbose_name = "MoH Pharmacy Record"
         verbose_name_plural = "MoH Pharmacy Records"
         ordering = ['-updated_at']
