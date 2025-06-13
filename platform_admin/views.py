@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, logout
 from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
+from .forms import PlatformAdminLoginForm
 
 # Import models from other apps
 from pharmacy.models import Pharmacy, Medicine
@@ -12,6 +14,29 @@ from customer.models import Customer, Order, OrderItem, Prescription, IncidentRe
 from moh.models import MoHPharmacyRecord
 from pharmacy.verification_service import MinistryOfHealthVerificationService
 
+
+def admin_login(request):
+    """Platform admin login page"""
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect('padmin:admin_dashboard')
+    
+    if request.method == 'POST':
+        form = PlatformAdminLoginForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            next_url = request.GET.get('next', 'padmin:admin_dashboard')
+            return redirect(next_url)
+    else:
+        form = PlatformAdminLoginForm()
+    
+    return render(request, 'platform_admin/login.html', {'form': form})
+
+def admin_logout(request):
+    """Platform admin logout"""
+    logout(request)
+    messages.success(request, 'You have been logged out successfully.')
+    return redirect('padmin:admin_login')
 
 def admin_dashboard(request):
     """Admin dashboard with overview of all system components"""
