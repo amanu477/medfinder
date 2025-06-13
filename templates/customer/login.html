@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load django_bootstrap5 %}
 
-{% block title %}Customer Login{% endblock %}
+{% block title %}{{ title|default:"Customer Login" }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -9,9 +9,15 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title mb-0">Customer Login</h3>
+                    <h3 class="card-title mb-0">{{ header_text|default:"Customer Login" }}</h3>
                 </div>
                 <div class="card-body">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+                    
                     <form method="post">
                         {% csrf_token %}
                         {% if next %}
@@ -19,13 +25,27 @@
                         {% endif %}
                         
                         <div class="mb-3">
-                            <label for="username" class="form-label">Username</label>
-                            <input type="text" class="form-control" id="username" name="username" required>
+                            <label for="id_username" class="form-label">Username</label>
+                            {% if form.username %}
+                                {{ form.username }}
+                            {% else %}
+                                <input type="text" class="form-control" id="id_username" name="username" required>
+                            {% endif %}
+                            {% if form.username.errors %}
+                                <div class="text-danger">{{ form.username.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                            <label for="id_password" class="form-label">Password</label>
+                            {% if form.password %}
+                                {{ form.password }}
+                            {% else %}
+                                <input type="password" class="form-control" id="id_password" name="password" required>
+                            {% endif %}
+                            {% if form.password.errors %}
+                                <div class="text-danger">{{ form.password.errors }}</div>
+                            {% endif %}
                         </div>
 
                         <div class="d-grid">
@@ -33,9 +53,11 @@
                         </div>
                     </form>
 
+                    {% if not hide_register_link %}
                     <div class="text-center mt-3">
                         <p>Don't have an account? <a href="{% url 'customer_register' %}">Register here</a></p>
                     </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

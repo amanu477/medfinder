@@ -30,7 +30,12 @@ def admin_login(request):
     else:
         form = PlatformAdminLoginForm()
     
-    return render(request, 'platform_admin/login.html', {'form': form})
+    return render(request, 'customer/login.html', {
+        'form': form,
+        'title': 'Platform Admin Login',
+        'header_text': 'Platform Admin Login',
+        'hide_register_link': True
+    })
 
 def admin_logout(request):
     """Platform admin logout"""
@@ -40,9 +45,11 @@ def admin_logout(request):
 
 def admin_dashboard(request):
     """Admin dashboard with overview of all system components"""
+    if not request.user.is_authenticated:
+        return redirect('padmin:admin_login')
     if not request.user.is_superuser:
         messages.error(request, 'Access denied. Admin privileges required.')
-        return redirect('home')
+        return redirect('padmin:admin_login')
     
     # Get statistics
     from django.db.models import Count, Q
