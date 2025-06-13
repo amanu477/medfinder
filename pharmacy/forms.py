@@ -1,7 +1,9 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from .models import Pharmacy, Medicine, MoHPharmacyRecord
+from .license_validation import LicenseValidationService
 
 class PharmacyRegistrationForm(forms.ModelForm):
     """Form for pharmacy registration with mandatory document uploads"""
@@ -87,16 +89,23 @@ class PharmacyRegistrationForm(forms.ModelForm):
         return phone
 
     def clean_license_number(self):
-        """Validate license number"""
+        """Validate license number against Ministry of Health registry"""
         license_number = self.cleaned_data.get('license_number')
         if license_number:
             if len(license_number.strip()) < 5:
                 raise forms.ValidationError("License number must be at least 5 characters long.")
             
-            # Check if license number already exists
-            from .models import Pharmacy
-            if Pharmacy.objects.filter(license_number=license_number).exists():
-                raise forms.ValidationError("A pharmacy with this license number already exists.")
+            # Validate against MoH records
+            pharmacy_name = self.cleaned_data.get('name', '')
+            validation_result = LicenseValidationService.validate_license(
+                license_number, pharmacy_name
+            )
+            
+            if not validation_result['valid']:
+                raise forms.ValidationError(validation_result['message'])
+            
+            # Store validation data for later use
+            self.moh_validation_result = validation_result
         return license_number
 
     def clean_email(self):

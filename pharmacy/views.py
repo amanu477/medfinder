@@ -10,6 +10,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import Pharmacy, Medicine
 from .forms import PharmacyRegistrationForm, PharmacyUserForm, MedicineForm, PharmacyProfileForm, PharmacyVerificationForm
 from customer.models import Prescription, Order, OrderItem
+from .license_validation import LicenseValidationService
 
 def pharmacy_login(request):
     """Custom login view for pharmacies"""
@@ -51,11 +52,25 @@ def register(request):
                 pharmacy.latitude = float(lat)
                 pharmacy.longitude = float(lng)
             
+            # Sync with MoH verification data if available
+            if hasattr(pharmacy_form, 'moh_validation_result'):
+                validation_result = pharmacy_form.moh_validation_result
+                if validation_result['valid'] and validation_result['data']:
+                    # Sync pharmacy with verified MoH data
+                    moh_record = validation_result['data']
+                    success = LicenseValidationService.sync_pharmacy_with_moh(pharmacy, moh_record)
+                    if success:
+                        pharmacy.verification_status = 'verified'
+                        messages.success(request, 'Registration successful! Your pharmacy has been verified against Ministry of Health records.')
+                    else:
+                        messages.warning(request, 'Registration successful! Manual verification may be required.')
+                else:
+                    messages.info(request, 'Registration successful! Your documents are pending verification.')
+            
             pharmacy.save()
             
             # Log the user in automatically and redirect to dashboard
             login(request, user)
-            messages.success(request, 'Registration successful! Your documents have been uploaded and are pending verification.')
             return redirect('pharmacy_dashboard')
         else:
             # Display form errors
