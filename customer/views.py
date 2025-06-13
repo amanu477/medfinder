@@ -56,9 +56,12 @@ def search_medicines(request):
                         user_lat, user_lon,
                         float(pharmacy.latitude), float(pharmacy.longitude)
                     )
+                    # Attach distance to medicine object for template display
+                    medicine.distance = round(distance, 1)
                     medicines_with_distance.append((medicine, distance))
                     logger.info(f"Medicine: {medicine.name}, Pharmacy: {pharmacy.name}, Distance: {distance:.2f} km")
                 else:
+                    medicine.distance = None
                     medicines_with_distance.append((medicine, float('inf')))
             
             # Sort by distance (closest first)
@@ -74,6 +77,7 @@ def search_medicines(request):
         'query': query,
         'medicines': medicines,
         'user_location': {'lat': user_lat, 'lon': user_lon} if user_lat and user_lon else None,
+        'user_has_location': bool(user_lat and user_lon),
     }
     
     return render(request, 'search_results.html', context)
