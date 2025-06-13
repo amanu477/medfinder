@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime, timedelta
 
-from .models import VerificationRequest, MoHOfficer, ComplianceAlert
+from .models import VerificationRequest, MoHOfficer, ComplianceAlert, MoHPharmacyRecord
 from .forms import MoHLoginForm, MoHPharmacyRegistrationForm
 from pharmacy.models import Pharmacy, MoHPharmacyRecord as PharmacyMoHRecord
 from customer.models import Customer
