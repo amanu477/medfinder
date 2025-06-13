@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate
-from .models import MoHOfficer, MoHPharmacyRecord
+from .models import MoHOfficer, MoHPharmacyRegistry
 from pharmacy.models import Pharmacy
 
 

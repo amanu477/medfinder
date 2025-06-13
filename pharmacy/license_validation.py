@@ -63,7 +63,7 @@ class LicenseValidationService:
                 'warnings': warnings if warnings else None
             }
             
-        except MoHPharmacyRecord.DoesNotExist:
+        except MoHPharmacyRegistry.DoesNotExist:
             return {
                 'valid': False,
                 'status': 'not_found',
@@ -114,8 +114,8 @@ class LicenseValidationService:
     def get_moh_record_by_license(license_number):
         """Get MoH record by license number"""
         try:
-            return MoHPharmacyRecord.objects.get(license_number=license_number)
-        except MoHPharmacyRecord.DoesNotExist:
+            return MoHPharmacyRegistry.objects.get(license_number=license_number)
+        except MoHPharmacyRegistry.DoesNotExist:
             return None
 
 def validate_pharmacy_license(license_number, pharmacy_name=None):

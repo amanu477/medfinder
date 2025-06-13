@@ -145,7 +145,7 @@ class VerificationRequest(models.Model):
         ordering = ['-submitted_date']
     
     def __str__(self):
-        return f"{self.pharmacy.name} - {self.request_type} ({self.status})"
+        return f"{self.pharmacy_license} - {self.request_type} ({self.status})"
 
 
 class MoHOfficer(models.Model):
@@ -175,7 +175,7 @@ class MoHOfficer(models.Model):
 
 class ComplianceAlert(models.Model):
     """System alerts for compliance issues"""
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
+    pharmacy_license = models.CharField(max_length=50, help_text="License number of the pharmacy")
     alert_type = models.CharField(max_length=30, choices=[
         ('license_expiry', 'License Expiring'),
         ('missing_documents', 'Missing Documents'),
@@ -201,4 +201,4 @@ class ComplianceAlert(models.Model):
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.pharmacy.name} - {self.alert_type} ({self.severity})"
+        return f"{self.pharmacy_license} - {self.alert_type} ({self.severity})"

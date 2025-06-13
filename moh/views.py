@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime, timedelta
 
-from .models import VerificationRequest, MoHOfficer, ComplianceAlert, MoHPharmacyRecord
+from .models import VerificationRequest, MoHOfficer, ComplianceAlert, MoHPharmacyRegistry
 from .forms import MoHLoginForm, MoHPharmacyRegistrationForm
 from pharmacy.models import Pharmacy
 from customer.models import Customer
@@ -44,9 +44,9 @@ def moh_dashboard(request):
         return redirect('moh_login')
     
     # Dashboard statistics
-    total_pharmacies = MoHPharmacyRecord.objects.count()
+    total_pharmacies = MoHPharmacyRegistry.objects.count()
     pending_verifications = VerificationRequest.objects.filter(status='pending').count()
-    active_pharmacies = MoHPharmacyRecord.objects.filter(license_status='active').count()
+    active_pharmacies = MoHPharmacyRegistry.objects.filter(license_status='active').count()
     critical_alerts = ComplianceAlert.objects.filter(severity='critical', is_resolved=False).count()
     
     # Recent verification requests
@@ -60,11 +60,11 @@ def moh_dashboard(request):
     ).order_by('-created_at')[:5]
     
     # All pharmacy registrations (show all instead of just recent 5)
-    recent_pharmacies = MoHPharmacyRecord.objects.order_by('-created_at')
+    recent_pharmacies = MoHPharmacyRegistry.objects.order_by('-created_at')
     
     # Additional statistics for dashboard
-    expired_licenses = MoHPharmacyRecord.objects.filter(license_status='revoked').count()
-    pending_renewals = MoHPharmacyRecord.objects.filter(license_status='suspended').count()
+    expired_licenses = MoHPharmacyRegistry.objects.filter(license_status='revoked').count()
+    pending_renewals = MoHPharmacyRegistry.objects.filter(license_status='suspended').count()
     
     context = {
         'moh_officer': moh_officer,
