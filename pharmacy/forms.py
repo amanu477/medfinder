@@ -89,24 +89,18 @@ class PharmacyRegistrationForm(forms.ModelForm):
         return phone
 
     def clean_license_number(self):
-        """Validate license number against Ministry of Health registry"""
+        """Validate license number format only - no MoH check during registration"""
         license_number = self.cleaned_data.get('license_number')
         if license_number:
             if len(license_number.strip()) < 5:
                 raise forms.ValidationError("License number must be at least 5 characters long.")
             
-            # Validate against MoH records
-            pharmacy_name = self.cleaned_data.get('name', '')
-            validation_result = LicenseValidationService.validate_license(
-                license_number, pharmacy_name
-            )
-            
-            if not validation_result['valid']:
-                raise forms.ValidationError(validation_result['message'])
-            
-            # Store validation data for later use
-            self.moh_validation_result = validation_result
-        return license_number
+            # Check for platform uniqueness only
+            from .models import Pharmacy
+            if Pharmacy.objects.filter(license_number=license_number.strip()).exists():
+                raise forms.ValidationError("A pharmacy with this license number already exists on the platform.")
+        
+        return license_number.strip() if license_number else license_number
 
     def clean_email(self):
         """Validate email"""
