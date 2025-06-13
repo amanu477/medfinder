@@ -261,7 +261,7 @@ def moh_add_pharmacy(request):
                 )
                 
                 # Create comprehensive MoH record with document uploads
-                moh_record = MoHRecord.objects.create(
+                moh_record = PharmacyMoHRecord.objects.create(
                     pharmacy=pharmacy,
                     license_status='active',
                     verified_by=request.user,
@@ -313,14 +313,14 @@ def moh_edit_pharmacy(request, pharmacy_id):
         return redirect('moh_login')
     
     pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
-    moh_record, created = MoHRecord.objects.get_or_create(
+    moh_record, created = PharmacyMoHRecord.objects.get_or_create(
         pharmacy=pharmacy,
-        defaults={'license_status': 'pending'}
+        defaults={'status': 'pending'}
     )
     
     if request.method == 'POST':
         # Update MoH record
-        moh_record.license_status = request.POST.get('license_status')
+        moh_record.status = request.POST.get('status')
         moh_record.compliance_score = int(request.POST.get('compliance_score', 0))
         moh_record.inspection_notes = request.POST.get('inspection_notes', '')
         moh_record.business_license_verified = bool(request.POST.get('business_license_verified'))
@@ -336,7 +336,7 @@ def moh_edit_pharmacy(request, pharmacy_id):
         'moh_officer': moh_officer,
         'pharmacy': pharmacy,
         'moh_record': moh_record,
-        'status_choices': MoHRecord._meta.get_field('license_status').choices,
+        'status_choices': PharmacyMoHRecord.STATUS_CHOICES,
     }
     
     return render(request, 'moh/edit_pharmacy.html', context)
@@ -354,12 +354,12 @@ def moh_delete_pharmacy(request, pharmacy_id):
     
     if request.method == 'POST':
         # Instead of deleting, suspend the license
-        moh_record, created = MoHRecord.objects.get_or_create(
+        moh_record, created = PharmacyMoHRecord.objects.get_or_create(
             pharmacy=pharmacy,
-            defaults={'license_status': 'suspended'}
+            defaults={'status': 'suspended'}
         )
         if not created:
-            moh_record.license_status = 'suspended'
+            moh_record.status = 'suspended'
             moh_record.save()
         
         pharmacy.is_active = False
