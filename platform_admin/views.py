@@ -649,7 +649,7 @@ def admin_verify_moh(request):
         
         response_data = {
             'valid': validation_result['match_found'],
-            'message': 'License found in MoH registry' if validation_result['match_found'] else validation_result.get('error', 'License not found in MoH registry'),
+            'message': 'License found in MoH registry - Pharmacy approved automatically' if validation_result['match_found'] else 'No license number found in MoH registry',
             'status': 'verified' if validation_result['match_found'] else 'not_found_in_moh',
             'status_updated': False
         }

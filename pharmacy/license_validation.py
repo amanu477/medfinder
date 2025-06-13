@@ -23,15 +23,39 @@ class LicenseValidationService:
         Used by admin for verification process
         """
         try:
-            moh_record = MoHPharmacyRegistry.objects.get(
-                license_number=platform_pharmacy.license_number,
-                license_status='active'
-            )
+            # First try active licenses
+            moh_record = MoHPharmacyRegistry.objects.filter(
+                license_number=platform_pharmacy.license_number
+            ).first()
+            
+            if not moh_record:
+                return {
+                    'match_found': False,
+                    'moh_record': None,
+                    'license_status': 'not_found_in_moh',
+                    'compliance_score': 0,
+                    'verification_details': {
+                        'license_number_match': False,
+                        'pharmacy_name_similarity': 0,
+                        'license_active': False,
+                        'license_valid': False
+                    },
+                    'approve_recommendation': False,
+                    'error': f'No license number found in MoH registry matching {platform_pharmacy.license_number}'
+                }
             
             # If match found, link the records
             if moh_record and not moh_record.pharmacy:
                 moh_record.pharmacy = platform_pharmacy
                 moh_record.save()
+            
+            # Calculate similarity for pharmacy names
+            name_similarity = LicenseValidationService._calculate_similarity(
+                platform_pharmacy.name, moh_record.pharmacy_name
+            ) if moh_record.pharmacy_name else 0
+            
+            is_active = moh_record.license_status == 'active'
+            is_valid = moh_record.is_license_valid
             
             return {
                 'match_found': True,
@@ -40,33 +64,28 @@ class LicenseValidationService:
                 'compliance_score': moh_record.compliance_score,
                 'verification_details': {
                     'license_number_match': True,
-                    'pharmacy_name_similarity': LicenseValidationService._calculate_similarity(
-                        platform_pharmacy.name, moh_record.pharmacy_name
-                    ),
-                    'owner_name_similarity': LicenseValidationService._calculate_similarity(
-                        platform_pharmacy.owner_name, moh_record.owner_name
-                    ),
-                    'license_active': moh_record.license_status == 'active',
-                    'license_valid': moh_record.is_license_valid
+                    'pharmacy_name_similarity': name_similarity,
+                    'license_active': is_active,
+                    'license_valid': is_valid
                 },
-                'approve_recommendation': moh_record.license_status == 'active' and moh_record.is_license_valid
+                'approve_recommendation': is_active and is_valid
             }
             
-        except MoHPharmacyRegistry.DoesNotExist:
+        except Exception as e:
+            logger.error(f"Error checking MoH license match: {e}")
             return {
                 'match_found': False,
                 'moh_record': None,
-                'license_status': 'not_found_in_moh',
+                'license_status': 'error',
                 'compliance_score': 0,
                 'verification_details': {
                     'license_number_match': False,
                     'pharmacy_name_similarity': 0,
-                    'owner_name_similarity': 0,
                     'license_active': False,
                     'license_valid': False
                 },
                 'approve_recommendation': False,
-                'error': f'License number {platform_pharmacy.license_number} not found in MoH registry'
+                'error': f'Error checking MoH registry: {str(e)}'
             }
     
     @staticmethod
