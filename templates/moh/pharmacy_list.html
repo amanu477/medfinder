@@ -165,39 +165,41 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {% for pharmacy in pharmacies %}
+                                        {% for moh_record in pharmacies %}
                                         <tr>
-                                            <td><code>{{ pharmacy.license_number }}</code></td>
+                                            <td><code>{{ moh_record.pharmacy.license_number }}</code></td>
                                             <td>
-                                                <strong>{{ pharmacy.pharmacy_name }}</strong><br>
-                                                <small class="text-muted">{{ pharmacy.address_detail|truncatechars:50 }}</small>
+                                                <strong>{{ moh_record.pharmacy.name }}</strong><br>
+                                                <small class="text-muted">{{ moh_record.pharmacy.address|truncatechars:50 }}</small>
                                             </td>
-                                            <td>{{ pharmacy.owner_name }}</td>
-                                            <td>{{ pharmacy.get_region_display }}</td>
-                                            <td>{{ pharmacy.get_license_type_display }}</td>
+                                            <td>{{ moh_record.pharmacy.user.get_full_name|default:"N/A" }}</td>
+                                            <td>{{ moh_record.pharmacy.address|truncatechars:20 }}</td>
+                                            <td>{{ moh_record.pharmacy.get_license_type_display }}</td>
                                             <td>
-                                                {% if pharmacy.status == 'active' %}
-                                                    <span class="badge bg-success">{{ pharmacy.get_status_display }}</span>
-                                                {% elif pharmacy.status == 'suspended' %}
-                                                    <span class="badge bg-warning">{{ pharmacy.get_status_display }}</span>
+                                                {% if moh_record.license_status == 'active' %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% elif moh_record.license_status == 'suspended' %}
+                                                    <span class="badge bg-warning">Suspended</span>
+                                                {% elif moh_record.license_status == 'pending' %}
+                                                    <span class="badge bg-info">Pending</span>
                                                 {% else %}
-                                                    <span class="badge bg-danger">{{ pharmacy.get_status_display }}</span>
+                                                    <span class="badge bg-danger">Revoked</span>
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                {{ pharmacy.expiry_date|date:"M d, Y" }}
-                                                {% if pharmacy.expiry_date < today %}
+                                                {{ moh_record.license_expiry_date|date:"M d, Y"|default:"N/A" }}
+                                                {% if moh_record.license_expiry_date and moh_record.license_expiry_date < today %}
                                                     <i class="fas fa-exclamation-triangle text-danger ms-1" title="Expired"></i>
-                                                {% elif pharmacy.expiry_date < warning_date %}
+                                                {% elif moh_record.license_expiry_date and moh_record.license_expiry_date < warning_date %}
                                                     <i class="fas fa-clock text-warning ms-1" title="Expiring Soon"></i>
                                                 {% endif %}
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm">
-                                                    <a href="{% url 'moh_edit_pharmacy' pharmacy.id %}" class="btn btn-outline-primary" title="Edit">
+                                                    <a href="{% url 'moh_edit_pharmacy' moh_record.id %}" class="btn btn-outline-primary" title="Edit">
                                                         <i class="fas fa-edit"></i>
                                                     </a>
-                                                    <a href="{% url 'moh_delete_pharmacy' pharmacy.id %}" class="btn btn-outline-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this pharmacy record?')">
+                                                    <a href="{% url 'moh_delete_pharmacy' moh_record.id %}" class="btn btn-outline-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this pharmacy record?')">
                                                         <i class="fas fa-trash"></i>
                                                     </a>
                                                 </div>

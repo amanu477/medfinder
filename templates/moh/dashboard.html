@@ -182,21 +182,23 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {% for pharmacy in recent_pharmacies %}
+                                                {% for moh_record in recent_pharmacies %}
                                                 <tr>
-                                                    <td><code>{{ pharmacy.license_number }}</code></td>
-                                                    <td>{{ pharmacy.pharmacy_name }}</td>
-                                                    <td>{{ pharmacy.get_region_display }}</td>
+                                                    <td><code>{{ moh_record.pharmacy.license_number }}</code></td>
+                                                    <td>{{ moh_record.pharmacy.name }}</td>
+                                                    <td>{{ moh_record.pharmacy.address }}</td>
                                                     <td>
-                                                        {% if pharmacy.status == 'active' %}
-                                                            <span class="badge bg-success">{{ pharmacy.get_status_display }}</span>
-                                                        {% elif pharmacy.status == 'suspended' %}
-                                                            <span class="badge bg-warning">{{ pharmacy.get_status_display }}</span>
+                                                        {% if moh_record.license_status == 'active' %}
+                                                            <span class="badge bg-success">Active</span>
+                                                        {% elif moh_record.license_status == 'suspended' %}
+                                                            <span class="badge bg-warning">Suspended</span>
+                                                        {% elif moh_record.license_status == 'pending' %}
+                                                            <span class="badge bg-info">Pending</span>
                                                         {% else %}
-                                                            <span class="badge bg-danger">{{ pharmacy.get_status_display }}</span>
+                                                            <span class="badge bg-danger">Revoked</span>
                                                         {% endif %}
                                                     </td>
-                                                    <td>{{ pharmacy.registration_date|date:"M d, Y" }}</td>
+                                                    <td>{{ moh_record.created_at|date:"M d, Y" }}</td>
                                                 </tr>
                                                 {% endfor %}
                                             </tbody>
