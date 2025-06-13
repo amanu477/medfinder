@@ -92,18 +92,12 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="{{ pharmacy_form.license_number.id_for_label }}" class="form-label">License Number <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        {{ pharmacy_form.license_number }}
-                                        <button type="button" class="btn btn-outline-primary" id="check-moh-btn" disabled>
-                                            <i class="fas fa-search me-1"></i>Check with MoH
-                                        </button>
-                                    </div>
+                                    {{ pharmacy_form.license_number }}
                                     {% if pharmacy_form.license_number.errors %}
                                     <div class="invalid-feedback d-block">
                                         {{ pharmacy_form.license_number.errors }}
                                     </div>
                                     {% endif %}
-                                    <div id="moh-verification-result" class="mt-2"></div>
                                     <div class="form-text">Your pharmacy's official license number</div>
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -549,93 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // MoH License Verification
-    const licenseInput = document.getElementById('{{ pharmacy_form.license_number.id_for_label }}');
-    const checkMohBtn = document.getElementById('check-moh-btn');
-    const mohResultDiv = document.getElementById('moh-verification-result');
 
-    if (licenseInput && checkMohBtn) {
-        // Enable button when license number is entered
-        licenseInput.addEventListener('input', function() {
-            const licenseValue = this.value.trim();
-            if (licenseValue.length >= 5) {
-                checkMohBtn.disabled = false;
-                checkMohBtn.classList.remove('btn-outline-primary');
-                checkMohBtn.classList.add('btn-primary');
-            } else {
-                checkMohBtn.disabled = true;
-                checkMohBtn.classList.remove('btn-primary');
-                checkMohBtn.classList.add('btn-outline-primary');
-                mohResultDiv.innerHTML = '';
-            }
-        });
-
-        // Handle MoH verification
-        checkMohBtn.addEventListener('click', function() {
-            const licenseNumber = licenseInput.value.trim();
-            const pharmacyName = document.getElementById('{{ pharmacy_form.name.id_for_label }}').value.trim();
-            
-            if (!licenseNumber) {
-                showMohResult('error', 'Please enter a license number first.');
-                return;
-            }
-
-            // Show loading state
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Checking...';
-            
-            // Make AJAX request to verify license
-            fetch('/pharmacy/verify-license/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                },
-                body: JSON.stringify({
-                    'license_number': licenseNumber,
-                    'pharmacy_name': pharmacyName
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.valid) {
-                    showMohResult('success', data.message, data.data);
-                } else {
-                    showMohResult('error', data.message);
-                }
-            })
-            .catch(error => {
-                showMohResult('error', 'Unable to verify license at this time. Please try again.');
-                console.error('License verification error:', error);
-            })
-            .finally(() => {
-                // Reset button state
-                this.disabled = false;
-                this.innerHTML = '<i class="fas fa-search me-1"></i>Check with MoH';
-            });
-        });
-
-        function showMohResult(type, message, data = null) {
-            let alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            let icon = type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
-            
-            let html = `<div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                <i class="${icon} me-2"></i>${message}`;
-            
-            if (type === 'success' && data) {
-                html += `<hr class="my-2">
-                    <small><strong>MoH Record Details:</strong><br>
-                    Pharmacy: ${data.pharmacy_name}<br>
-                    Owner: ${data.owner_name}<br>
-                    License Type: ${data.license_type}<br>
-                    Region: ${data.region}<br>
-                    Status: ${data.status}</small>`;
-            }
-            
-            html += `<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
-            mohResultDiv.innerHTML = html;
-        }
-    }
 
     // Comprehensive form validation
     const allInputs = form.querySelectorAll('input, select, textarea');

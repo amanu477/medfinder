@@ -89,64 +89,7 @@ def register(request):
         'pharmacy_form': pharmacy_form
     })
 
-@require_http_methods(["POST"])
-@csrf_exempt
-def verify_license(request):
-    """API endpoint to verify pharmacy license with MoH records"""
-    try:
-        data = json.loads(request.body)
-        license_number = data.get('license_number', '').strip()
-        pharmacy_name = data.get('pharmacy_name', '').strip()
-        
-        if not license_number:
-            return JsonResponse({
-                'valid': False,
-                'message': 'License number is required.'
-            })
-        
-        # Validate with MoH records
-        validation_result = LicenseValidationService.validate_license(
-            license_number, pharmacy_name
-        )
-        
-        response_data = {
-            'valid': validation_result['valid'],
-            'message': validation_result['message'],
-            'status': validation_result['status']
-        }
-        
-        # Include MoH record data if verification is successful
-        if validation_result['valid'] and validation_result['data']:
-            moh_record = validation_result['data']
-            response_data['data'] = {
-                'pharmacy_name': moh_record.pharmacy_name,
-                'owner_name': moh_record.owner_name,
-                'pharmacist_name': moh_record.pharmacist_name,
-                'license_type': moh_record.get_license_type_display(),
-                'region': moh_record.get_region_display(),
-                'city': moh_record.city,
-                'status': moh_record.get_status_display(),
-                'issue_date': moh_record.issue_date.strftime('%Y-%m-%d'),
-                'expiry_date': moh_record.expiry_date.strftime('%Y-%m-%d'),
-                'days_until_expiry': moh_record.days_until_expiry
-            }
-            
-            # Add warnings if any
-            if 'warnings' in validation_result and validation_result['warnings']:
-                response_data['warnings'] = validation_result['warnings']
-        
-        return JsonResponse(response_data)
-        
-    except json.JSONDecodeError:
-        return JsonResponse({
-            'valid': False,
-            'message': 'Invalid request format.'
-        }, status=400)
-    except Exception as e:
-        return JsonResponse({
-            'valid': False,
-            'message': 'Unable to verify license at this time. Please try again later.'
-        }, status=500)
+
 
 @login_required
 def pharmacy_verification(request):

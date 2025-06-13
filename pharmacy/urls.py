@@ -11,7 +11,6 @@ urlpatterns = [
     # Verification
     path('verification/', views.pharmacy_verification, name='pharmacy_verification'),
     path('verification/pending/', views.verification_pending, name='verification_pending'),
-    path('verify-license/', views.verify_license, name='verify_license'),
     
     # Dashboard
     path('dashboard/', views.dashboard, name='pharmacy_dashboard'),
