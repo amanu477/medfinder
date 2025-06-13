@@ -1,9 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
-from pharmacy.models import Pharmacy
 
 
-class MoHPharmacyRecord(models.Model):
+class MoHPharmacyRegistry(models.Model):
     """Ministry of Health independent pharmacy registry - separate from platform registrations"""
     
     REGION_CHOICES = [
@@ -52,7 +51,7 @@ class MoHPharmacyRecord(models.Model):
     # License Details
     license_type = models.CharField(max_length=20, choices=LICENSE_TYPE_CHOICES, default='retail')
     license_status = models.CharField(max_length=20, choices=LICENSE_STATUS_CHOICES, default='pending')
-    issue_date = models.DateField(auto_now_add=True)
+    issue_date = models.DateField(null=True, blank=True)
     expiry_date = models.DateField(null=True, blank=True)
     
     # Contact Information
@@ -118,7 +117,7 @@ class MoHPharmacyRecord(models.Model):
 
 class VerificationRequest(models.Model):
     """Pharmacy verification requests to MoH"""
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, related_name='moh_verification_requests')
+    pharmacy_license = models.CharField(max_length=50, help_text="License number of the requesting pharmacy")
     request_type = models.CharField(max_length=30, choices=[
         ('initial', 'Initial License'),
         ('renewal', 'License Renewal'),

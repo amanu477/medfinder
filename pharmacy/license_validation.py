@@ -4,7 +4,7 @@ License validation service to verify pharmacy registrations against independent 
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import date
-from moh.models import MoHPharmacyRecord
+from moh.models import MoHPharmacyRegistry
 import logging
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class LicenseValidationService:
         
         try:
             # Check if MoH record exists in the independent MoH database
-            moh_record = MoHPharmacyRecord.objects.get(license_number=license_number)
+            moh_record = MoHPharmacyRegistry.objects.get(license_number=license_number)
             
             # Check license status
             if moh_record.license_status not in ['active', 'pending']:
