@@ -94,8 +94,8 @@ def moh_pharmacy_list(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
     
-    # Get pharmacy records from the MoH app's MoHPharmacyRecord model
-    pharmacies = MoHPharmacyRecord.objects.all().order_by('-created_at')
+    # Get pharmacy records from the MoH app's MoHPharmacyRegistry model
+    pharmacies = MoHPharmacyRegistry.objects.all().order_by('-created_at')
     
     if search_query:
         pharmacies = pharmacies.filter(
@@ -168,7 +168,7 @@ def moh_respond_verification(request, request_id):
             verification_request.save()
             
             # Update or create MoH record
-            moh_record, created = MoHPharmacyRecord.objects.get_or_create(
+            moh_record, created = MoHPharmacyRegistry.objects.get_or_create(
                 pharmacy=verification_request.pharmacy,
                 defaults={
                     'license_status': 'active',
@@ -260,7 +260,7 @@ def moh_add_pharmacy(request):
                 )
                 
                 # Create comprehensive MoH record with document uploads
-                moh_record = MoHPharmacyRecord.objects.create(
+                moh_record = MoHPharmacyRegistry.objects.create(
                     pharmacy=pharmacy,
                     license_status=form.cleaned_data.get('status', 'active'),
                     verified_by=request.user,
@@ -312,9 +312,9 @@ def moh_edit_pharmacy(request, pharmacy_id):
         return redirect('moh_login')
     
     pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
-    moh_record, created = MoHPharmacyRecord.objects.get_or_create(
-        pharmacy=pharmacy,
-        defaults={'status': 'pending'}
+    moh_record, created = MoHPharmacyRegistry.objects.get_or_create(
+        pharmacy_license=pharmacy.license_number,
+        defaults={'license_status': 'pending'}
     )
     
     if request.method == 'POST':
@@ -335,7 +335,7 @@ def moh_edit_pharmacy(request, pharmacy_id):
         'moh_officer': moh_officer,
         'pharmacy': pharmacy,
         'moh_record': moh_record,
-        'status_choices': MoHPharmacyRecord.STATUS_CHOICES,
+        'status_choices': MoHPharmacyRegistry.LICENSE_STATUS_CHOICES,
     }
     
     return render(request, 'moh/edit_pharmacy.html', context)
@@ -353,9 +353,9 @@ def moh_delete_pharmacy(request, pharmacy_id):
     
     if request.method == 'POST':
         # Instead of deleting, suspend the license
-        moh_record, created = MoHPharmacyRecord.objects.get_or_create(
-            pharmacy=pharmacy,
-            defaults={'status': 'suspended'}
+        moh_record, created = MoHPharmacyRegistry.objects.get_or_create(
+            pharmacy_license=pharmacy.license_number,
+            defaults={'license_status': 'suspended'}
         )
         if not created:
             moh_record.status = 'suspended'
