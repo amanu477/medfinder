@@ -44,9 +44,9 @@ def moh_dashboard(request):
         return redirect('moh_login')
     
     # Dashboard statistics
-    total_pharmacies = PharmacyMoHRecord.objects.count()
+    total_pharmacies = MoHPharmacyRecord.objects.count()
     pending_verifications = VerificationRequest.objects.filter(status='pending').count()
-    active_pharmacies = PharmacyMoHRecord.objects.filter(status='active').count()
+    active_pharmacies = MoHPharmacyRecord.objects.filter(license_status='active').count()
     critical_alerts = ComplianceAlert.objects.filter(severity='critical', is_resolved=False).count()
     
     # Recent verification requests
@@ -60,11 +60,11 @@ def moh_dashboard(request):
     ).order_by('-created_at')[:5]
     
     # All pharmacy registrations (show all instead of just recent 5)
-    recent_pharmacies = PharmacyMoHRecord.objects.order_by('-registration_date')
+    recent_pharmacies = MoHPharmacyRecord.objects.order_by('-created_at')
     
     # Additional statistics for dashboard
-    expired_licenses = PharmacyMoHRecord.objects.filter(status='expired').count()
-    pending_renewals = PharmacyMoHRecord.objects.filter(status='suspended').count()
+    expired_licenses = MoHPharmacyRecord.objects.filter(license_status='revoked').count()
+    pending_renewals = MoHPharmacyRecord.objects.filter(license_status='suspended').count()
     
     context = {
         'moh_officer': moh_officer,
@@ -94,8 +94,8 @@ def moh_pharmacy_list(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
     
-    # Get pharmacy records from the pharmacy app's MoHPharmacyRecord model
-    pharmacies = PharmacyMoHRecord.objects.all().order_by('-registration_date')
+    # Get pharmacy records from the MoH app's MoHPharmacyRecord model
+    pharmacies = MoHPharmacyRecord.objects.all().order_by('-created_at')
     
     if search_query:
         pharmacies = pharmacies.filter(
@@ -114,7 +114,7 @@ def moh_pharmacy_list(request):
         'pharmacies': pharmacies,
         'search_query': search_query,
         'status_filter': status_filter,
-        'status_choices': PharmacyMoHRecord.STATUS_CHOICES,
+        'status_choices': [('active', 'Active'), ('suspended', 'Suspended'), ('revoked', 'Revoked'), ('pending', 'Pending Review')],
     }
     
     return render(request, 'moh/pharmacy_list.html', context)
@@ -169,7 +169,7 @@ def moh_respond_verification(request, request_id):
             verification_request.save()
             
             # Update or create MoH record
-            moh_record, created = PharmacyMoHRecord.objects.get_or_create(
+            moh_record, created = MoHPharmacyRecord.objects.get_or_create(
                 pharmacy=verification_request.pharmacy,
                 defaults={
                     'license_status': 'active',
@@ -313,7 +313,7 @@ def moh_edit_pharmacy(request, pharmacy_id):
         return redirect('moh_login')
     
     pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
-    moh_record, created = PharmacyMoHRecord.objects.get_or_create(
+    moh_record, created = MoHPharmacyRecord.objects.get_or_create(
         pharmacy=pharmacy,
         defaults={'status': 'pending'}
     )
@@ -336,7 +336,7 @@ def moh_edit_pharmacy(request, pharmacy_id):
         'moh_officer': moh_officer,
         'pharmacy': pharmacy,
         'moh_record': moh_record,
-        'status_choices': PharmacyMoHRecord.STATUS_CHOICES,
+        'status_choices': MoHPharmacyRecord.STATUS_CHOICES,
     }
     
     return render(request, 'moh/edit_pharmacy.html', context)
@@ -354,7 +354,7 @@ def moh_delete_pharmacy(request, pharmacy_id):
     
     if request.method == 'POST':
         # Instead of deleting, suspend the license
-        moh_record, created = PharmacyMoHRecord.objects.get_or_create(
+        moh_record, created = MoHPharmacyRecord.objects.get_or_create(
             pharmacy=pharmacy,
             defaults={'status': 'suspended'}
         )
