@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from .models import Customer, Prescription, Order, OrderItem, IncidentReport, AdminNotification
 from pharmacy.models import Pharmacy, Medicine
+from moh.models import MoHOfficer
 from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm, QuickIncidentForm
 
 def home(request):
@@ -131,6 +132,10 @@ def customer_login(request):
                 # Platform Admin
                 messages.success(request, f'Welcome back, Platform Admin {user.username}!')
                 return redirect('platform_admin:admin_dashboard')
+            elif hasattr(user, 'mohofficer'):
+                # MoH Officer
+                messages.success(request, f'Welcome back, {user.mohofficer.get_full_name()}!')
+                return redirect('moh_dashboard')
             elif hasattr(user, 'pharmacy'):
                 # Pharmacy User
                 messages.success(request, f'Welcome back, {user.pharmacy.name}!')
