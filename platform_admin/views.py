@@ -15,40 +15,14 @@ from moh.models import MoHPharmacyRecord
 from pharmacy.verification_service import MinistryOfHealthVerificationService
 
 
-def admin_login(request):
-    """Platform admin login page"""
-    if request.user.is_authenticated and request.user.is_superuser:
-        return redirect('padmin:admin_dashboard')
-    
-    if request.method == 'POST':
-        form = PlatformAdminLoginForm(request, data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            next_url = request.GET.get('next', 'padmin:admin_dashboard')
-            return redirect(next_url)
-    else:
-        form = PlatformAdminLoginForm()
-    
-    return render(request, 'customer/login.html', {
-        'form': form,
-        'title': 'Platform Admin Login',
-        'header_text': 'Platform Admin Login',
-        'hide_register_link': True
-    })
 
-def admin_logout(request):
-    """Platform admin logout"""
-    logout(request)
-    messages.success(request, 'You have been logged out successfully.')
-    return redirect('padmin:admin_login')
 
 @login_required
 def admin_dashboard(request):
     """Admin dashboard with overview of all system components"""
     if not request.user.is_superuser:
         messages.error(request, 'Access denied. Admin privileges required.')
-        return redirect('padmin:admin_login')
+        return redirect('login')
     
     # Get statistics
     from django.db.models import Count, Q

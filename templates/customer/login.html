@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load django_bootstrap5 %}
 
-{% block title %}{{ title|default:"Customer Login" }}{% endblock %}
+{% block title %}{{ title|default:"Login" }}{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -9,7 +9,7 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title mb-0">{{ header_text|default:"Customer Login" }}</h3>
+                    <h3 class="card-title mb-0">{{ header_text|default:"Login" }}</h3>
                 </div>
                 <div class="card-body">
                     {% if form.non_field_errors %}
