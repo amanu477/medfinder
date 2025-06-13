@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime, timedelta
 
-from .models import VerificationRequest, MoHOfficer, ComplianceAlert, MoHPharmacyRecord
+from .models import VerificationRequest, MoHOfficer, ComplianceAlert, MoHPharmacyRecord as MoHRecord
 from .forms import MoHLoginForm, MoHPharmacyRegistrationForm
 from pharmacy.models import Pharmacy, MoHPharmacyRecord as PharmacyMoHRecord
 from customer.models import Customer
@@ -169,7 +169,7 @@ def moh_respond_verification(request, request_id):
             verification_request.save()
             
             # Update or create MoH record
-            moh_record, created = MoHPharmacyRecord.objects.get_or_create(
+            moh_record, created = PharmacyMoHRecord.objects.get_or_create(
                 pharmacy=verification_request.pharmacy,
                 defaults={
                     'license_status': 'active',
@@ -261,7 +261,7 @@ def moh_add_pharmacy(request):
                 )
                 
                 # Create comprehensive MoH record with document uploads
-                moh_record = MoHPharmacyRecord.objects.create(
+                moh_record = MoHRecord.objects.create(
                     pharmacy=pharmacy,
                     license_status='active',
                     verified_by=request.user,
@@ -313,7 +313,7 @@ def moh_edit_pharmacy(request, pharmacy_id):
         return redirect('moh_login')
     
     pharmacy = get_object_or_404(Pharmacy, id=pharmacy_id)
-    moh_record, created = MoHPharmacyRecord.objects.get_or_create(
+    moh_record, created = MoHRecord.objects.get_or_create(
         pharmacy=pharmacy,
         defaults={'license_status': 'pending'}
     )
@@ -336,7 +336,7 @@ def moh_edit_pharmacy(request, pharmacy_id):
         'moh_officer': moh_officer,
         'pharmacy': pharmacy,
         'moh_record': moh_record,
-        'status_choices': MoHPharmacyRecord._meta.get_field('license_status').choices,
+        'status_choices': MoHRecord._meta.get_field('license_status').choices,
     }
     
     return render(request, 'moh/edit_pharmacy.html', context)
@@ -354,7 +354,7 @@ def moh_delete_pharmacy(request, pharmacy_id):
     
     if request.method == 'POST':
         # Instead of deleting, suspend the license
-        moh_record, created = MoHPharmacyRecord.objects.get_or_create(
+        moh_record, created = MoHRecord.objects.get_or_create(
             pharmacy=pharmacy,
             defaults={'license_status': 'suspended'}
         )
