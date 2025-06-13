@@ -247,7 +247,7 @@ def place_order(request, medicine_id):
                 order=order,
                 medicine=medicine,
                 quantity=quantity,
-                unit_price=medicine.price
+                price=medicine.price
             )
             
             # Update medicine stock
