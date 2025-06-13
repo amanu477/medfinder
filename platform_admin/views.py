@@ -644,28 +644,28 @@ def admin_verify_moh(request):
         # Import license validation service
         from pharmacy.license_validation import LicenseValidationService
         
-        # Validate with MoH records
-        validation_result = LicenseValidationService.validate_license(
-            license_number, pharmacy_name
-        )
+        # Check for license match in independent MoH registry
+        validation_result = LicenseValidationService.check_moh_license_match(pharmacy)
         
         response_data = {
-            'valid': validation_result['valid'],
-            'message': validation_result['message'],
-            'status': validation_result['status'],
+            'valid': validation_result['match_found'],
+            'message': 'License found in MoH registry' if validation_result['match_found'] else validation_result.get('error', 'License not found in MoH registry'),
+            'status': 'verified' if validation_result['match_found'] else 'not_found_in_moh',
             'status_updated': False
         }
         
         # Update pharmacy MoH verification status based on result
-        if validation_result['valid']:
+        if validation_result['match_found']:
             pharmacy.moh_verification_status = 'verified'
+            pharmacy.verification_status = 'approved'
+            pharmacy.moh_verified = True
             pharmacy.moh_verification_date = timezone.now()
             pharmacy.save()
             response_data['status_updated'] = True
             
             # Include MoH record data
-            if validation_result['data']:
-                moh_record = validation_result['data']
+            if validation_result['moh_record']:
+                moh_record = validation_result['moh_record']
                 response_data['data'] = {
                     'pharmacy_name': moh_record.pharmacy_name,
                     'owner_name': moh_record.owner_name,
@@ -673,18 +673,19 @@ def admin_verify_moh(request):
                     'license_type': moh_record.get_license_type_display(),
                     'region': moh_record.get_region_display(),
                     'city': moh_record.city,
-                    'status': moh_record.get_status_display(),
-                    'issue_date': moh_record.issue_date.strftime('%Y-%m-%d'),
-                    'expiry_date': moh_record.expiry_date.strftime('%Y-%m-%d'),
-                    'days_until_expiry': moh_record.days_until_expiry
+                    'license_status': moh_record.get_license_status_display(),
+                    'compliance_score': moh_record.compliance_score,
+                    'issue_date': moh_record.issue_date.strftime('%Y-%m-%d') if moh_record.issue_date else 'N/A',
+                    'expiry_date': moh_record.expiry_date.strftime('%Y-%m-%d') if moh_record.expiry_date else 'N/A',
+                    'days_until_expiry': moh_record.days_until_expiry,
+                    'pharmacy_name_similarity': round(validation_result['verification_details']['pharmacy_name_similarity'] * 100, 1),
+                    'owner_name_similarity': round(validation_result['verification_details']['owner_name_similarity'] * 100, 1)
                 }
-                
-                # Add warnings if any
-                if 'warnings' in validation_result and validation_result['warnings']:
-                    response_data['warnings'] = validation_result['warnings']
         else:
             # Set failed status
             pharmacy.moh_verification_status = 'failed'
+            pharmacy.verification_status = 'rejected'
+            pharmacy.moh_verified = False
             pharmacy.moh_verification_date = timezone.now()
             pharmacy.save()
             response_data['status_updated'] = True

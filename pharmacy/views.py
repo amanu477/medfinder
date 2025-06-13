@@ -54,22 +54,12 @@ def register(request):
                 pharmacy.latitude = float(lat)
                 pharmacy.longitude = float(lng)
             
-            # Sync with MoH verification data if available
-            if hasattr(pharmacy_form, 'moh_validation_result'):
-                validation_result = pharmacy_form.moh_validation_result
-                if validation_result['valid'] and validation_result['data']:
-                    # Sync pharmacy with verified MoH data
-                    moh_record = validation_result['data']
-                    success = LicenseValidationService.sync_pharmacy_with_moh(pharmacy, moh_record)
-                    if success:
-                        pharmacy.verification_status = 'verified'
-                        messages.success(request, 'Registration successful! Your pharmacy has been verified against Ministry of Health records.')
-                    else:
-                        messages.warning(request, 'Registration successful! Manual verification may be required.')
-                else:
-                    messages.info(request, 'Registration successful! Your documents are pending verification.')
-            
+            # Platform registration is completely separate from MoH
+            # No MoH validation during registration - admin will verify later
+            pharmacy.verification_status = 'pending'
             pharmacy.save()
+            
+            messages.success(request, 'Registration successful! Your pharmacy has been registered and is pending admin verification.')
             
             # Log the user in automatically and redirect to dashboard
             login(request, user)
