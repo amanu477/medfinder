@@ -9,9 +9,9 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime, timedelta
 
-from .models import VerificationRequest, MoHOfficer, ComplianceAlert, MoHPharmacyRecord as MoHRecord
+from .models import VerificationRequest, MoHOfficer, ComplianceAlert, MoHPharmacyRecord
 from .forms import MoHLoginForm, MoHPharmacyRegistrationForm
-from pharmacy.models import Pharmacy, MoHPharmacyRecord as PharmacyMoHRecord
+from pharmacy.models import Pharmacy
 from customer.models import Customer
 
 
@@ -261,9 +261,9 @@ def moh_add_pharmacy(request):
                 )
                 
                 # Create comprehensive MoH record with document uploads
-                moh_record = PharmacyMoHRecord.objects.create(
+                moh_record = MoHPharmacyRecord.objects.create(
                     pharmacy=pharmacy,
-                    license_status='active',
+                    license_status=form.cleaned_data.get('status', 'active'),
                     verified_by=request.user,
                     verification_date=timezone.now(),
                     inspection_date=timezone.now().date(),
@@ -272,9 +272,9 @@ def moh_add_pharmacy(request):
                     pharmacist_certificate_verified=True,
                     pharmacy_permit_verified=True,
                     # Store uploaded documents
-                    business_license_document=form.cleaned_data['business_license'],
-                    pharmacist_certificate_document=form.cleaned_data['pharmacist_certificate'],
-                    pharmacy_permit_document=form.cleaned_data['pharmacy_permit'],
+                    business_license_document=form.cleaned_data.get('business_license'),
+                    pharmacist_certificate_document=form.cleaned_data.get('pharmacist_certificate'),
+                    pharmacy_permit_document=form.cleaned_data.get('pharmacy_permit'),
                     inspection_report=form.cleaned_data.get('inspection_report'),
                 )
                 
