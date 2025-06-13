@@ -117,18 +117,34 @@ def prescription_success(request):
     return render(request, 'prescription_success.html', context)
 
 def customer_login(request):
-    """Custom customer login view"""
+    """Unified login view for all user types"""
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         
         user = authenticate(request, username=username, password=password)
-        if user is not None and hasattr(user, 'customer'):
+        if user is not None:
             login(request, user)
-            messages.success(request, f'Welcome back, {user.customer.name}!')
-            return redirect('customer_dashboard')
+            
+            # Check user type and redirect accordingly
+            if user.is_superuser:
+                # Platform Admin
+                messages.success(request, f'Welcome back, Platform Admin {user.username}!')
+                return redirect('platform_admin:admin_dashboard')
+            elif hasattr(user, 'pharmacy'):
+                # Pharmacy User
+                messages.success(request, f'Welcome back, {user.pharmacy.name}!')
+                return redirect('pharmacy_dashboard')
+            elif hasattr(user, 'customer'):
+                # Customer User
+                messages.success(request, f'Welcome back, {user.customer.name}!')
+                return redirect('customer_dashboard')
+            else:
+                # Regular user without specific profile
+                messages.success(request, f'Welcome back, {user.username}!')
+                return redirect('home')
         else:
-            messages.error(request, 'Invalid credentials or not a customer account.')
+            messages.error(request, 'Invalid username or password.')
     
     return render(request, 'customer/login.html')
 

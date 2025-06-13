@@ -21,6 +21,10 @@ urlpatterns = [
     path('prescription/success/', customer_views.prescription_success, name='prescription_success'),
     path('customer/', include('customer.urls')),
     
+    # Unified Authentication System
+    path('login/', customer_views.customer_login, name='login'),
+    path('logout/', customer_views.customer_logout, name='logout'),
+    
     # Pharmacy Routes
     path('pharmacy/', include('pharmacy.urls')),
     
@@ -29,8 +33,6 @@ urlpatterns = [
     
     # Platform Admin Dashboard (Independent Admin System)
     path('platform-admin/', include('platform_admin.urls')),
-    
-    # Authentication Routes are handled in individual apps
 ]
 
 # Serve media files in development

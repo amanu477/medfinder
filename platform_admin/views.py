@@ -43,10 +43,9 @@ def admin_logout(request):
     messages.success(request, 'You have been logged out successfully.')
     return redirect('padmin:admin_login')
 
+@login_required
 def admin_dashboard(request):
     """Admin dashboard with overview of all system components"""
-    if not request.user.is_authenticated:
-        return redirect('padmin:admin_login')
     if not request.user.is_superuser:
         messages.error(request, 'Access denied. Admin privileges required.')
         return redirect('padmin:admin_login')
