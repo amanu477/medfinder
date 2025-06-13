@@ -1,115 +1,107 @@
 """
-License validation service to verify pharmacy registrations against independent MoH records
+License validation service for two separate systems:
+1. Independent MoH registry (for MoH registrations)
+2. Platform pharmacy database (for normal registrations)
+3. Admin verification matches license numbers between both systems
 """
+
 from django.core.exceptions import ValidationError
-from django.utils import timezone
-from datetime import date
+from difflib import SequenceMatcher
 from moh.models import MoHPharmacyRegistry
 import logging
 
 logger = logging.getLogger(__name__)
 
+
 class LicenseValidationService:
-    """Service to validate pharmacy license numbers against independent MoH registry"""
+    """Service to handle two separate pharmacy registration systems"""
 
     @staticmethod
-    def validate_license(license_number, pharmacy_name=None, owner_name=None):
+    def check_moh_license_match(platform_pharmacy):
         """
-        Validate if a license number exists in independent MoH records
-        Returns validation result with details
+        Check if a platform pharmacy has a matching license in the independent MoH registry
+        Used by admin for verification process
         """
-        if not license_number:
-            return {
-                'valid': False,
-                'status': 'missing_license',
-                'message': 'License number is required for validation.',
-                'data': None
-            }
-        
         try:
-            # Check if MoH record exists in the independent MoH database
-            moh_record = MoHPharmacyRegistry.objects.get(license_number=license_number)
+            moh_record = MoHPharmacyRegistry.objects.get(
+                license_number=platform_pharmacy.license_number,
+                license_status='active'
+            )
             
-            # Check license status
-            if moh_record.license_status not in ['active', 'pending']:
-                return {
-                    'valid': False,
-                    'status': 'invalid_license',
-                    'message': f'License {license_number} is {moh_record.license_status} or expired. Please renew your license with MoH.',
-                    'data': moh_record
-                }
-            
-            # Check if pharmacy name matches (fuzzy matching)
-            name_match = True
-            if pharmacy_name:
-                name_match = LicenseValidationService._fuzzy_name_match(
-                    pharmacy_name, moh_record.pharmacy_name
-                )
-            
-            # Create warnings list
-            warnings = []
-            if not name_match:
-                warnings.append(f"Pharmacy name '{pharmacy_name}' does not match MoH record '{moh_record.pharmacy_name}'")
-            
-            if moh_record.compliance_score < 70:
-                warnings.append(f"Low compliance score: {moh_record.compliance_score}/100")
+            # If match found, link the records
+            if moh_record and not moh_record.pharmacy:
+                moh_record.pharmacy = platform_pharmacy
+                moh_record.save()
             
             return {
-                'valid': True,
-                'status': 'valid',
-                'message': 'License number verified successfully with Ministry of Health.',
-                'data': moh_record,
-                'name_match': name_match,
-                'warnings': warnings if warnings else None
+                'match_found': True,
+                'moh_record': moh_record,
+                'license_status': moh_record.license_status,
+                'compliance_score': moh_record.compliance_score,
+                'verification_details': {
+                    'license_number_match': True,
+                    'pharmacy_name_similarity': LicenseValidationService._calculate_similarity(
+                        platform_pharmacy.name, moh_record.pharmacy_name
+                    ),
+                    'owner_name_similarity': LicenseValidationService._calculate_similarity(
+                        platform_pharmacy.owner_name, moh_record.owner_name
+                    ),
+                    'license_active': moh_record.license_status == 'active',
+                    'license_valid': moh_record.is_license_valid
+                },
+                'approve_recommendation': moh_record.license_status == 'active' and moh_record.is_license_valid
             }
             
         except MoHPharmacyRegistry.DoesNotExist:
             return {
-                'valid': False,
-                'status': 'not_found',
-                'message': f'License number {license_number} not found in Ministry of Health records.',
-                'data': None
+                'match_found': False,
+                'moh_record': None,
+                'license_status': 'not_found_in_moh',
+                'compliance_score': 0,
+                'verification_details': {
+                    'license_number_match': False,
+                    'pharmacy_name_similarity': 0,
+                    'owner_name_similarity': 0,
+                    'license_active': False,
+                    'license_valid': False
+                },
+                'approve_recommendation': False,
+                'error': f'License number {platform_pharmacy.license_number} not found in MoH registry'
             }
-        except Exception as e:
-            logger.error(f"License validation error for {license_number}: {str(e)}")
-            return {
-                'valid': False,
-                'status': 'validation_error',
-                'message': 'Unable to validate license at this time. Please try again later.',
-                'data': None
-            }
-
+    
     @staticmethod
-    def _fuzzy_name_match(name1, name2, threshold=0.8):
+    def validate_moh_registration(license_number):
         """
-        Perform fuzzy matching of pharmacy names
-        Returns True if names are similar enough
+        Validate MoH registration (separate from platform)
+        Ensures license number is unique in MoH system
         """
+        if MoHPharmacyRegistry.objects.filter(license_number=license_number).exists():
+            raise ValidationError(f"License number {license_number} already exists in MoH registry")
+        return True
+    
+    @staticmethod
+    def validate_platform_registration(license_number):
+        """
+        Validate platform registration (separate from MoH)
+        No MoH check required during registration
+        """
+        from pharmacy.models import Pharmacy
+        if Pharmacy.objects.filter(license_number=license_number).exists():
+            raise ValidationError(f"License number {license_number} already exists in platform")
+        return True
+    
+    @staticmethod
+    def _calculate_similarity(name1, name2):
+        """Calculate similarity between two names"""
         if not name1 or not name2:
-            return False
-        
-        # Simple fuzzy matching - can be enhanced with more sophisticated algorithms
-        name1_clean = name1.lower().strip()
-        name2_clean = name2.lower().strip()
-        
-        # Exact match
-        if name1_clean == name2_clean:
-            return True
-        
-        # Check if one name contains the other
-        if name1_clean in name2_clean or name2_clean in name1_clean:
-            return True
-        
-        # Basic similarity check (can be enhanced)
-        common_words = set(name1_clean.split()) & set(name2_clean.split())
-        total_words = set(name1_clean.split()) | set(name2_clean.split())
-        
-        if len(total_words) > 0:
-            similarity = len(common_words) / len(total_words)
-            return similarity >= threshold
-        
-        return False
-
+            return 0
+        return SequenceMatcher(None, name1.lower(), name2.lower()).ratio()
+    
+    @staticmethod 
+    def _fuzzy_name_match(name1, name2, threshold=0.8):
+        """Check if names are similar enough"""
+        return LicenseValidationService._calculate_similarity(name1, name2) >= threshold
+    
     @staticmethod
     def get_moh_record_by_license(license_number):
         """Get MoH record by license number"""
@@ -117,15 +109,27 @@ class LicenseValidationService:
             return MoHPharmacyRegistry.objects.get(license_number=license_number)
         except MoHPharmacyRegistry.DoesNotExist:
             return None
+    
+    @staticmethod
+    def get_unmatched_moh_records():
+        """Get MoH records that haven't been matched to platform pharmacies"""
+        return MoHPharmacyRegistry.objects.filter(pharmacy__isnull=True)
+    
+    @staticmethod
+    def get_matched_moh_records():
+        """Get MoH records that have been matched to platform pharmacies"""
+        return MoHPharmacyRegistry.objects.filter(pharmacy__isnull=False)
 
-def validate_pharmacy_license(license_number, pharmacy_name=None):
+
+def validate_pharmacy_license_for_platform(license_number):
     """
-    Convenience function to validate pharmacy license
-    Raises ValidationError if license is invalid
+    Validate license for platform registration (no MoH check required)
     """
-    result = LicenseValidationService.validate_license(license_number, pharmacy_name)
-    
-    if not result['valid']:
-        raise ValidationError(result['message'])
-    
-    return result
+    return LicenseValidationService.validate_platform_registration(license_number)
+
+
+def validate_pharmacy_license_for_moh(license_number):
+    """
+    Validate license for MoH registration (separate system)
+    """
+    return LicenseValidationService.validate_moh_registration(license_number)

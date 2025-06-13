@@ -3,7 +3,11 @@ from django.contrib.auth.models import User
 
 
 class MoHPharmacyRegistry(models.Model):
-    """Ministry of Health independent pharmacy registry - separate from platform registrations"""
+    """Ministry of Health independent pharmacy registry - completely separate from platform registrations"""
+    
+    # Optional link to platform pharmacy (only set when admin runs verification)
+    pharmacy = models.ForeignKey('pharmacy.Pharmacy', on_delete=models.SET_NULL, null=True, blank=True, 
+                                related_name='moh_record')
     
     REGION_CHOICES = [
         ('addis_ababa', 'Addis Ababa'),
