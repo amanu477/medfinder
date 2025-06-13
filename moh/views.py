@@ -108,15 +108,10 @@ def moh_pharmacy_list(request):
     if status_filter:
         pharmacies = pharmacies.filter(status=status_filter)
     
-    # Pagination
-    paginator = Paginator(pharmacies, 20)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
+    # Show all pharmacies without pagination
     context = {
         'moh_officer': moh_officer,
-        'page_obj': page_obj,
-        'pharmacies': page_obj,  # For template compatibility
+        'pharmacies': pharmacies,
         'search_query': search_query,
         'status_filter': status_filter,
         'status_choices': PharmacyMoHRecord.STATUS_CHOICES,
