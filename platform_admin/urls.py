@@ -12,6 +12,7 @@ urlpatterns = [
     path('pharmacy/verify/<int:pharmacy_id>/', views.admin_verify_pharmacy, name='admin_verify_pharmacy'),
     path('pharmacy/approve/<int:pharmacy_id>/', views.admin_approve_pharmacy, name='admin_approve_pharmacy'),
     path('pharmacy/reject/<int:pharmacy_id>/', views.admin_reject_pharmacy, name='admin_reject_pharmacy'),
+    path('pharmacy/verify-moh/', views.admin_verify_moh, name='admin_verify_moh'),
     
     # User management
     path('customers/', views.admin_customer_list, name='admin_customer_list'),

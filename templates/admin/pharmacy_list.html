@@ -138,6 +138,12 @@
                                                 <i class="fas fa-eye me-1"></i>Details
                                             </button>
                                             {% if pharmacy.verification_status == 'pending' %}
+                                            <button type="button" class="btn btn-sm btn-primary run-moh-check" 
+                                                    data-pharmacy-id="{{ pharmacy.id }}" 
+                                                    data-license-number="{{ pharmacy.license_number }}"
+                                                    data-pharmacy-name="{{ pharmacy.name }}">
+                                                <i class="fas fa-shield-alt me-1"></i>Run through MoH
+                                            </button>
                                             <a href="{% url 'platform_admin:admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success">
                                                 <i class="fas fa-check me-1"></i>Approve
                                             </a>
@@ -145,6 +151,12 @@
                                                 <i class="fas fa-times me-1"></i>Reject
                                             </a>
                                             {% elif pharmacy.verification_status == 'rejected' %}
+                                            <button type="button" class="btn btn-sm btn-primary run-moh-check" 
+                                                    data-pharmacy-id="{{ pharmacy.id }}" 
+                                                    data-license-number="{{ pharmacy.license_number }}"
+                                                    data-pharmacy-name="{{ pharmacy.name }}">
+                                                <i class="fas fa-shield-alt me-1"></i>Run through MoH
+                                            </button>
                                             <a href="{% url 'platform_admin:admin_approve_pharmacy' pharmacy.id %}" class="btn btn-sm btn-success">
                                                 <i class="fas fa-check me-1"></i>Approve
                                             </a>
@@ -221,4 +233,152 @@
         </div>
     </div>
 </div>
+
+<!-- MoH Verification Result Modal -->
+<div class="modal fade" id="mohResultModal" tabindex="-1" aria-labelledby="mohResultModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="mohResultModalLabel">MoH Verification Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="mohResultContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle Run through MoH button clicks
+    const mohButtons = document.querySelectorAll('.run-moh-check');
+    
+    mohButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const pharmacyId = this.dataset.pharmacyId;
+            const licenseNumber = this.dataset.licenseNumber;
+            const pharmacyName = this.dataset.pharmacyName;
+            
+            // Show loading state
+            const originalContent = this.innerHTML;
+            this.disabled = true;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Checking MoH...';
+            
+            // Make AJAX request to verify with MoH
+            fetch('{% url "platform_admin:admin_verify_moh" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    'pharmacy_id': pharmacyId,
+                    'license_number': licenseNumber,
+                    'pharmacy_name': pharmacyName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show result in modal
+                showMohResult(data, pharmacyName, licenseNumber);
+                
+                // Update the page to reflect any status changes
+                if (data.status_updated) {
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('MoH verification error:', error);
+                showMohResult({
+                    valid: false,
+                    message: 'Unable to verify with MoH at this time. Please try again later.',
+                    error: true
+                }, pharmacyName, licenseNumber);
+            })
+            .finally(() => {
+                // Reset button state
+                this.disabled = false;
+                this.innerHTML = originalContent;
+            });
+        });
+    });
+    
+    function showMohResult(data, pharmacyName, licenseNumber) {
+        const modal = new bootstrap.Modal(document.getElementById('mohResultModal'));
+        const content = document.getElementById('mohResultContent');
+        
+        let html = '';
+        
+        if (data.valid) {
+            html = `
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle me-2"></i>MoH Verification Successful</h6>
+                    <p class="mb-0">${data.message}</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Submitted Information:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Pharmacy Name:</strong> ${pharmacyName}</li>
+                            <li><strong>License Number:</strong> ${licenseNumber}</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>MoH Record Details:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Registered Name:</strong> ${data.data.pharmacy_name}</li>
+                            <li><strong>Owner:</strong> ${data.data.owner_name}</li>
+                            <li><strong>Pharmacist:</strong> ${data.data.pharmacist_name}</li>
+                            <li><strong>License Type:</strong> ${data.data.license_type}</li>
+                            <li><strong>Region:</strong> ${data.data.region}</li>
+                            <li><strong>City:</strong> ${data.data.city}</li>
+                            <li><strong>Status:</strong> <span class="badge bg-success">${data.data.status}</span></li>
+                            <li><strong>Issue Date:</strong> ${data.data.issue_date}</li>
+                            <li><strong>Expiry Date:</strong> ${data.data.expiry_date}</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            if (data.warnings && data.warnings.length > 0) {
+                html += `
+                    <div class="alert alert-warning mt-3">
+                        <h6><i class="fas fa-exclamation-triangle me-2"></i>Warnings:</h6>
+                        <ul class="mb-0">
+                `;
+                data.warnings.forEach(warning => {
+                    html += `<li>${warning}</li>`;
+                });
+                html += `</ul></div>`;
+            }
+        } else {
+            html = `
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-times-circle me-2"></i>MoH Verification Failed</h6>
+                    <p class="mb-0">${data.message}</p>
+                </div>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <h6>Submitted Information:</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>Pharmacy Name:</strong> ${pharmacyName}</li>
+                            <li><strong>License Number:</strong> ${licenseNumber}</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+        
+        content.innerHTML = html;
+        modal.show();
+    }
+});
+</script>
+
 {% endblock %}

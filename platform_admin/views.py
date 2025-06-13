@@ -6,6 +6,9 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+import json
 
 
 # Import models from other apps
@@ -604,3 +607,106 @@ def quick_report_incident(request):
     
     context = {'form': form}
     return render(request, 'admin/quick_report.html', context)
+
+
+@require_http_methods(["POST"])
+@csrf_exempt
+@login_required
+def admin_verify_moh(request):
+    """API endpoint for admin to verify pharmacy license with MoH records"""
+    if not request.user.is_superuser:
+        return JsonResponse({
+            'valid': False,
+            'message': 'Access denied. Admin privileges required.'
+        }, status=403)
+    
+    try:
+        data = json.loads(request.body)
+        pharmacy_id = data.get('pharmacy_id')
+        license_number = data.get('license_number', '').strip()
+        pharmacy_name = data.get('pharmacy_name', '').strip()
+        
+        if not pharmacy_id or not license_number:
+            return JsonResponse({
+                'valid': False,
+                'message': 'Pharmacy ID and license number are required.'
+            })
+        
+        # Get the pharmacy instance
+        try:
+            pharmacy = Pharmacy.objects.get(id=pharmacy_id)
+        except Pharmacy.DoesNotExist:
+            return JsonResponse({
+                'valid': False,
+                'message': 'Pharmacy not found.'
+            })
+        
+        # Import license validation service
+        from pharmacy.license_validation import LicenseValidationService
+        
+        # Validate with MoH records
+        validation_result = LicenseValidationService.validate_license(
+            license_number, pharmacy_name
+        )
+        
+        response_data = {
+            'valid': validation_result['valid'],
+            'message': validation_result['message'],
+            'status': validation_result['status'],
+            'status_updated': False
+        }
+        
+        # Update pharmacy MoH verification status based on result
+        if validation_result['valid']:
+            pharmacy.moh_verification_status = 'verified'
+            pharmacy.moh_verification_date = timezone.now()
+            pharmacy.save()
+            response_data['status_updated'] = True
+            
+            # Include MoH record data
+            if validation_result['data']:
+                moh_record = validation_result['data']
+                response_data['data'] = {
+                    'pharmacy_name': moh_record.pharmacy_name,
+                    'owner_name': moh_record.owner_name,
+                    'pharmacist_name': moh_record.pharmacist_name,
+                    'license_type': moh_record.get_license_type_display(),
+                    'region': moh_record.get_region_display(),
+                    'city': moh_record.city,
+                    'status': moh_record.get_status_display(),
+                    'issue_date': moh_record.issue_date.strftime('%Y-%m-%d'),
+                    'expiry_date': moh_record.expiry_date.strftime('%Y-%m-%d'),
+                    'days_until_expiry': moh_record.days_until_expiry
+                }
+                
+                # Add warnings if any
+                if 'warnings' in validation_result and validation_result['warnings']:
+                    response_data['warnings'] = validation_result['warnings']
+        else:
+            # Set failed status
+            pharmacy.moh_verification_status = 'failed'
+            pharmacy.moh_verification_date = timezone.now()
+            pharmacy.save()
+            response_data['status_updated'] = True
+        
+        # Create admin notification about the verification
+        AdminNotification.objects.create(
+            user=request.user,
+            title=f'MoH Verification: {pharmacy.name}',
+            message=f'MoH verification {"successful" if validation_result["valid"] else "failed"} for {pharmacy.name} (License: {license_number})',
+            notification_type='verification',
+            is_read=False
+        )
+        
+        return JsonResponse(response_data)
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'valid': False,
+            'message': 'Invalid request format.'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'valid': False,
+            'message': 'Unable to verify with MoH at this time. Please try again later.'
+        }, status=500)
