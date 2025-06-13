@@ -504,6 +504,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial button state
     updateSubmitButton();
 
+    // Handle manual location entry
+    const toggleManualLocationBtn = document.querySelector('.toggle-manual-location');
+    const manualLocationSection = document.getElementById('manual-location-section');
+    const manualLatInput = document.getElementById('manual-latitude');
+    const manualLonInput = document.getElementById('manual-longitude');
+    const latitudeField = document.getElementById('{{ pharmacy_form.latitude.id_for_label }}');
+    const longitudeField = document.getElementById('{{ pharmacy_form.longitude.id_for_label }}');
+
+    if (toggleManualLocationBtn && manualLocationSection) {
+        toggleManualLocationBtn.addEventListener('click', function() {
+            if (manualLocationSection.classList.contains('d-none')) {
+                manualLocationSection.classList.remove('d-none');
+                toggleManualLocationBtn.innerHTML = '<i class="fas fa-eye-slash me-2"></i> Hide Manual Entry';
+                toggleManualLocationBtn.classList.remove('btn-outline-secondary');
+                toggleManualLocationBtn.classList.add('btn-outline-warning');
+            } else {
+                manualLocationSection.classList.add('d-none');
+                toggleManualLocationBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Enter Location Manually';
+                toggleManualLocationBtn.classList.remove('btn-outline-warning');
+                toggleManualLocationBtn.classList.add('btn-outline-secondary');
+            }
+        });
+
+        // Update hidden fields when manual coordinates are entered
+        if (manualLatInput && manualLonInput) {
+            manualLatInput.addEventListener('input', function() {
+                if (latitudeField) {
+                    latitudeField.value = this.value;
+                }
+            });
+
+            manualLonInput.addEventListener('input', function() {
+                if (longitudeField) {
+                    longitudeField.value = this.value;
+                }
+            });
+        }
+    }
+
     // Comprehensive form validation
     const allInputs = form.querySelectorAll('input, select, textarea');
     
