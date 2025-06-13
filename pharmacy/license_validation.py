@@ -3,7 +3,8 @@ License validation service to verify pharmacy registrations against MoH records
 """
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from .models import MoHPharmacyRecord, Pharmacy
+from datetime import date
+from moh.models import MoHPharmacyRecord
 import logging
 
 logger = logging.getLogger(__name__)
@@ -59,30 +60,41 @@ class LicenseValidationService:
             name_match = True
             if pharmacy_name:
                 name_match = LicenseValidationService._fuzzy_name_match(
-                    pharmacy_name, moh_record.pharmacy_name
+                    pharmacy_name, pharmacy.name
                 )
             
-            # Check if already registered on platform
-            existing_pharmacy = Pharmacy.objects.filter(
-                license_number=license_number
-            ).first()
+            # Create warnings list
+            warnings = []
+            if not name_match:
+                warnings.append(f"Pharmacy name '{pharmacy_name}' does not match MoH record '{pharmacy.name}'")
             
-            if existing_pharmacy:
-                return {
-                    'valid': False,
-                    'status': 'already_registered',
-                    'message': f'License number {license_number} is already registered on this platform.',
-                    'data': moh_record,
-                    'existing_pharmacy': existing_pharmacy
-                }
+            if moh_record.compliance_score < 70:
+                warnings.append(f"Low compliance score: {moh_record.compliance_score}/100")
+            
+            # Create a mock MoH record data structure for the API response
+            moh_data = type('MockMoHRecord', (), {
+                'pharmacy_name': moh_record.pharmacy_name,
+                'owner_name': moh_record.owner_name,
+                'pharmacist_name': moh_record.pharmacist_name,
+                'license_type': moh_record.license_type,
+                'region': moh_record.region,
+                'city': moh_record.city,
+                'status': moh_record.status,
+                'issue_date': moh_record.issue_date,
+                'expiry_date': moh_record.expiry_date,
+                'days_until_expiry': moh_record.days_until_expiry,
+                'get_license_type_display': lambda: moh_record.get_license_type_display(),
+                'get_region_display': lambda: moh_record.get_region_display(),
+                'get_status_display': lambda: moh_record.get_status_display()
+            })()
             
             return {
                 'valid': True,
                 'status': 'valid',
                 'message': 'License number verified successfully with Ministry of Health.',
-                'data': moh_record,
+                'data': moh_data,
                 'name_match': name_match,
-                'warnings': [] if name_match else ['Pharmacy name does not exactly match MoH records']
+                'warnings': warnings if warnings else None
             }
             
         except Exception as e:
