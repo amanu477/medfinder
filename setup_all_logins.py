@@ -118,7 +118,7 @@ def create_test_users():
         moh_user.save()
         
         # Create MoH officer profile
-        moh_officer, created = MoHOfficer.objects.get_or_create(
+        moh_officer, created = MoHOfficer.objects.using('moh_db').get_or_create(
             user=moh_user,
             defaults={
                 'officer_id': 'MOH2024001',
@@ -133,7 +133,7 @@ def create_test_users():
         
         # 5. Create MoH pharmacy registry entry for validation testing
         from datetime import date
-        moh_registry, created = MoHPharmacyRegistry.objects.get_or_create(
+        moh_registry, created = MoHPharmacyRegistry.objects.using('moh_db').get_or_create(
             license_number='PH2024001',
             defaults={
                 'pharmacy_name': 'Green Cross Pharmacy',
