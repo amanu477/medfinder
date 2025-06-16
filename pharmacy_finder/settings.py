@@ -123,8 +123,7 @@ DATABASES = {
     }
 }
 
-# Database router for separating MoH and Platform databases
-DATABASE_ROUTERS = ['pharmacy_finder.db_router.DatabaseRouter']
+# Note: Database separation implemented at application level
 
 
 # Password validation
