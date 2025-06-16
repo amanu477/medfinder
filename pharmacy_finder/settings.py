@@ -111,8 +111,20 @@ DATABASES = {
     'default': dj_database_url.config(
         default=os.environ.get('DATABASE_URL'),
         conn_max_age=600,
-    )
+    ),
+    'moh_db': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('PGDATABASE', 'pharmacy_finder') + '_moh',
+        'USER': os.environ.get('PGUSER', 'postgres'),
+        'PASSWORD': os.environ.get('PGPASSWORD', ''),
+        'HOST': os.environ.get('PGHOST', 'localhost'),
+        'PORT': os.environ.get('PGPORT', '5432'),
+        'CONN_MAX_AGE': 600,
+    }
 }
+
+# Database router for separating MoH and Platform databases
+DATABASE_ROUTERS = ['pharmacy_finder.db_router.DatabaseRouter']
 
 
 # Password validation
