@@ -45,38 +45,38 @@ def moh_dashboard(request):
     
     # Dashboard statistics
     total_pharmacies = MoHPharmacyRegistry.objects.count()
-    pending_verifications = VerificationRequest.objects.filter(status='pending').count()
     active_pharmacies = MoHPharmacyRegistry.objects.filter(license_status='active').count()
-    critical_alerts = ComplianceAlert.objects.filter(severity='critical', is_resolved=False).count()
+    pending_pharmacies = MoHPharmacyRegistry.objects.filter(license_status='pending').count()
+    suspended_pharmacies = MoHPharmacyRegistry.objects.filter(license_status='suspended').count()
     
-    # Recent verification requests
-    recent_requests = VerificationRequest.objects.filter(
-        status__in=['pending', 'under_review']
-    ).order_by('-submitted_date')[:5]
+    # Recent pharmacy registrations
+    recent_requests = MoHPharmacyRegistry.objects.order_by('-created_at')[:5]
     
-    # Recent compliance alerts
-    recent_alerts = ComplianceAlert.objects.filter(
-        is_resolved=False
-    ).order_by('-created_at')[:5]
+    # License expiry alerts (licenses expiring in next 30 days)
+    from datetime import date, timedelta
+    expiry_threshold = date.today() + timedelta(days=30)
+    recent_alerts = MoHPharmacyRegistry.objects.filter(
+        expiry_date__lte=expiry_threshold,
+        license_status='active'
+    ).order_by('expiry_date')[:5]
     
     # All pharmacy registrations (show all instead of just recent 5)
     recent_pharmacies = MoHPharmacyRegistry.objects.order_by('-created_at')
     
     # Additional statistics for dashboard
     expired_licenses = MoHPharmacyRegistry.objects.filter(license_status='revoked').count()
-    pending_renewals = MoHPharmacyRegistry.objects.filter(license_status='suspended').count()
     
     context = {
         'moh_officer': moh_officer,
         'total_pharmacies': total_pharmacies,
-        'pending_verifications': pending_verifications,
+        'pending_verifications': pending_pharmacies,
         'active_pharmacies': active_pharmacies,
-        'critical_alerts': critical_alerts,
+        'critical_alerts': len(recent_alerts),
         'recent_requests': recent_requests,
         'recent_alerts': recent_alerts,
         'recent_pharmacies': recent_pharmacies,
         'expired_licenses': expired_licenses,
-        'pending_renewals': pending_renewals,
+        'pending_renewals': suspended_pharmacies,
     }
     
     return render(request, 'moh/dashboard.html', context)
@@ -99,9 +99,11 @@ def moh_pharmacy_list(request):
     
     if search_query:
         pharmacies = pharmacies.filter(
-            Q(pharmacy__name__icontains=search_query) |
-            Q(pharmacy__license_number__icontains=search_query) |
-            Q(pharmacy__address__icontains=search_query)
+            Q(pharmacy_name__icontains=search_query) |
+            Q(license_number__icontains=search_query) |
+            Q(address_detail__icontains=search_query) |
+            Q(city__icontains=search_query) |
+            Q(owner_name__icontains=search_query)
         )
     
     if status_filter:
