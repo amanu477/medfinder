@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, logout
+from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from django.db.models import Q
 from django.http import JsonResponse
@@ -16,8 +16,24 @@ from pharmacy.models import Pharmacy, Medicine
 from customer.models import Customer, Order, OrderItem, Prescription, IncidentReport, SecurityAlert, AdminNotification, VerificationRequest
 from moh.models import MoHPharmacyRegistry
 from pharmacy.verification_service import MinistryOfHealthVerificationService
+from .forms import PlatformAdminLoginForm
 
-
+def admin_login(request):
+    """Platform admin login view"""
+    if request.method == 'POST':
+        form = PlatformAdminLoginForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            messages.success(request, f'Welcome back, Platform Admin {user.username}!')
+            return redirect('platform_admin:admin_dashboard')
+        else:
+            for error in form.non_field_errors():
+                messages.error(request, error)
+    else:
+        form = PlatformAdminLoginForm()
+    
+    return render(request, 'admin/login.html', {'form': form})
 
 
 @login_required
@@ -25,7 +41,7 @@ def admin_dashboard(request):
     """Admin dashboard with overview of all system components"""
     if not request.user.is_superuser:
         messages.error(request, 'Access denied. Admin privileges required.')
-        return redirect('login')
+        return redirect('platform_admin:admin_login')
     
     # Get statistics
     from django.db.models import Count, Q

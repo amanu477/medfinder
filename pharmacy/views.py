@@ -15,20 +15,22 @@ from customer.models import Prescription, Order, OrderItem
 from .license_validation import LicenseValidationService
 
 def pharmacy_login(request):
-    """Custom login view for pharmacies"""
+    """Pharmacy login view"""
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
+            user = form.get_user()
+            
+            # Check if user has pharmacy profile
+            try:
+                pharmacy = user.pharmacy
                 login(request, user)
+                messages.success(request, f'Welcome back, {pharmacy.name}!')
                 return redirect('pharmacy_dashboard')
-            else:
-                messages.error(request, "Invalid username or password.")
+            except:
+                messages.error(request, 'This account is not registered as a pharmacy. Please register as a pharmacy first.')
         else:
-            messages.error(request, "Invalid username or password.")
+            messages.error(request, 'Invalid username or password.')
     else:
         form = AuthenticationForm()
     
