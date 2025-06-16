@@ -122,22 +122,49 @@ def prescription_success(request):
     return render(request, 'prescription_success.html', context)
 
 def customer_login(request):
-    """Customer login view"""
+    """Universal login view for all user types"""
     from django.contrib.auth.forms import AuthenticationForm
     
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+            login(request, user)
             
-            # Check if user has customer profile
+            # Check user type and redirect accordingly
+            # 1. Check if user is superuser/admin
+            if user.is_superuser or user.is_staff:
+                messages.success(request, f'Welcome back, Admin {user.username}!')
+                return redirect('/platform-admin/')
+            
+            # 2. Check if user has customer profile
             try:
                 customer = user.customer
-                login(request, user)
                 messages.success(request, f'Welcome back, {customer.name}!')
                 return redirect('customer_dashboard')
             except:
-                messages.error(request, 'This account is not registered as a customer. Please register as a customer first.')
+                pass
+            
+            # 3. Check if user has pharmacy profile
+            try:
+                from pharmacy.models import Pharmacy
+                pharmacy = Pharmacy.objects.get(user=user)
+                messages.success(request, f'Welcome back, {pharmacy.name}!')
+                return redirect('pharmacy_dashboard')
+            except:
+                pass
+            
+            # 4. Check if user has MoH officer profile
+            try:
+                moh_officer = MoHOfficer.objects.get(user=user, is_active=True)
+                messages.success(request, f'Welcome back, {moh_officer.user.get_full_name()}!')
+                return redirect('moh_dashboard')
+            except:
+                pass
+            
+            # If no profile found
+            messages.error(request, 'Account type not recognized. Please contact support.')
+            return redirect('login')
         else:
             messages.error(request, 'Invalid username or password.')
     else:
