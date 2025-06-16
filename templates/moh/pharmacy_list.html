@@ -167,14 +167,14 @@
                                     <tbody>
                                         {% for moh_record in pharmacies %}
                                         <tr>
-                                            <td><code>{{ moh_record.pharmacy.license_number }}</code></td>
+                                            <td><code>{{ moh_record.license_number }}</code></td>
                                             <td>
-                                                <strong>{{ moh_record.pharmacy.name }}</strong><br>
-                                                <small class="text-muted">{{ moh_record.pharmacy.address|truncatechars:50 }}</small>
+                                                <strong>{{ moh_record.pharmacy_name }}</strong><br>
+                                                <small class="text-muted">{{ moh_record.address_detail|truncatechars:50 }}</small>
                                             </td>
-                                            <td>{{ moh_record.pharmacy.user.get_full_name|default:"N/A" }}</td>
-                                            <td>{{ moh_record.pharmacy.address|truncatechars:20 }}</td>
-                                            <td>{{ moh_record.pharmacy.get_license_type_display }}</td>
+                                            <td>{{ moh_record.owner_name|default:"N/A" }}</td>
+                                            <td>{{ moh_record.city }}, {{ moh_record.region|title }}</td>
+                                            <td>{{ moh_record.license_type|title }}</td>
                                             <td>
                                                 {% if moh_record.license_status == 'active' %}
                                                     <span class="badge bg-success">Active</span>
@@ -187,10 +187,10 @@
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                {{ moh_record.license_expiry_date|date:"M d, Y"|default:"N/A" }}
-                                                {% if moh_record.license_expiry_date and moh_record.license_expiry_date < today %}
+                                                {{ moh_record.expiry_date|date:"M d, Y"|default:"N/A" }}
+                                                {% if moh_record.expiry_date and moh_record.expiry_date < today %}
                                                     <i class="fas fa-exclamation-triangle text-danger ms-1" title="Expired"></i>
-                                                {% elif moh_record.license_expiry_date and moh_record.license_expiry_date < warning_date %}
+                                                {% elif moh_record.expiry_date and moh_record.expiry_date < warning_date %}
                                                     <i class="fas fa-clock text-warning ms-1" title="Expiring Soon"></i>
                                                 {% endif %}
                                             </td>

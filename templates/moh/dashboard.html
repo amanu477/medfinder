@@ -184,9 +184,9 @@
                                             <tbody>
                                                 {% for moh_record in recent_pharmacies %}
                                                 <tr>
-                                                    <td><code>{{ moh_record.pharmacy.license_number }}</code></td>
-                                                    <td>{{ moh_record.pharmacy.name }}</td>
-                                                    <td>{{ moh_record.pharmacy.address }}</td>
+                                                    <td><code>{{ moh_record.license_number }}</code></td>
+                                                    <td>{{ moh_record.pharmacy_name }}</td>
+                                                    <td>{{ moh_record.city }}, {{ moh_record.region|title }}</td>
                                                     <td>
                                                         {% if moh_record.license_status == 'active' %}
                                                             <span class="badge bg-success">Active</span>
