@@ -108,17 +108,22 @@ WSGI_APPLICATION = 'pharmacy_finder.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.environ.get('DATABASE_URL'),
-        conn_max_age=600,
-    ),
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'pharmacy_platform',
+        'USER': 'pharmacy_user',
+        'PASSWORD': 'your_database_password',  # Change this to your actual password
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'CONN_MAX_AGE': 600,
+    },
     'moh_db': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('PGDATABASE', 'pharmacy_finder') + '_moh',
-        'USER': os.environ.get('PGUSER', 'postgres'),
-        'PASSWORD': os.environ.get('PGPASSWORD', ''),
-        'HOST': os.environ.get('PGHOST', 'localhost'),
-        'PORT': os.environ.get('PGPORT', '5432'),
+        'NAME': 'pharmacy_platform_moh',
+        'USER': 'pharmacy_user',
+        'PASSWORD': 'your_database_password',  # Change this to your actual password
+        'HOST': 'localhost',
+        'PORT': '5432',
         'CONN_MAX_AGE': 600,
     }
 }
