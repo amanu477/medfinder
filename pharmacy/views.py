@@ -320,6 +320,7 @@ def order_management(request):
     # Calculate order statistics
     pending_orders = orders.filter(status='pending').count()
     approved_orders = orders.filter(status='approved').count()
+    paid_orders = orders.filter(status='paid').count()
     completed_orders = orders.filter(status='completed').count()
     rejected_orders = orders.filter(status='rejected').count()
     
@@ -334,6 +335,7 @@ def order_management(request):
         'status_filter': status_filter,
         'pending_orders': pending_orders,
         'approved_orders': approved_orders,
+        'paid_orders': paid_orders,
         'completed_orders': completed_orders,
         'rejected_orders': rejected_orders,
     })

@@ -14,7 +14,7 @@
 
         <!-- Order Statistics -->
         <div class="row mb-4">
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="card text-center border-warning">
                     <div class="card-body">
                         <h5 class="card-title text-warning">{{ pending_orders }}</h5>
@@ -23,12 +23,21 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <div class="card text-center border-success">
                     <div class="card-body">
                         <h5 class="card-title text-success">{{ approved_orders }}</h5>
                         <p class="card-text">Approved Orders</p>
                         <a href="?status=approved" class="btn btn-sm btn-success">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center border-info">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">{{ paid_orders }}</h5>
+                        <p class="card-text">Paid Orders</p>
+                        <a href="?status=paid" class="btn btn-sm btn-info">View</a>
                     </div>
                 </div>
             </div>
@@ -60,6 +69,7 @@
                         <a href="{% url 'order_management' %}" class="btn btn-outline-secondary btn-sm">All Orders</a>
                         <a href="?status=pending" class="btn btn-outline-warning btn-sm">Pending</a>
                         <a href="?status=approved" class="btn btn-outline-success btn-sm">Approved</a>
+                        <a href="?status=paid" class="btn btn-outline-info btn-sm">Paid</a>
                         <a href="?status=completed" class="btn btn-outline-primary btn-sm">Completed</a>
                         <a href="?status=rejected" class="btn btn-outline-danger btn-sm">Rejected</a>
                     </div>
@@ -127,6 +137,8 @@
                                             <span class="badge bg-warning">Pending</span>
                                         {% elif order.status == 'approved' %}
                                             <span class="badge bg-success">Approved</span>
+                                        {% elif order.status == 'paid' %}
+                                            <span class="badge bg-info">Paid</span>
                                         {% elif order.status == 'rejected' %}
                                             <span class="badge bg-danger">Rejected</span>
                                         {% elif order.status == 'completed' %}
@@ -154,6 +166,8 @@
                                                 </form>
                                             </div>
                                         {% elif order.status == 'approved' %}
+                                            <span class="text-muted">Waiting for payment</span>
+                                        {% elif order.status == 'paid' %}
                                             <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
                                                 {% csrf_token %}
                                                 <input type="hidden" name="status" value="completed">
