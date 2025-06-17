@@ -447,8 +447,14 @@ document.addEventListener('DOMContentLoaded', function() {
         content.innerHTML = html;
         modal.show();
         
-        // Modal will stay open until user manually closes it
-        // The status has already been updated in the table via updatePharmacyStatusInTable()
+        // If verification was successful (license found), refresh page after showing modal
+        if (data.valid && data.status_updated) {
+            const modal_element = document.getElementById('mohResultModal');
+            modal_element.addEventListener('hidden.bs.modal', function () {
+                // Refresh page to show updated MoH verification status
+                window.location.reload();
+            }, { once: true });
+        }
     }
 });
 </script>
