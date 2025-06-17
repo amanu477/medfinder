@@ -479,8 +479,25 @@ def initiate_payment(request, order_id):
         result = chapa_service.initialize_payment(order, customer_data)
         
         if result['success']:
-            messages.success(request, 'Payment initialized successfully. You will be redirected to the payment page.')
-            return redirect(result['checkout_url'])
+            # Check if we're in test mode and redirect appropriately
+            checkout_url = result['checkout_url']
+            if checkout_url.startswith('https://checkout.chapa.co/test/'):
+                # In test mode, simulate successful payment and redirect to success page
+                messages.success(request, 'Payment processed successfully (TEST MODE).')
+                payment = Payment.objects.get(tx_ref=result['tx_ref'])
+                payment.status = 'success'
+                payment.paid_at = timezone.now()
+                payment.save()
+                
+                # Update order status
+                order.status = 'paid'
+                order.save()
+                
+                return redirect('payment_success', payment_id=payment.id)
+            else:
+                # Production mode - redirect to actual Chapa checkout
+                messages.success(request, 'Payment initialized successfully. You will be redirected to the payment page.')
+                return redirect(checkout_url)
         else:
             messages.error(request, f'Payment initialization failed: {result["error"]}')
             return redirect('order_detail', order_id=order.id)
