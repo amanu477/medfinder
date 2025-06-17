@@ -9,6 +9,9 @@ from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # Import models from other apps
@@ -657,54 +660,56 @@ def admin_verify_moh(request):
                 'message': 'Pharmacy not found.'
             })
         
-        # Import license validation service
-        from pharmacy.license_validation import LicenseValidationService
-        
         # Check for license match in independent MoH registry
-        validation_result = LicenseValidationService.check_moh_license_match(pharmacy)
-        
-        response_data = {
-            'valid': validation_result['match_found'],
-            'message': 'License found in MoH registry - Pharmacy approved automatically' if validation_result['match_found'] else 'No license number found in MoH registry',
-            'status': 'verified' if validation_result['match_found'] else 'not_found_in_moh',
-            'status_updated': False
-        }
-        
-        # Update pharmacy MoH verification status based on result
-        if validation_result['match_found']:
-            pharmacy.moh_verification_status = 'verified'
-            pharmacy.verification_status = 'approved'
-            pharmacy.moh_verified = True
-            pharmacy.moh_verification_date = timezone.now()
-            pharmacy.save()
-            response_data['status_updated'] = True
+        try:
+            moh_record = MoHPharmacyRegistry.objects.filter(
+                license_number=pharmacy.license_number
+            ).first()
             
-            # Include MoH record data
-            if validation_result['moh_record']:
-                moh_record = validation_result['moh_record']
-                response_data['data'] = {
-                    'pharmacy_name': moh_record.pharmacy_name,
-                    'owner_name': moh_record.owner_name,
-                    'pharmacist_name': moh_record.pharmacist_name,
-                    'license_type': moh_record.get_license_type_display(),
-                    'region': moh_record.get_region_display(),
-                    'city': moh_record.city,
-                    'license_status': moh_record.get_license_status_display(),
-                    'compliance_score': moh_record.compliance_score,
-                    'issue_date': moh_record.issue_date.strftime('%Y-%m-%d') if moh_record.issue_date else 'N/A',
-                    'expiry_date': moh_record.expiry_date.strftime('%Y-%m-%d') if moh_record.expiry_date else 'N/A',
-                    'days_until_expiry': moh_record.days_until_expiry,
-                    'pharmacy_name_similarity': round(validation_result['verification_details']['pharmacy_name_similarity'] * 100, 1),
-                    'owner_name_similarity': round(validation_result['verification_details']['owner_name_similarity'] * 100, 1)
+            if moh_record:
+                # License found in MoH registry - approve automatically
+                pharmacy.verification_status = 'verified'
+                pharmacy.verified_at = timezone.now()
+                pharmacy.save()
+                
+                response_data = {
+                    'valid': True,
+                    'message': 'License found in MoH registry - Pharmacy approved automatically',
+                    'status': 'verified',
+                    'status_updated': True,
+                    'data': {
+                        'pharmacy_name': moh_record.pharmacy_name,
+                        'owner_name': moh_record.owner_name,
+                        'pharmacist_name': moh_record.pharmacist_name,
+                        'license_type': moh_record.get_license_type_display(),
+                        'region': moh_record.get_region_display(),
+                        'city': moh_record.city,
+                        'license_status': moh_record.get_license_status_display(),
+                        'issue_date': moh_record.issue_date.strftime('%Y-%m-%d') if moh_record.issue_date else 'N/A',
+                        'expiry_date': moh_record.expiry_date.strftime('%Y-%m-%d') if moh_record.expiry_date else 'N/A'
+                    }
                 }
-        else:
-            # Set failed status
-            pharmacy.moh_verification_status = 'failed'
-            pharmacy.verification_status = 'rejected'
-            pharmacy.moh_verified = False
-            pharmacy.moh_verification_date = timezone.now()
-            pharmacy.save()
-            response_data['status_updated'] = True
+            else:
+                # License not found in MoH registry - reject automatically
+                pharmacy.verification_status = 'rejected'
+                pharmacy.rejection_reason = f'License number {pharmacy.license_number} not found in MoH registry'
+                pharmacy.save()
+                
+                response_data = {
+                    'valid': False,
+                    'message': 'License number not found in MoH registry - Pharmacy rejected automatically',
+                    'status': 'rejected',
+                    'status_updated': True
+                }
+            
+        except Exception as e:
+            logger.error(f"Error during MoH verification: {e}")
+            response_data = {
+                'valid': False,
+                'message': 'Error accessing MoH registry. Please try again later.',
+                'status': 'error',
+                'status_updated': False
+            }
         
         # Create admin notification about the verification
         AdminNotification.objects.create(

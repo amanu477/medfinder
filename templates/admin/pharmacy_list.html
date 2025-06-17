@@ -318,6 +318,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="alert alert-success">
                     <h6><i class="fas fa-check-circle me-2"></i>MoH Verification Successful</h6>
                     <p class="mb-0">${data.message}</p>
+                    ${data.status_updated ? '<p class="mb-0 mt-2"><strong>✓ Pharmacy verification status has been automatically updated to APPROVED</strong></p>' : ''}
                 </div>
                 
                 <div class="row">
@@ -361,6 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="alert alert-danger">
                     <h6><i class="fas fa-times-circle me-2"></i>MoH Verification Failed</h6>
                     <p class="mb-0">${data.message}</p>
+                    ${data.status_updated ? '<p class="mb-0 mt-2"><strong>✗ Pharmacy verification status has been automatically updated to REJECTED</strong></p>' : ''}
                 </div>
                 
                 <div class="row">
@@ -377,6 +379,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         content.innerHTML = html;
         modal.show();
+        
+        // If status was updated, refresh the page after modal is closed to show new status
+        if (data.status_updated) {
+            const modal_element = document.getElementById('mohResultModal');
+            modal_element.addEventListener('hidden.bs.modal', function () {
+                // Add a small delay then refresh to show updated status
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }, { once: true });
+        }
     }
 });
 </script>
