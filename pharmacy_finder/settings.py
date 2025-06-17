@@ -195,9 +195,9 @@ MESSAGE_TAGS = {
 }
 
 # Chapa Payment Settings
-CHAPA_SECRET_KEY = os.environ.get('CHAPA_SECRET_KEY', '')
-CHAPA_PUBLIC_KEY = os.environ.get('CHAPA_PUBLIC_KEY', '')
-SITE_URL = os.environ.get('SITE_URL', 'http://localhost:5000')
+CHAPA_SECRET_KEY = 'CHASECK_TEST-your-secret-key-here'  # Replace with your actual Chapa secret key
+CHAPA_PUBLIC_KEY = 'CHAPUBK_TEST-your-public-key-here'  # Replace with your actual Chapa public key
+SITE_URL = 'http://localhost:8000'
 
 # Import local settings if they exist (for local development)
 try:
