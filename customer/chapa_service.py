@@ -41,13 +41,22 @@ class ChapaService:
         def sanitize_string(text):
             if not text:
                 return ""
-            # Remove or replace problematic characters, keep only ASCII and common Unicode
-            import unicodedata
-            # Normalize unicode characters
-            text = unicodedata.normalize('NFKD', str(text))
-            # Keep only printable ASCII characters and basic punctuation
-            text = ''.join(char for char in text if ord(char) < 128 or char.isalnum())
-            return text.strip()
+            # Convert to string and handle encoding safely
+            text = str(text)
+            # Remove or replace problematic characters
+            # Keep only ASCII characters and basic Latin characters
+            sanitized = ""
+            for char in text:
+                if ord(char) < 256:  # Keep characters in Latin-1 range
+                    sanitized += char
+                else:
+                    # Replace non-Latin characters with closest ASCII equivalent
+                    if char.isalpha():
+                        sanitized += "a"  # Replace with generic letter
+                    elif char.isdigit():
+                        sanitized += "0"  # Replace with generic digit
+                    # Skip other special characters
+            return sanitized.strip()[:50]  # Limit length to prevent issues
         
         # Prepare payment data for Chapa
         payment_data = {
@@ -72,12 +81,14 @@ class ChapaService:
         }
         
         try:
-            # Ensure all string data is properly encoded
-            import json
+            # Use json parameter for proper UTF-8 encoding
             response = requests.post(
                 f"{self.base_url}/transaction/initialize",
-                data=json.dumps(payment_data, ensure_ascii=False).encode('utf-8'),
-                headers=headers,
+                json=payment_data,
+                headers={
+                    "Authorization": f"Bearer {self.secret_key}",
+                    "Content-Type": "application/json"
+                },
                 timeout=30
             )
             
