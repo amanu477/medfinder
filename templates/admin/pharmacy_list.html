@@ -74,7 +74,7 @@
                             </thead>
                             <tbody>
                                 {% for pharmacy in pharmacies %}
-                                <tr>
+                                <tr data-pharmacy-id="{{ pharmacy.id }}">
                                     <td>
                                         <strong>{{ pharmacy.name }}</strong>
                                         {% if pharmacy.is_active %}
