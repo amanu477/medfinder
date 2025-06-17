@@ -7,7 +7,8 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
-from .models import Customer, Prescription, Order, OrderItem, IncidentReport, AdminNotification
+from .models import Customer, Prescription, Order, OrderItem, IncidentReport, AdminNotification, Payment
+from .chapa_service import ChapaService
 from pharmacy.models import Pharmacy, Medicine
 from moh.models import MoHOfficer
 from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm, QuickIncidentForm

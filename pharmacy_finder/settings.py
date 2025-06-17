@@ -189,6 +189,11 @@ MESSAGE_TAGS = {
     messages.ERROR: 'alert-danger',
 }
 
+# Chapa Payment Settings
+CHAPA_SECRET_KEY = os.environ.get('CHAPA_SECRET_KEY', '')
+CHAPA_PUBLIC_KEY = os.environ.get('CHAPA_PUBLIC_KEY', '')
+SITE_URL = os.environ.get('SITE_URL', 'http://localhost:5000')
+
 # Import local settings if they exist (for local development)
 try:
     from .local_settings import *

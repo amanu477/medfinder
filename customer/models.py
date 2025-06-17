@@ -26,6 +26,7 @@ class Order(models.Model):
         ('pending', 'Pending'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
+        ('paid', 'Paid'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     )
@@ -68,6 +69,44 @@ class OrderItem(models.Model):
     def get_total_price(self):
         """Get total price for this item"""
         return self.quantity * self.price
+
+
+class Payment(models.Model):
+    """Model for tracking Chapa payments"""
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('success', 'Success'),
+        ('failed', 'Failed'),
+        ('cancelled', 'Cancelled'),
+    )
+
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment')
+    tx_ref = models.CharField(max_length=100, unique=True)  # Chapa transaction reference
+    chapa_tx_ref = models.CharField(max_length=100, blank=True, null=True)  # Chapa's transaction reference
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default='ETB')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Customer information for payment
+    customer_email = models.EmailField()
+    customer_first_name = models.CharField(max_length=50)
+    customer_last_name = models.CharField(max_length=50)
+    customer_phone = models.CharField(max_length=20)
+    
+    # Chapa response data
+    chapa_response = models.JSONField(blank=True, null=True)
+    checkout_url = models.URLField(blank=True, null=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    paid_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Payment {self.tx_ref} - {self.amount} {self.currency} ({self.status})"
 
 class Prescription(models.Model):
     """Model for storing prescription information"""
