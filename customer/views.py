@@ -433,3 +433,151 @@ def quick_report_incident(request):
         form = QuickIncidentForm()
     
     return render(request, 'admin/quick_report.html', {'form': form})
+
+
+@login_required
+def initiate_payment(request, order_id):
+    """Initiate payment for approved order"""
+    try:
+        customer = request.user.customer
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    
+    order = get_object_or_404(Order, id=order_id, customer=customer)
+    
+    # Check if order is approved and payment can be initiated
+    if order.status != 'approved':
+        messages.error(request, 'Payment can only be initiated for approved orders.')
+        return redirect('order_detail', order_id=order.id)
+    
+    # Check if payment already exists
+    if hasattr(order, 'payment'):
+        if order.payment.status == 'success':
+            messages.info(request, 'This order has already been paid.')
+            return redirect('order_detail', order_id=order.id)
+        elif order.payment.status == 'pending':
+            messages.info(request, 'Payment is already in progress. Please complete the existing payment.')
+            return redirect(order.payment.checkout_url)
+    
+    # Initialize Chapa payment
+    chapa_service = ChapaService()
+    
+    customer_data = {
+        'email': customer.email,
+        'first_name': customer.user.first_name if customer.user.first_name else customer.name.split()[0],
+        'last_name': customer.user.last_name if customer.user.last_name else customer.name.split()[-1],
+        'phone': customer.phone
+    }
+    
+    try:
+        result = chapa_service.initialize_payment(order, customer_data)
+        
+        if result['success']:
+            messages.success(request, 'Payment initialized successfully. You will be redirected to the payment page.')
+            return redirect(result['checkout_url'])
+        else:
+            messages.error(request, f'Payment initialization failed: {result["error"]}')
+            return redirect('order_detail', order_id=order.id)
+            
+    except Exception as e:
+        messages.error(request, f'Payment system error: {str(e)}')
+        return redirect('order_detail', order_id=order.id)
+
+
+def payment_callback(request):
+    """Handle Chapa payment callback"""
+    if request.method == 'GET':
+        status = request.GET.get('status')
+        tx_ref = request.GET.get('tx_ref')
+        trx_ref = request.GET.get('trx_ref')
+        
+        if not tx_ref:
+            messages.error(request, 'Invalid payment callback.')
+            return redirect('home')
+        
+        try:
+            payment = Payment.objects.get(tx_ref=tx_ref)
+            chapa_service = ChapaService()
+            
+            # Verify payment with Chapa
+            verification_result = chapa_service.verify_payment(tx_ref)
+            
+            if verification_result['success']:
+                verified_data = verification_result['data']
+                
+                if verified_data.get('status') == 'success' and status == 'success':
+                    # Payment successful
+                    payment.status = 'success'
+                    payment.chapa_tx_ref = trx_ref
+                    payment.paid_at = timezone.now()
+                    payment.chapa_response = verified_data
+                    payment.save()
+                    
+                    # Update order status
+                    payment.order.status = 'paid'
+                    payment.order.save()
+                    
+                    messages.success(request, f'Payment successful! Order #{payment.order.id} has been paid.')
+                    return redirect('payment_success', payment_id=payment.id)
+                else:
+                    # Payment failed
+                    payment.status = 'failed'
+                    payment.chapa_response = verified_data
+                    payment.save()
+                    
+                    messages.error(request, 'Payment failed. Please try again.')
+                    return redirect('order_detail', order_id=payment.order.id)
+            else:
+                messages.error(request, 'Payment verification failed. Please contact support.')
+                return redirect('order_detail', order_id=payment.order.id)
+                
+        except Payment.DoesNotExist:
+            messages.error(request, 'Payment record not found.')
+            return redirect('home')
+        except Exception as e:
+            messages.error(request, f'Payment processing error: {str(e)}')
+            return redirect('home')
+    
+    return redirect('home')
+
+
+@login_required
+def payment_success(request, payment_id):
+    """Payment success page"""
+    try:
+        customer = request.user.customer
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    
+    payment = get_object_or_404(Payment, id=payment_id, order__customer=customer)
+    
+    context = {
+        'payment': payment,
+        'order': payment.order,
+        'customer': customer,
+    }
+    
+    return render(request, 'customer/payment_success.html', context)
+
+
+def payment_webhook(request):
+    """Handle Chapa webhook notifications"""
+    if request.method == 'POST':
+        try:
+            import json
+            webhook_data = json.loads(request.body)
+            
+            chapa_service = ChapaService()
+            result = chapa_service.handle_webhook(webhook_data)
+            
+            if result['success']:
+                return JsonResponse({'status': 'success'})
+            else:
+                return JsonResponse({'status': 'error', 'message': result['error']}, status=400)
+                
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Method not allowed'}, status=405)

@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %}
+
+{% block title %}Payment Successful - Ethiopian Pharmacy Platform{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white text-center">
+                    <h3><i class="fas fa-check-circle"></i> Payment Successful!</h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <h4 class="text-success">Your payment has been processed successfully</h4>
+                        <p class="text-muted">Thank you for your payment. Your order is now being prepared.</p>
+                    </div>
+
+                    <!-- Payment Details -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5><i class="fas fa-credit-card"></i> Payment Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Transaction Reference:</strong> {{ payment.tx_ref }}</p>
+                                    <p><strong>Amount Paid:</strong> {{ payment.amount }} {{ payment.currency }}</p>
+                                    <p><strong>Payment Status:</strong> 
+                                        <span class="badge bg-success">{{ payment.get_status_display }}</span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Payment Date:</strong> {{ payment.paid_at|date:"M d, Y H:i" }}</p>
+                                    <p><strong>Payment Method:</strong> Chapa Payment</p>
+                                    {% if payment.chapa_tx_ref %}
+                                    <p><strong>Chapa Reference:</strong> {{ payment.chapa_tx_ref }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Order Details -->
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5><i class="fas fa-shopping-cart"></i> Order Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Order ID:</strong> #{{ order.id }}</p>
+                                    <p><strong>Pharmacy:</strong> {{ order.pharmacy.name }}</p>
+                                    <p><strong>Order Status:</strong> 
+                                        <span class="badge bg-info">{{ order.get_status_display }}</span>
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Order Date:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
+                                    <p><strong>Total Items:</strong> {{ order.get_total_items }}</p>
+                                    <p><strong>Total Amount:</strong> {{ order.total_amount }} ETB</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> What happens next?</h6>
+                        <ul class="mb-0">
+                            <li>Your payment has been confirmed and the pharmacy has been notified</li>
+                            <li>The pharmacy will prepare your order and contact you when ready</li>
+                            <li>You can track your order status in your dashboard</li>
+                            <li>Keep your transaction reference for any inquiries</li>
+                        </ul>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="text-center mt-4">
+                        <a href="{% url 'order_detail' order.id %}" class="btn btn-primary me-2">
+                            <i class="fas fa-eye"></i> View Order Details
+                        </a>
+                        <a href="{% url 'order_history' %}" class="btn btn-secondary me-2">
+                            <i class="fas fa-history"></i> Order History
+                        </a>
+                        <a href="{% url 'customer_dashboard' %}" class="btn btn-success">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </div>
+
+                    <!-- Print Receipt -->
+                    <div class="text-center mt-3">
+                        <button onclick="window.print()" class="btn btn-outline-secondary">
+                            <i class="fas fa-print"></i> Print Receipt
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .alert {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}

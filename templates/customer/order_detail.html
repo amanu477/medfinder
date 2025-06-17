@@ -9,10 +9,28 @@
     {% if order.status == 'approved' %}
     <div class="alert alert-success" role="alert">
         <h4 class="alert-heading"><i class="fas fa-check-circle"></i> Order Approved!</h4>
-        <p>Great news! Your order has been approved by the pharmacy. Please visit the pharmacy location below to pick up your medicine and complete the payment.</p>
+        <p>Great news! Your order has been approved by the pharmacy. Please complete your payment to proceed with the order.</p>
+        <hr>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <p class="mb-0"><strong>Total Amount:</strong> {{ order.total_amount }} ETB</p>
+                <p class="mb-0"><strong>Pharmacy:</strong> {{ order.pharmacy.name }}</p>
+            </div>
+            <a href="{% url 'initiate_payment' order.id %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-credit-card"></i> Pay Now
+            </a>
+        </div>
+    </div>
+    {% elif order.status == 'paid' %}
+    <div class="alert alert-info" role="alert">
+        <h4 class="alert-heading"><i class="fas fa-credit-card"></i> Payment Completed!</h4>
+        <p>Your payment has been processed successfully. The pharmacy is now preparing your order.</p>
         <hr>
         <p class="mb-0"><strong>Pickup Location:</strong> {{ order.pharmacy.name }}, {{ order.pharmacy.address }}</p>
         <p class="mb-0"><strong>Phone:</strong> {{ order.pharmacy.phone }}</p>
+        {% if order.payment %}
+        <p class="mb-0"><strong>Transaction Ref:</strong> {{ order.payment.tx_ref }}</p>
+        {% endif %}
     </div>
     {% elif order.status == 'completed' %}
     <div class="alert alert-primary" role="alert">
@@ -106,6 +124,7 @@
                         <span class="badge 
                             {% if order.status == 'pending' %}bg-warning text-dark
                             {% elif order.status == 'approved' %}bg-success
+                            {% elif order.status == 'paid' %}bg-info
                             {% elif order.status == 'completed' %}bg-primary
                             {% elif order.status == 'rejected' %}bg-danger
                             {% elif order.status == 'cancelled' %}bg-secondary

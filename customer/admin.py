@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Customer, Prescription
+from .models import Customer, Prescription, Payment
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):

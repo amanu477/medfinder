@@ -24,6 +24,12 @@ urlpatterns = [
     path('prescription/upload/', views.upload_prescription, name='upload_prescription'),
     path('prescription/success/', views.prescription_success, name='prescription_success'),
     
+    # Payment management
+    path('payment/initiate/<int:order_id>/', views.initiate_payment, name='initiate_payment'),
+    path('payment/callback/', views.payment_callback, name='payment_callback'),
+    path('payment/success/<int:payment_id>/', views.payment_success, name='payment_success'),
+    path('payment/webhook/', views.payment_webhook, name='payment_webhook'),
+    
     # Quick incident reporting (moved from admin)
     path('report-incident/', views.quick_report_incident, name='quick_report_incident'),
 ]
