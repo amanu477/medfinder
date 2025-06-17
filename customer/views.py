@@ -550,6 +550,31 @@ def payment_callback(request):
                     payment.order.status = 'paid'
                     payment.order.save()
                     
+                    # Create receipt
+                    from .models import Receipt
+                    receipt, created = Receipt.objects.get_or_create(
+                        payment=payment,
+                        defaults={
+                            'order': payment.order,
+                            'customer': payment.order.customer,
+                            'pharmacy': payment.order.pharmacy,
+                            'receipt_data': {
+                                'order_items': [
+                                    {
+                                        'medicine_name': item.medicine.name,
+                                        'quantity': item.quantity,
+                                        'price': str(item.price),
+                                        'total': str(item.get_total_price())
+                                    }
+                                    for item in payment.order.items.all()
+                                ],
+                                'total_amount': str(payment.order.total_amount),
+                                'order_date': payment.order.created_at.isoformat(),
+                                'payment_method': 'Chapa Payment Gateway',
+                            }
+                        }
+                    )
+                    
                     messages.success(request, f'Payment successful! Order #{payment.order.id} has been paid.')
                     return redirect('payment_success', payment_id=payment.id)
                 else:

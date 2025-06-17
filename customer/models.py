@@ -335,3 +335,90 @@ class AdminNotification(models.Model):
     
     def __str__(self):
         return f"Notification for {self.recipient.username}: {self.title}"
+
+
+class Receipt(models.Model):
+    """Model for storing payment receipts"""
+    
+    # Core receipt information
+    receipt_number = models.CharField(max_length=20, unique=True)
+    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name='receipt')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='receipts')
+    
+    # Customer and pharmacy information
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='receipts')
+    pharmacy = models.ForeignKey('pharmacy.Pharmacy', on_delete=models.CASCADE, related_name='receipts')
+    
+    # Receipt content (stored as JSON for flexibility)
+    receipt_data = models.JSONField(help_text="Complete receipt data including all items and totals")
+    
+    # Receipt metadata
+    generated_at = models.DateTimeField(auto_now_add=True)
+    is_printed = models.BooleanField(default=False)
+    print_count = models.PositiveIntegerField(default=0)
+    last_viewed_by_customer = models.DateTimeField(blank=True, null=True)
+    last_viewed_by_pharmacy = models.DateTimeField(blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-generated_at']
+        indexes = [
+            models.Index(fields=['customer', '-generated_at']),
+            models.Index(fields=['pharmacy', '-generated_at']),
+            models.Index(fields=['receipt_number']),
+        ]
+    
+    def __str__(self):
+        return f"Receipt #{self.receipt_number} - Order #{self.order.id}"
+    
+    def generate_receipt_number(self):
+        """Generate unique receipt number"""
+        import uuid
+        from datetime import datetime
+        timestamp = datetime.now().strftime('%Y%m%d')
+        unique_id = str(uuid.uuid4())[:8].upper()
+        return f"RCP-{timestamp}-{unique_id}"
+    
+    def save(self, *args, **kwargs):
+        if not self.receipt_number:
+            self.receipt_number = self.generate_receipt_number()
+        super().save(*args, **kwargs)
+    
+    def mark_viewed_by_customer(self):
+        """Mark receipt as viewed by customer"""
+        from django.utils import timezone
+        self.last_viewed_by_customer = timezone.now()
+        self.save(update_fields=['last_viewed_by_customer'])
+    
+    def mark_viewed_by_pharmacy(self):
+        """Mark receipt as viewed by pharmacy"""
+        from django.utils import timezone
+        self.last_viewed_by_pharmacy = timezone.now()
+        self.save(update_fields=['last_viewed_by_pharmacy'])
+    
+    def increment_print_count(self):
+        """Increment print count"""
+        self.print_count += 1
+        self.is_printed = True
+        self.save(update_fields=['print_count', 'is_printed'])
+    
+    def get_receipt_data(self):
+        """Get formatted receipt data"""
+        return {
+            'receipt_number': self.receipt_number,
+            'order_id': self.order.id,
+            'customer_name': self.customer.name,
+            'customer_email': self.customer.email,
+            'pharmacy_name': self.pharmacy.name,
+            'pharmacy_address': self.pharmacy.address,
+            'payment_data': {
+                'tx_ref': self.payment.tx_ref,
+                'amount': str(self.payment.amount),
+                'currency': self.payment.currency,
+                'status': self.payment.get_status_display(),
+                'paid_at': self.payment.paid_at.isoformat() if self.payment.paid_at else None,
+                'chapa_tx_ref': self.payment.chapa_tx_ref,
+            },
+            'order_data': self.receipt_data,
+            'generated_at': self.generated_at.isoformat(),
+            'print_count': self.print_count,
+        }
