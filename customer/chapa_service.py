@@ -24,18 +24,35 @@ class ChapaService:
         if not self.secret_key:
             raise ValueError("Chapa secret key not configured")
             
-        tx_ref = self.generate_tx_ref()
-        
-        # Create payment record
-        payment = Payment.objects.create(
-            order=order,
-            tx_ref=tx_ref,
-            amount=order.total_amount,
-            customer_email=customer_data['email'],
-            customer_first_name=customer_data['first_name'],
-            customer_last_name=customer_data['last_name'],
-            customer_phone=customer_data['phone']
-        )
+        # Check if payment already exists for this order
+        try:
+            payment = Payment.objects.get(order=order)
+            # If payment exists and is successful, return error
+            if payment.status == 'success':
+                return {
+                    'success': False,
+                    'error': 'This order has already been paid successfully'
+                }
+            # If payment exists but failed/pending, update it with new transaction reference
+            payment.tx_ref = self.generate_tx_ref()
+            payment.status = 'pending'
+            payment.customer_email = customer_data['email']
+            payment.customer_first_name = customer_data['first_name']
+            payment.customer_last_name = customer_data['last_name']
+            payment.customer_phone = customer_data['phone']
+            payment.save()
+        except Payment.DoesNotExist:
+            # Create new payment record
+            tx_ref = self.generate_tx_ref()
+            payment = Payment.objects.create(
+                order=order,
+                tx_ref=tx_ref,
+                amount=order.total_amount,
+                customer_email=customer_data['email'],
+                customer_first_name=customer_data['first_name'],
+                customer_last_name=customer_data['last_name'],
+                customer_phone=customer_data['phone']
+            )
         
         # Sanitize customer data to prevent encoding issues - ASCII only
         def sanitize_string(text):
@@ -57,7 +74,7 @@ class ChapaService:
                 # Skip all other non-ASCII characters
             return sanitized.strip()[:50]  # Limit length
         
-        # Prepare payment data for Chapa
+        # Prepare payment data for Chapa using the payment's transaction reference
         payment_data = {
             "amount": str(order.total_amount),
             "currency": "ETB",
@@ -65,7 +82,7 @@ class ChapaService:
             "first_name": sanitize_string(customer_data['first_name']),
             "last_name": sanitize_string(customer_data['last_name']),
             "phone_number": sanitize_string(customer_data['phone']),
-            "tx_ref": tx_ref,
+            "tx_ref": payment.tx_ref,
             "callback_url": sanitize_string(f"{settings.SITE_URL}/payment/callback/"),
             "return_url": sanitize_string(f"{settings.SITE_URL}/payment/success/"),
             "customization": {
