@@ -103,12 +103,30 @@
 
 <style>
 @media print {
-    .btn, .alert {
+    .btn, .alert, nav, footer {
         display: none !important;
     }
     .card {
         border: none !important;
         box-shadow: none !important;
+    }
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+    .card-header {
+        background-color: #f8f9fa !important;
+        color: #000 !important;
+    }
+    body {
+        font-size: 12pt !important;
+    }
+    h3, h4, h5 {
+        font-size: 14pt !important;
+    }
+    /* Hide any external links or references */
+    a[href*="replit"], a[href*="github"], .external-link {
+        display: none !important;
     }
 }
 </style>
