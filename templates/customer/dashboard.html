@@ -86,6 +86,7 @@
                                             <span class="badge 
                                                 {% if order.status == 'pending' %}bg-warning
                                                 {% elif order.status == 'approved' %}bg-success
+                                                {% elif order.status == 'paid' %}bg-info
                                                 {% elif order.status == 'completed' %}bg-primary
                                                 {% elif order.status == 'rejected' %}bg-danger
                                                 {% elif order.status == 'cancelled' %}bg-secondary
