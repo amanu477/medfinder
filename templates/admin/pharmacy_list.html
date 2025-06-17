@@ -300,8 +300,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show result in modal
                 showMohResult(data, pharmacyName, licenseNumber);
                 
-                // Update the page to reflect any status changes
+                // Update the UI immediately to show new status
                 if (data.status_updated) {
+                    updatePharmacyStatusInTable(pharmacyId, data.status);
+                    // Also schedule a page reload to ensure all data is fresh
                     setTimeout(() => location.reload(), 2000);
                 }
             })
@@ -320,6 +322,33 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+    
+    function updatePharmacyStatusInTable(pharmacyId, newStatus) {
+        // Find the pharmacy row by ID and update the status badge
+        const row = document.querySelector(`tr[data-pharmacy-id="${pharmacyId}"]`);
+        if (row) {
+            const statusBadge = row.querySelector('.badge');
+            if (statusBadge) {
+                // Update badge text and classes
+                statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+                statusBadge.className = 'badge';
+                
+                if (newStatus === 'verified') {
+                    statusBadge.classList.add('bg-success');
+                } else if (newStatus === 'rejected') {
+                    statusBadge.classList.add('bg-danger');
+                } else {
+                    statusBadge.classList.add('bg-warning');
+                }
+            }
+            
+            // Update action buttons if needed
+            const actionButtons = row.querySelector('.btn-group');
+            if (actionButtons && newStatus === 'verified') {
+                actionButtons.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> Verified</span>';
+            }
+        }
+    }
     
     function showMohResult(data, pharmacyName, licenseNumber) {
         const modal = new bootstrap.Modal(document.getElementById('mohResultModal'));
