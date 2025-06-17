@@ -37,14 +37,26 @@ class ChapaService:
             customer_phone=customer_data['phone']
         )
         
+        # Sanitize customer data to prevent encoding issues
+        def sanitize_string(text):
+            if not text:
+                return ""
+            # Remove or replace problematic characters, keep only ASCII and common Unicode
+            import unicodedata
+            # Normalize unicode characters
+            text = unicodedata.normalize('NFKD', str(text))
+            # Keep only printable ASCII characters and basic punctuation
+            text = ''.join(char for char in text if ord(char) < 128 or char.isalnum())
+            return text.strip()
+        
         # Prepare payment data for Chapa
         payment_data = {
             "amount": str(order.total_amount),
             "currency": "ETB",
-            "email": customer_data['email'],
-            "first_name": customer_data['first_name'],
-            "last_name": customer_data['last_name'],
-            "phone_number": customer_data['phone'],
+            "email": sanitize_string(customer_data['email']),
+            "first_name": sanitize_string(customer_data['first_name']),
+            "last_name": sanitize_string(customer_data['last_name']),
+            "phone_number": sanitize_string(customer_data['phone']),
             "tx_ref": tx_ref,
             "callback_url": f"{settings.SITE_URL}/payment/callback/",
             "return_url": f"{settings.SITE_URL}/payment/success/",
@@ -56,13 +68,15 @@ class ChapaService:
         
         headers = {
             "Authorization": f"Bearer {self.secret_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json; charset=utf-8"
         }
         
         try:
+            # Ensure all string data is properly encoded
+            import json
             response = requests.post(
                 f"{self.base_url}/transaction/initialize",
-                json=payment_data,
+                data=json.dumps(payment_data, ensure_ascii=False).encode('utf-8'),
                 headers=headers,
                 timeout=30
             )
@@ -107,7 +121,7 @@ class ChapaService:
             
         headers = {
             "Authorization": f"Bearer {self.secret_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json; charset=utf-8"
         }
         
         try:
