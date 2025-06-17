@@ -303,8 +303,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Update the UI immediately to show new status
                 if (data.status_updated) {
                     updatePharmacyStatusInTable(pharmacyId, data.status, data.moh_status);
-                    // Also schedule a page reload to ensure all data is fresh
-                    setTimeout(() => location.reload(), 2000);
                 }
             })
             .catch(error => {
@@ -449,16 +447,8 @@ document.addEventListener('DOMContentLoaded', function() {
         content.innerHTML = html;
         modal.show();
         
-        // If status was updated, refresh the page after modal is closed to show new status
-        if (data.status_updated) {
-            const modal_element = document.getElementById('mohResultModal');
-            modal_element.addEventListener('hidden.bs.modal', function () {
-                // Add a small delay then refresh to show updated status
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            }, { once: true });
-        }
+        // Modal will stay open until user manually closes it
+        // The status has already been updated in the table via updatePharmacyStatusInTable()
     }
 });
 </script>
