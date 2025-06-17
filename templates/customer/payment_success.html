@@ -91,7 +91,7 @@
 
                     <!-- Print Receipt -->
                     <div class="text-center mt-3">
-                        <button onclick="window.print()" class="btn btn-outline-secondary">
+                        <button onclick="printReceipt()" class="btn btn-outline-secondary">
                             <i class="fas fa-print"></i> Print Receipt
                         </button>
                     </div>
@@ -128,6 +128,109 @@
     a[href*="replit"], a[href*="github"], .external-link {
         display: none !important;
     }
+    /* Hide any text containing replit.com */
+    *:contains("replit.com") {
+        display: none !important;
+    }
+    /* Hide browser URL bar content */
+    @page {
+        margin: 0.5in;
+    }
 }
 </style>
+
+<script>
+function printReceipt() {
+    // Create a new window for clean printing
+    const printWindow = window.open('', '_blank');
+    
+    // Get the receipt content
+    const receiptContent = document.querySelector('.card.border-success').outerHTML;
+    
+    // Create clean HTML for printing
+    const printHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Payment Receipt - Ethiopian Pharmacy Platform</title>
+            <style>
+                body { 
+                    font-family: Arial, sans-serif; 
+                    margin: 20px; 
+                    font-size: 12pt; 
+                }
+                .card { 
+                    border: 1px solid #28a745; 
+                    border-radius: 8px; 
+                    overflow: hidden; 
+                }
+                .card-header { 
+                    background-color: #28a745; 
+                    color: white; 
+                    padding: 15px; 
+                    text-align: center; 
+                }
+                .card-body { 
+                    padding: 20px; 
+                }
+                .btn, .alert, nav, footer, button { 
+                    display: none !important; 
+                }
+                .row { 
+                    display: flex; 
+                    flex-wrap: wrap; 
+                    margin: -5px; 
+                }
+                .col-md-6 { 
+                    flex: 0 0 50%; 
+                    padding: 5px; 
+                }
+                .badge { 
+                    background-color: #28a745; 
+                    color: white; 
+                    padding: 3px 8px; 
+                    border-radius: 4px; 
+                    font-size: 10pt; 
+                }
+                .badge.bg-info { 
+                    background-color: #17a2b8; 
+                }
+                h3, h4, h5 { 
+                    margin: 10px 0; 
+                }
+                p { 
+                    margin: 5px 0; 
+                }
+                .text-center { 
+                    text-align: center; 
+                }
+                .mb-3, .mb-4 { 
+                    margin-bottom: 20px; 
+                }
+                .mt-4 { 
+                    margin-top: 20px; 
+                }
+            </style>
+        </head>
+        <body>
+            ${receiptContent}
+            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <p><strong>Ethiopian Pharmacy Platform</strong></p>
+                <p>Thank you for your business!</p>
+            </div>
+        </body>
+        </html>
+    `;
+    
+    // Write content to new window and print
+    printWindow.document.write(printHTML);
+    printWindow.document.close();
+    
+    // Wait for content to load then print
+    printWindow.onload = function() {
+        printWindow.print();
+        printWindow.close();
+    };
+}
+</script>
 {% endblock %}
