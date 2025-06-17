@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %}
+
+{% block title %}Payment - Order #{{ order.id }} - Ethiopian Pharmacy Platform{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3><i class="fas fa-credit-card"></i> Complete Your Payment</h3>
+                </div>
+                <div class="card-body">
+                    <!-- Order Summary -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-shopping-cart"></i> Order Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Order ID:</strong> #{{ order.id }}</p>
+                                    <p><strong>Pharmacy:</strong> {{ order.pharmacy.name }}</p>
+                                    <p><strong>Total Items:</strong> {{ order.get_total_items }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Order Date:</strong> {{ order.created_at|date:"M d, Y" }}</p>
+                                    <p><strong>Status:</strong> 
+                                        <span class="badge bg-success">{{ order.get_status_display }}</span>
+                                    </p>
+                                    <p><strong>Total Amount:</strong> 
+                                        <span class="h5 text-primary">{{ order.total_amount }} ETB</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="fas fa-payment"></i> Payment Method</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="text-center">
+                                <img src="https://chapa.co/assets/images/chapa-logo.png" alt="Chapa Payment" class="img-fluid mb-3" style="max-height: 60px;">
+                                <p class="text-muted">Secure payment processing powered by Chapa</p>
+                                <p><small>You will be redirected to Chapa's secure payment gateway to complete your transaction.</small></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Details Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5><i class="fas fa-user"></i> Payment Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="customer_name" class="form-label">Full Name</label>
+                                            <input type="text" class="form-control" id="customer_name" name="customer_name" 
+                                                   value="{{ order.customer.name }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="customer_email" class="form-label">Email Address</label>
+                                            <input type="email" class="form-control" id="customer_email" name="customer_email" 
+                                                   value="{{ order.customer.email }}" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="customer_phone" class="form-label">Phone Number</label>
+                                            <input type="tel" class="form-control" id="customer_phone" name="customer_phone" 
+                                                   value="{{ order.customer.phone }}" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="payment_amount" class="form-label">Amount to Pay</label>
+                                            <input type="text" class="form-control" id="payment_amount" 
+                                                   value="{{ order.total_amount }} ETB" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Payment Actions -->
+                        <div class="text-center">
+                            <a href="{% url 'order_detail' order.id %}" class="btn btn-secondary me-3">
+                                <i class="fas fa-arrow-left"></i> Back to Order
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-credit-card"></i> Proceed to Payment
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Security Notice -->
+                    <div class="alert alert-info mt-4">
+                        <h6><i class="fas fa-shield-alt"></i> Secure Payment</h6>
+                        <ul class="mb-0">
+                            <li>Your payment is processed securely through Chapa's encrypted gateway</li>
+                            <li>We do not store your payment card information</li>
+                            <li>You will receive a confirmation email after successful payment</li>
+                            <li>Contact support if you encounter any issues</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

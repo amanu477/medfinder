@@ -134,15 +134,26 @@
                     </div>
 
                     <div class="status-timeline">
-                        <div class="timeline-item {% if order.status == 'pending' or order.status == 'approved' or order.status == 'completed' %}active{% endif %}">
+                        <div class="timeline-item {% if order.status == 'pending' or order.status == 'approved' or order.status == 'paid' or order.status == 'completed' %}active{% endif %}">
                             <strong>Order Placed</strong><br>
                             <small>{{ order.created_at|date:"M d, Y g:i A" }}</small>
                         </div>
                         
-                        {% if order.status == 'approved' or order.status == 'completed' %}
+                        {% if order.status == 'approved' or order.status == 'paid' or order.status == 'completed' %}
                         <div class="timeline-item active">
                             <strong>Order Approved</strong><br>
                             <small>{{ order.updated_at|date:"M d, Y g:i A" }}</small>
+                        </div>
+                        {% endif %}
+
+                        {% if order.status == 'paid' or order.status == 'completed' %}
+                        <div class="timeline-item active">
+                            <strong>Payment Completed</strong><br>
+                            {% if order.payment %}
+                            <small>{{ order.payment.paid_at|date:"M d, Y g:i A" }}</small>
+                            {% else %}
+                            <small>{{ order.updated_at|date:"M d, Y g:i A" }}</small>
+                            {% endif %}
                         </div>
                         {% endif %}
 
