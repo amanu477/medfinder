@@ -81,17 +81,40 @@ class ChapaService:
                 timeout=30
             )
             
-            response_data = response.json()
+            # Log the response for debugging
+            print(f"Chapa API Response Status: {response.status_code}")
+            print(f"Chapa API Response Text: {response.text}")
+            
+            try:
+                response_data = response.json()
+            except ValueError as e:
+                payment.status = 'failed'
+                payment.save()
+                return {
+                    'success': False,
+                    'error': f'Invalid JSON response from Chapa API: {str(e)}'
+                }
             
             if response.status_code == 200 and response_data.get('status') == 'success':
+                # Extract checkout URL safely
+                checkout_url = response_data.get('data', {}).get('checkout_url')
+                if not checkout_url:
+                    payment.status = 'failed'
+                    payment.chapa_response = response_data
+                    payment.save()
+                    return {
+                        'success': False,
+                        'error': 'No checkout URL received from Chapa API'
+                    }
+                
                 # Update payment with Chapa response
                 payment.chapa_response = response_data
-                payment.checkout_url = response_data['data']['checkout_url']
+                payment.checkout_url = checkout_url
                 payment.save()
                 
                 return {
                     'success': True,
-                    'checkout_url': response_data['data']['checkout_url'],
+                    'checkout_url': checkout_url,
                     'tx_ref': tx_ref,
                     'payment_id': payment.id
                 }
@@ -100,9 +123,10 @@ class ChapaService:
                 payment.chapa_response = response_data
                 payment.save()
                 
+                error_message = response_data.get('message', f'Payment initialization failed (Status: {response.status_code})')
                 return {
                     'success': False,
-                    'error': response_data.get('message', 'Payment initialization failed')
+                    'error': error_message
                 }
                 
         except requests.RequestException as e:

@@ -457,8 +457,13 @@ def initiate_payment(request, order_id):
             messages.info(request, 'This order has already been paid.')
             return redirect('order_detail', order_id=order.id)
         elif order.payment.status == 'pending':
-            messages.info(request, 'Payment is already in progress. Please complete the existing payment.')
-            return redirect(order.payment.checkout_url)
+            if order.payment.checkout_url:
+                messages.info(request, 'Payment is already in progress. Please complete the existing payment.')
+                return redirect(order.payment.checkout_url)
+            else:
+                # If no checkout URL, reinitialize payment
+                messages.info(request, 'Reinitializing payment...')
+                order.payment.delete()
     
     # Initialize Chapa payment
     chapa_service = ChapaService()
