@@ -378,6 +378,53 @@ def update_order_status(request, order_id):
     return redirect('order_management')
 
 
+@login_required
+def pharmacy_receipts(request):
+    """View pharmacy's receipts"""
+    try:
+        pharmacy = request.user.pharmacy
+    except Pharmacy.DoesNotExist:
+        messages.error(request, 'Pharmacy profile not found.')
+        return redirect('pharmacy_login')
+    
+    from customer.models import Receipt
+    receipts = Receipt.objects.filter(pharmacy=pharmacy).order_by('-generated_at')
+    
+    context = {
+        'receipts': receipts,
+        'pharmacy': pharmacy,
+    }
+    
+    return render(request, 'pharmacy/receipts.html', context)
+
+
+@login_required
+def pharmacy_receipt_detail(request, receipt_id):
+    """View individual receipt for pharmacy"""
+    try:
+        pharmacy = request.user.pharmacy
+    except Pharmacy.DoesNotExist:
+        messages.error(request, 'Pharmacy profile not found.')
+        return redirect('pharmacy_login')
+    
+    from customer.models import Receipt
+    receipt = get_object_or_404(Receipt, id=receipt_id, pharmacy=pharmacy)
+    receipt.mark_viewed_by_pharmacy()
+    
+    # Track print action
+    if request.GET.get('print') == '1':
+        receipt.increment_print_count()
+    
+    context = {
+        'receipt': receipt,
+        'pharmacy': pharmacy,
+        'payment': receipt.payment,
+        'order': receipt.order,
+    }
+    
+    return render(request, 'pharmacy/receipt_detail.html', context)
+
+
 def pharmacy_logout(request):
     """Custom logout view for pharmacy"""
     logout(request)

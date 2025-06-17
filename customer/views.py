@@ -610,13 +610,69 @@ def payment_success(request, payment_id):
     
     payment = get_object_or_404(Payment, id=payment_id, order__customer=customer)
     
+    # Get or create receipt
+    from .models import Receipt
+    try:
+        receipt = Receipt.objects.get(payment=payment)
+        receipt.mark_viewed_by_customer()
+    except Receipt.DoesNotExist:
+        receipt = None
+    
     context = {
         'payment': payment,
         'order': payment.order,
         'customer': customer,
+        'receipt': receipt,
     }
     
     return render(request, 'customer/payment_success.html', context)
+
+
+@login_required
+def receipt_list(request):
+    """View customer's receipts"""
+    try:
+        customer = request.user.customer
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    
+    from .models import Receipt
+    receipts = Receipt.objects.filter(customer=customer).order_by('-generated_at')
+    
+    context = {
+        'receipts': receipts,
+        'customer': customer,
+    }
+    
+    return render(request, 'customer/receipt_list.html', context)
+
+
+@login_required
+def receipt_detail(request, receipt_id):
+    """View individual receipt"""
+    try:
+        customer = request.user.customer
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    
+    from .models import Receipt
+    receipt = get_object_or_404(Receipt, id=receipt_id, customer=customer)
+    receipt.mark_viewed_by_customer()
+    
+    # Track print action
+    if request.GET.get('print') == '1':
+        receipt.increment_print_count()
+    
+    context = {
+        'receipt': receipt,
+        'customer': customer,
+        'payment': receipt.payment,
+        'order': receipt.order,
+    }
+    
+    return render(request, 'customer/receipt_detail.html', context)
 
 
 def payment_webhook(request):

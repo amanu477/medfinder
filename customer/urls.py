@@ -30,6 +30,10 @@ urlpatterns = [
     path('payment/success/<int:payment_id>/', views.payment_success, name='payment_success'),
     path('payment/webhook/', views.payment_webhook, name='payment_webhook'),
     
+    # Receipt management
+    path('receipts/', views.receipt_list, name='receipt_list'),
+    path('receipt/<int:receipt_id>/', views.receipt_detail, name='receipt_detail'),
+    
     # Quick incident reporting (moved from admin)
     path('report-incident/', views.quick_report_incident, name='quick_report_incident'),
 ]
