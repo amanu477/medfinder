@@ -713,7 +713,7 @@ def admin_verify_moh(request):
         
         # Create admin notification about the verification
         AdminNotification.objects.create(
-            user=request.user,
+            recipient=request.user,
             title=f'MoH Verification: {pharmacy.name}',
             message=f'MoH verification {"successful" if response_data["valid"] else "failed"} for {pharmacy.name} (License: {license_number})',
             notification_type='verification',
