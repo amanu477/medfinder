@@ -80,14 +80,31 @@ class ChapaService:
         }
         
         try:
-            # Use json parameter for proper UTF-8 encoding
+            # Force ASCII encoding for all data to prevent Latin-1 errors
+            import json
+            
+            # Ensure all values in payment_data are ASCII-safe
+            safe_payment_data = {}
+            for key, value in payment_data.items():
+                if isinstance(value, dict):
+                    safe_payment_data[key] = {k: sanitize_string(str(v)) for k, v in value.items()}
+                else:
+                    safe_payment_data[key] = sanitize_string(str(value))
+            
+            # Create ASCII-safe headers
+            safe_headers = {
+                "Authorization": f"Bearer {sanitize_string(self.secret_key)}",
+                "Content-Type": "application/json; charset=utf-8"
+            }
+            
+            # Log the data being sent for debugging
+            print(f"Sending payment data: {safe_payment_data}")
+            
+            # Use requests with explicit encoding
             response = requests.post(
                 f"{self.base_url}/transaction/initialize",
-                json=payment_data,
-                headers={
-                    "Authorization": f"Bearer {self.secret_key}",
-                    "Content-Type": "application/json"
-                },
+                data=json.dumps(safe_payment_data).encode('utf-8'),
+                headers=safe_headers,
                 timeout=30
             )
             
