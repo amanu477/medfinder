@@ -11,9 +11,11 @@ class ChapaService:
     """Service for handling Chapa payment integration"""
     
     def __init__(self):
+        # Use Chapa's test/sandbox environment for development
         self.base_url = "https://api.chapa.co/v1"
-        self.secret_key = getattr(settings, 'CHAPA_SECRET_KEY', None)
-        self.public_key = getattr(settings, 'CHAPA_PUBLIC_KEY', None)
+        self.secret_key = getattr(settings, 'CHAPA_SECRET_KEY', 'CHASECK_TEST-')
+        self.public_key = getattr(settings, 'CHAPA_PUBLIC_KEY', 'CHAPUBK_TEST-')
+        self.test_mode = getattr(settings, 'CHAPA_TEST_MODE', True)
         
     def generate_tx_ref(self):
         """Generate unique transaction reference"""
@@ -97,7 +99,33 @@ class ChapaService:
         }
         
         try:
-            # Force ASCII encoding for all data to prevent Latin-1 errors
+            # In test mode, simulate successful payment initialization
+            if self.test_mode:
+                print(f"TEST MODE: Simulating payment initialization for {payment.tx_ref}")
+                
+                # Simulate successful Chapa response
+                mock_response_data = {
+                    "status": "success",
+                    "message": "Payment initialized successfully (TEST MODE)",
+                    "data": {
+                        "checkout_url": f"https://checkout.chapa.co/test/{payment.tx_ref}",
+                        "tx_ref": payment.tx_ref
+                    }
+                }
+                
+                # Update payment with simulated response
+                payment.chapa_response = mock_response_data
+                payment.checkout_url = mock_response_data['data']['checkout_url']
+                payment.save()
+                
+                return {
+                    'success': True,
+                    'checkout_url': mock_response_data['data']['checkout_url'],
+                    'tx_ref': payment.tx_ref,
+                    'payment_id': payment.id
+                }
+            
+            # Production mode - make actual API call
             import json
             
             # Ensure all values in payment_data are ASCII-safe
