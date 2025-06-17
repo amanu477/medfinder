@@ -503,6 +503,31 @@ def initiate_payment(request, order_id):
                 order.status = 'paid'
                 order.save()
                 
+                # Create receipt
+                from .models import Receipt
+                receipt, created = Receipt.objects.get_or_create(
+                    payment=payment,
+                    defaults={
+                        'order': payment.order,
+                        'customer': payment.order.customer,
+                        'pharmacy': payment.order.pharmacy,
+                        'receipt_data': {
+                            'order_items': [
+                                {
+                                    'medicine_name': item.medicine.name,
+                                    'quantity': item.quantity,
+                                    'price': str(item.price),
+                                    'total': str(item.get_total_price())
+                                }
+                                for item in payment.order.orderitem_set.all()
+                            ],
+                            'total_amount': str(payment.order.total_amount),
+                            'order_date': payment.order.created_at.isoformat(),
+                            'payment_method': 'Chapa Payment Gateway',
+                        }
+                    }
+                )
+                
                 return redirect('payment_success', payment_id=payment.id)
             else:
                 # Production mode - redirect to actual Chapa checkout
@@ -566,7 +591,7 @@ def payment_callback(request):
                                         'price': str(item.price),
                                         'total': str(item.get_total_price())
                                     }
-                                    for item in payment.order.items.all()
+                                    for item in payment.order.orderitem_set.all()
                                 ],
                                 'total_amount': str(payment.order.total_amount),
                                 'order_date': payment.order.created_at.isoformat(),
