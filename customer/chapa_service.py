@@ -37,26 +37,25 @@ class ChapaService:
             customer_phone=customer_data['phone']
         )
         
-        # Sanitize customer data to prevent encoding issues
+        # Sanitize customer data to prevent encoding issues - ASCII only
         def sanitize_string(text):
             if not text:
                 return ""
-            # Convert to string and handle encoding safely
+            # Convert to string and ensure only ASCII characters
             text = str(text)
-            # Remove or replace problematic characters
-            # Keep only ASCII characters and basic Latin characters
+            # Keep only ASCII characters (0-127)
             sanitized = ""
             for char in text:
-                if ord(char) < 256:  # Keep characters in Latin-1 range
+                if ord(char) < 128:  # Only ASCII characters
                     sanitized += char
-                else:
-                    # Replace non-Latin characters with closest ASCII equivalent
-                    if char.isalpha():
-                        sanitized += "a"  # Replace with generic letter
-                    elif char.isdigit():
-                        sanitized += "0"  # Replace with generic digit
-                    # Skip other special characters
-            return sanitized.strip()[:50]  # Limit length to prevent issues
+                elif char.isalpha():
+                    sanitized += "a"  # Replace with ASCII letter
+                elif char.isdigit():
+                    sanitized += "1"  # Replace with ASCII digit
+                elif char.isspace():
+                    sanitized += " "  # Keep space
+                # Skip all other non-ASCII characters
+            return sanitized.strip()[:50]  # Limit length
         
         # Prepare payment data for Chapa
         payment_data = {
@@ -67,11 +66,11 @@ class ChapaService:
             "last_name": sanitize_string(customer_data['last_name']),
             "phone_number": sanitize_string(customer_data['phone']),
             "tx_ref": tx_ref,
-            "callback_url": f"{settings.SITE_URL}/payment/callback/",
-            "return_url": f"{settings.SITE_URL}/payment/success/",
+            "callback_url": sanitize_string(f"{settings.SITE_URL}/payment/callback/"),
+            "return_url": sanitize_string(f"{settings.SITE_URL}/payment/success/"),
             "customization": {
-                "title": "Ethiopian Pharmacy Platform",
-                "description": f"Payment for Order #{order.id}",
+                "title": sanitize_string("Ethiopian Pharmacy Platform"),
+                "description": sanitize_string(f"Payment for Order #{order.id}"),
             }
         }
         
