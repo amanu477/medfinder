@@ -242,7 +242,7 @@ def place_order(request, medicine_id):
     medicine = get_object_or_404(Medicine, id=medicine_id)
     
     if request.method == 'POST':
-        form = OrderForm(request.POST)
+        form = OrderForm(request.POST, request.FILES)
         if form.is_valid():
             quantity = int(request.POST.get('quantity', 1))
             
@@ -259,7 +259,8 @@ def place_order(request, medicine_id):
                 pharmacy=medicine.pharmacy,
                 total_amount=medicine.price * quantity,
                 status='pending',
-                notes=form.cleaned_data.get('notes', '')
+                notes=form.cleaned_data.get('notes', ''),
+                prescription_image=form.cleaned_data.get('prescription_image')
             )
             
             # Create order item

@@ -134,12 +134,37 @@ class CustomerProfileForm(forms.ModelForm):
 
 class OrderForm(forms.ModelForm):
     """Form for placing orders"""
+    prescription_image = forms.ImageField(
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*',
+            'id': 'prescription-upload'
+        }),
+        help_text="Upload prescription image if required (JPG, PNG, GIF - max 5MB)"
+    )
+    
     class Meta:
         model = Order
         fields = ['notes']
         widgets = {
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Additional notes for your order (optional)'}),
         }
+    
+    def clean_prescription_image(self):
+        """Validate prescription image"""
+        image = self.cleaned_data.get('prescription_image')
+        if image:
+            # Check file size (5MB limit)
+            if image.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Image file too large. Maximum size is 5MB.")
+            
+            # Check file type
+            allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+            if hasattr(image, 'content_type') and image.content_type not in allowed_types:
+                raise forms.ValidationError("Only JPG, PNG, and GIF images are allowed.")
+        
+        return image
 
 
 class PrescriptionForm(forms.ModelForm):
