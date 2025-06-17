@@ -76,24 +76,51 @@
                         </ul>
                     </div>
 
+                    <!-- Receipt Information -->
+                    {% if receipt %}
+                    <div class="card mb-3 border-info">
+                        <div class="card-header bg-info text-white">
+                            <h5><i class="fas fa-receipt"></i> Payment Receipt</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Receipt Number:</strong> {{ receipt.receipt_number }}</p>
+                                    <p><strong>Generated:</strong> {{ receipt.generated_at|date:"M d, Y H:i" }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Status:</strong> <span class="badge bg-success">Generated</span></p>
+                                    <p><strong>Digital Receipt:</strong> Available for viewing and printing</p>
+                                </div>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{% url 'receipt_detail' receipt.id %}" class="btn btn-info me-2">
+                                    <i class="fas fa-receipt"></i> View Digital Receipt
+                                </a>
+                                <a href="{% url 'receipt_detail' receipt.id %}?print=1" class="btn btn-outline-info" target="_blank">
+                                    <i class="fas fa-print"></i> Print Receipt
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Action Buttons -->
                     <div class="text-center mt-4">
                         <a href="{% url 'order_detail' order.id %}" class="btn btn-primary me-2">
                             <i class="fas fa-eye"></i> View Order Details
                         </a>
+                        {% if receipt %}
+                        <a href="{% url 'receipt_detail' receipt.id %}" class="btn btn-info me-2">
+                            <i class="fas fa-receipt"></i> View Receipt
+                        </a>
+                        {% endif %}
                         <a href="{% url 'order_history' %}" class="btn btn-secondary me-2">
                             <i class="fas fa-history"></i> Order History
                         </a>
                         <a href="{% url 'customer_dashboard' %}" class="btn btn-success">
                             <i class="fas fa-tachometer-alt"></i> Dashboard
                         </a>
-                    </div>
-
-                    <!-- Print Receipt -->
-                    <div class="text-center mt-3">
-                        <button onclick="printReceipt()" class="btn btn-outline-secondary">
-                            <i class="fas fa-print"></i> Print Receipt
-                        </button>
                     </div>
                 </div>
             </div>
