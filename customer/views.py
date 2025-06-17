@@ -253,6 +253,15 @@ def place_order(request, medicine_id):
                     'form': form
                 })
             
+            # Check prescription requirement
+            prescription_image = form.cleaned_data.get('prescription_image')
+            if medicine.prescription_required and not prescription_image:
+                messages.error(request, 'This medicine requires a prescription. Please upload a prescription image.')
+                return render(request, 'customer/place_order.html', {
+                    'medicine': medicine,
+                    'form': form
+                })
+            
             # Create order
             order = Order.objects.create(
                 customer=customer,
@@ -260,7 +269,7 @@ def place_order(request, medicine_id):
                 total_amount=medicine.price * quantity,
                 status='pending',
                 notes=form.cleaned_data.get('notes', ''),
-                prescription_image=form.cleaned_data.get('prescription_image')
+                prescription_image=prescription_image
             )
             
             # Create order item

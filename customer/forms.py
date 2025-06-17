@@ -165,6 +165,13 @@ class OrderForm(forms.ModelForm):
                 raise forms.ValidationError("Only JPG, PNG, and GIF images are allowed.")
         
         return image
+    
+    def clean(self):
+        """Cross-field validation"""
+        cleaned_data = super().clean()
+        # Note: We can't access the medicine instance here since it's passed via URL parameter
+        # The view will handle prescription requirement validation
+        return cleaned_data
 
 
 class PrescriptionForm(forms.ModelForm):

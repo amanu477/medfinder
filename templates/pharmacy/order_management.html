@@ -96,6 +96,7 @@
                                     <th>Medicine</th>
                                     <th>Quantity</th>
                                     <th>Total Amount</th>
+                                    <th>Prescription</th>
                                     <th>Order Date</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -130,6 +131,20 @@
                                         {% for item in order.orderitem_set.all %}
                                             <div class="small text-muted">{{ item.price }} ETB each</div>
                                         {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% if order.prescription_image %}
+                                            <img src="{{ order.prescription_image.url }}" alt="Prescription" 
+                                                 style="width: 50px; height: 50px; object-fit: cover;" 
+                                                 class="rounded cursor-pointer" 
+                                                 data-bs-toggle="modal" 
+                                                 data-bs-target="#prescriptionModal{{ order.id }}">
+                                            <div class="small text-success mt-1">
+                                                <i class="fas fa-check-circle"></i> Uploaded
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">No prescription</span>
+                                        {% endif %}
                                     </td>
                                     <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
                                     <td>
@@ -211,6 +226,32 @@
         </div>
     </div>
 </section>
+
+<!-- Prescription Image Modals -->
+{% for order in orders %}
+    {% if order.prescription_image %}
+    <div class="modal fade" id="prescriptionModal{{ order.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Prescription for Order #{{ order.id }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p><strong>Customer:</strong> {{ order.customer.name }}</p>
+                    <img src="{{ order.prescription_image.url }}" alt="Prescription" class="img-fluid rounded">
+                </div>
+                <div class="modal-footer">
+                    <a href="{{ order.prescription_image.url }}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i> Open in New Tab
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
 
 <!-- Notes Modals -->
 {% for order in orders %}

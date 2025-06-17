@@ -80,7 +80,7 @@
                     <h5>Order Information</h5>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
                         
                         <div class="mb-3">
@@ -101,6 +101,34 @@
                                 <div class="text-danger">{{ form.notes.errors.0 }}</div>
                             {% endif %}
                         </div>
+
+                        {% if medicine.prescription_required %}
+                        <div class="mb-3">
+                            <label for="{{ form.prescription_image.id_for_label }}" class="form-label">
+                                Prescription Image <span class="text-danger">*</span>
+                            </label>
+                            {{ form.prescription_image }}
+                            {% if form.prescription_image.help_text %}
+                                <div class="form-text">{{ form.prescription_image.help_text }}</div>
+                            {% endif %}
+                            {% if form.prescription_image.errors %}
+                                <div class="text-danger">{{ form.prescription_image.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <div class="mb-3">
+                            <label for="{{ form.prescription_image.id_for_label }}" class="form-label">
+                                Prescription Image (Optional)
+                            </label>
+                            {{ form.prescription_image }}
+                            {% if form.prescription_image.help_text %}
+                                <div class="form-text">{{ form.prescription_image.help_text }}</div>
+                            {% endif %}
+                            {% if form.prescription_image.errors %}
+                                <div class="text-danger">{{ form.prescription_image.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
 
                         <!-- Order Summary -->
                         <div class="card bg-light">
