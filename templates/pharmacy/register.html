@@ -496,13 +496,113 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
-        // Show loading state
+        // Validate password fields before showing loading state
+        const password1 = document.querySelector('input[name="password1"]');
+        const password2 = document.querySelector('input[name="password2"]');
+        
+        if (password1 && password2) {
+            if (password1.value !== password2.value) {
+                e.preventDefault();
+                alert('Passwords do not match. Please check your password entries.');
+                password2.focus();
+                return false;
+            }
+            
+            if (password1.value.length < 8) {
+                e.preventDefault();
+                alert('Password must be at least 8 characters long.');
+                password1.focus();
+                return false;
+            }
+        }
+        
+        // Show loading state only if all validations pass
         submitButton.disabled = true;
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering...';
+        
+        // Reset button if form submission fails (after timeout)
+        setTimeout(function() {
+            if (document.querySelectorAll('.alert-danger, .invalid-feedback').length > 0) {
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="fas fa-user-plus me-2"></i>Register Pharmacy';
+                submitButton.className = 'btn btn-primary btn-lg';
+            }
+        }, 3000);
     });
 
     // Initial button state
     updateSubmitButton();
+
+    // Add real-time password validation
+    const password1 = document.querySelector('input[name="password1"]');
+    const password2 = document.querySelector('input[name="password2"]');
+    
+    if (password1 && password2) {
+        function validatePasswords() {
+            const password1Value = password1.value;
+            const password2Value = password2.value;
+            
+            // Remove existing password error messages
+            const existingErrors = document.querySelectorAll('.password-error');
+            existingErrors.forEach(error => error.remove());
+            
+            // Check password strength
+            if (password1Value.length > 0 && password1Value.length < 8) {
+                const errorElement = document.createElement('div');
+                errorElement.className = 'text-danger mt-1 password-error';
+                errorElement.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Password must be at least 8 characters long';
+                password1.parentNode.appendChild(errorElement);
+            }
+            
+            // Check password match
+            if (password2Value.length > 0 && password1Value !== password2Value) {
+                const errorElement = document.createElement('div');
+                errorElement.className = 'text-danger mt-1 password-error';
+                errorElement.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i>Passwords do not match';
+                password2.parentNode.appendChild(errorElement);
+            } else if (password2Value.length > 0 && password1Value === password2Value && password1Value.length >= 8) {
+                const successElement = document.createElement('div');
+                successElement.className = 'text-success mt-1 password-error';
+                successElement.innerHTML = '<i class="fas fa-check-circle me-1"></i>Passwords match';
+                password2.parentNode.appendChild(successElement);
+            }
+            
+            // Update submit button state
+            updateSubmitButtonWithPasswordValidation();
+        }
+        
+        function updateSubmitButtonWithPasswordValidation() {
+            const businessLicenseFile = businessLicenseInput.files[0];
+            const pharmacistCertFile = pharmacistCertInput.files[0];
+            const hasFileErrors = document.querySelectorAll('.file-error.text-danger').length > 0;
+            const hasPasswordErrors = document.querySelectorAll('.password-error.text-danger').length > 0;
+            const password1Value = password1.value;
+            const password2Value = password2.value;
+            
+            if (!businessLicenseFile || !pharmacistCertFile || hasFileErrors || hasPasswordErrors || 
+                password1Value.length < 8 || password1Value !== password2Value) {
+                submitButton.disabled = true;
+                if (!businessLicenseFile || !pharmacistCertFile) {
+                    submitButton.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Upload Required Documents';
+                } else if (hasPasswordErrors || password1Value.length < 8 || password1Value !== password2Value) {
+                    submitButton.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Fix Password Issues';
+                } else {
+                    submitButton.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Complete Required Fields';
+                }
+                submitButton.className = 'btn btn-secondary btn-lg';
+            } else {
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="fas fa-user-plus me-2"></i>Register Pharmacy';
+                submitButton.className = 'btn btn-primary btn-lg';
+            }
+        }
+        
+        password1.addEventListener('input', validatePasswords);
+        password2.addEventListener('input', validatePasswords);
+        
+        // Override the original updateSubmitButton function
+        updateSubmitButton = updateSubmitButtonWithPasswordValidation;
+    }
 
     // Handle manual location entry
     const toggleManualLocationBtn = document.querySelector('.toggle-manual-location');
