@@ -11,6 +11,7 @@ dependencies = [
     "flask-login>=0.6.3",
     "gunicorn>=23.0.0",
     "oauthlib>=3.2.2",
+    "openai>=1.88.0",
     "pillow>=11.2.1",
     "psycopg2-binary>=2.9.10",
     "pyjwt>=2.10.1",
