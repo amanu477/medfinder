@@ -489,7 +489,7 @@ def initiate_payment(request, order_id):
                 payment.paid_at = timezone.now()
                 payment.save()
                 
-                # Update order status
+                # Update order status to paid
                 order.status = 'paid'
                 order.save()
                 
@@ -536,7 +536,7 @@ def payment_callback(request):
                     payment.chapa_response = verified_data
                     payment.save()
                     
-                    # Update order status
+                    # Update order status to paid
                     payment.order.status = 'paid'
                     payment.order.save()
                     
