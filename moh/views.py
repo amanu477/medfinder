@@ -226,49 +226,32 @@ def moh_add_pharmacy(request):
         form = MoHPharmacyRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             try:
-                # Create a temporary user account for MoH-registered pharmacy
-                # Use license number as username to ensure uniqueness
-                temp_username = f"moh_pharmacy_{form.cleaned_data['license_number']}"
-                from django.contrib.auth.models import User
-                import secrets
-                import string
-                
-                # Generate random password
-                alphabet = string.ascii_letters + string.digits
-                temp_password = ''.join(secrets.choice(alphabet) for i in range(12))
-                
-                temp_user = User.objects.create_user(
-                    username=temp_username,
-                    email=form.cleaned_data.get('email', ''),
-                    password=temp_password,
-                    first_name=form.cleaned_data['pharmacy_name'][:30],  # Truncate if needed
-                    is_active=False  # Inactive until pharmacy claims account
-                )
-                
-                # Create pharmacy record with user
-                pharmacy = Pharmacy.objects.create(
-                    user=temp_user,
-                    name=form.cleaned_data['pharmacy_name'],
-                    license_number=form.cleaned_data['license_number'],
-                    license_type=form.cleaned_data.get('license_type', 'retail'),
-                    phone=form.cleaned_data['phone_number'],
-                    email=form.cleaned_data.get('email', ''),
-                    address=form.cleaned_data['address_detail'],
-                    opening_time=form.cleaned_data['opening_time'],
-                    closing_time=form.cleaned_data['closing_time'],
-                    verification_status='verified',
-                    moh_verification_status='verified',
-                    is_active=True
-                )
-                
-                # Create comprehensive MoH record with document uploads
+                # Create ONLY MoH record - maintain database separation
+                # MoH registrations should NOT create platform pharmacy records
                 moh_record = MoHPharmacyRegistry.objects.create(
-                    pharmacy=pharmacy,
+                    # Independent MoH record without platform link
+                    pharmacy=None,
+                    pharmacy_name=form.cleaned_data['pharmacy_name'],
+                    license_number=form.cleaned_data['license_number'],
+                    owner_name=form.cleaned_data.get('owner_name', ''),
+                    pharmacist_name=form.cleaned_data.get('pharmacist_name', ''),
+                    pharmacist_license=form.cleaned_data.get('pharmacist_license', ''),
+                    region=form.cleaned_data.get('region', 'addis_ababa'),
+                    city=form.cleaned_data.get('city', ''),
+                    woreda=form.cleaned_data.get('woreda', ''),
+                    kebele=form.cleaned_data.get('kebele', ''),
+                    address_detail=form.cleaned_data['address_detail'],
+                    license_type=form.cleaned_data.get('license_type', 'retail'),
+                    issue_date=form.cleaned_data.get('issue_date', timezone.now().date()),
+                    expiry_date=form.cleaned_data.get('expiry_date'),
+                    phone_number=form.cleaned_data['phone_number'],
+                    email=form.cleaned_data.get('email', ''),
+                    moh_officer=f"{moh_officer.user.get_full_name()}",
                     license_status=form.cleaned_data.get('status', 'active'),
                     verified_by=request.user,
                     verification_date=timezone.now(),
                     inspection_date=timezone.now().date(),
-                    compliance_score=100,  # Newly registered pharmacies start with full score
+                    compliance_score=100,
                     business_license_verified=True,
                     pharmacist_certificate_verified=True,
                     pharmacy_permit_verified=True,
