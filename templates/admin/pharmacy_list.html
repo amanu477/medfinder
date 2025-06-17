@@ -302,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Update the UI immediately to show new status
                 if (data.status_updated) {
-                    updatePharmacyStatusInTable(pharmacyId, data.status);
+                    updatePharmacyStatusInTable(pharmacyId, data.status, data.moh_status);
                     // Also schedule a page reload to ensure all data is fresh
                     setTimeout(() => location.reload(), 2000);
                 }
@@ -323,29 +323,55 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    function updatePharmacyStatusInTable(pharmacyId, newStatus) {
-        // Find the pharmacy row by ID and update the status badge
+    function updatePharmacyStatusInTable(pharmacyId, newStatus, mohStatus) {
+        // Find the pharmacy row by ID and update the status badges
         const row = document.querySelector(`tr[data-pharmacy-id="${pharmacyId}"]`);
         if (row) {
-            const statusBadge = row.querySelector('.badge');
-            if (statusBadge) {
-                // Update badge text and classes
-                statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-                statusBadge.className = 'badge';
-                
-                if (newStatus === 'verified') {
-                    statusBadge.classList.add('bg-success');
-                } else if (newStatus === 'rejected') {
-                    statusBadge.classList.add('bg-danger');
-                } else {
-                    statusBadge.classList.add('bg-warning');
+            const statusCells = row.querySelectorAll('td');
+            
+            // Update main verification status (4th column - index 3)
+            if (statusCells[3]) {
+                const statusBadge = statusCells[3].querySelector('.badge');
+                if (statusBadge) {
+                    statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+                    statusBadge.className = 'badge';
+                    
+                    if (newStatus === 'verified') {
+                        statusBadge.classList.add('bg-success');
+                        statusBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i>Verified';
+                    } else if (newStatus === 'rejected') {
+                        statusBadge.classList.add('bg-danger');
+                        statusBadge.innerHTML = '<i class="fas fa-times-circle me-1"></i>Rejected';
+                    } else {
+                        statusBadge.classList.add('bg-warning');
+                        statusBadge.innerHTML = '<i class="fas fa-clock me-1"></i>Pending';
+                    }
+                }
+            }
+            
+            // Update MoH verification status (5th column - index 4)
+            if (statusCells[4] && mohStatus) {
+                const mohBadge = statusCells[4].querySelector('.badge');
+                if (mohBadge) {
+                    mohBadge.className = 'badge';
+                    
+                    if (mohStatus === 'verified') {
+                        mohBadge.classList.add('bg-success');
+                        mohBadge.innerHTML = '<i class="fas fa-shield-alt me-1"></i>MoH Verified';
+                    } else if (mohStatus === 'failed') {
+                        mohBadge.classList.add('bg-danger');
+                        mohBadge.innerHTML = '<i class="fas fa-times-circle me-1"></i>MoH Failed';
+                    } else {
+                        mohBadge.classList.add('bg-secondary');
+                        mohBadge.innerHTML = '<i class="fas fa-clock me-1"></i>Pending';
+                    }
                 }
             }
             
             // Update action buttons if needed
             const actionButtons = row.querySelector('.btn-group');
             if (actionButtons && newStatus === 'verified') {
-                actionButtons.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> Verified</span>';
+                actionButtons.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> Verified via MoH</span>';
             }
         }
     }
