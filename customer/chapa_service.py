@@ -13,7 +13,7 @@ class ChapaService:
     def __init__(self):
         # Use Chapa's test/sandbox environment for development
         self.base_url = "https://api.chapa.co/v1"
-        self.secret_key = getattr(settings, 'CHAPA_SECRET_KEY', 'CHASECK_TEST-')
+        self.secret_key = getattr(settings, 'CHAPA_SECRET_KEY', '')
         self.public_key = getattr(settings, 'CHAPA_PUBLIC_KEY', 'CHAPUBK_TEST-')
         self.test_mode = getattr(settings, 'CHAPA_TEST_MODE', True)
         

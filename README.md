@@ -70,4 +70,4 @@ This project is open-source and available for educational purposes.
 
 ## Authors
 
-Created as a demonstration project for a comprehensive Django web application.
+Created as a demonstration project for a comprehensive Django web application."# medfinder" 
