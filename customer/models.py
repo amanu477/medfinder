@@ -20,6 +20,46 @@ class Customer(models.Model):
     def __str__(self):
         return self.name
 
+class Cart(models.Model):
+    """Model for storing customer shopping cart"""
+    customer = models.OneToOneField(Customer, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Cart - {self.customer.name}"
+
+    def get_total_items(self):
+        """Get total number of items in the cart"""
+        return sum(item.quantity for item in self.cartitem_set.all())
+
+    def get_total_amount(self):
+        """Get total amount for all items in the cart"""
+        return sum(item.get_total_price() for item in self.cartitem_set.all())
+
+    def clear(self):
+        """Clear all items from the cart"""
+        self.cartitem_set.all().delete()
+
+class CartItem(models.Model):
+    """Model for storing individual items in a cart"""
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    medicine = models.ForeignKey('pharmacy.Medicine', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    prescription_image = models.ImageField(upload_to='cart_prescriptions/', blank=True, null=True)
+    ocr_validation_data = models.JSONField(blank=True, null=True)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['cart', 'medicine']
+
+    def __str__(self):
+        return f"{self.medicine.name} x {self.quantity}"
+
+    def get_total_price(self):
+        """Get total price for this item"""
+        return self.quantity * self.medicine.price
+
 class Order(models.Model):
     """Model for storing medicine orders"""
     STATUS_CHOICES = (

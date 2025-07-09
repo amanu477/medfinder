@@ -7,7 +7,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
-from .models import Customer, Prescription, Order, OrderItem, IncidentReport, AdminNotification, Payment
+from .models import Customer, Prescription, Order, OrderItem, Cart, CartItem, IncidentReport, AdminNotification, Payment
 from .chapa_service import ChapaService
 from .ocr_service import PrescriptionOCRService
 from pharmacy.models import Pharmacy, Medicine
@@ -1000,3 +1000,288 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
         logger.error(f"Error creating order: {str(e)}")
         messages.error(request, f'Error creating order: {str(e)}')
         return redirect('prescription_validation', medicine_id=medicine.id)
+
+@login_required
+def add_to_cart(request, medicine_id):
+    """Add medicine to cart after prescription validation"""
+    try:
+        customer = request.user.customer
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    
+    medicine = get_object_or_404(Medicine, id=medicine_id)
+    
+    if request.method == 'POST':
+        quantity = int(request.POST.get('quantity', 1))
+        prescription_uploaded = request.POST.get('prescription_uploaded')
+        
+        # Check if coming from prescription validation flow
+        if prescription_uploaded == 'true':
+            # Use data from session (already validated)
+            validation_data = request.session.get('prescription_validation')
+            prescription_image_data = request.session.get('prescription_image_data')
+            prescription_image_name = request.session.get('prescription_image_name')
+            
+            if validation_data and prescription_image_data:
+                ocr_result = validation_data.get('ocr_result')
+                
+                # Get or create cart
+                cart, created = Cart.objects.get_or_create(customer=customer)
+                
+                # Recreate prescription image file
+                from django.core.files.base import ContentFile
+                image_data = base64.b64decode(prescription_image_data)
+                prescription_image = ContentFile(image_data, name=prescription_image_name)
+                
+                # Check if medicine already in cart
+                cart_item, created = CartItem.objects.get_or_create(
+                    cart=cart,
+                    medicine=medicine,
+                    defaults={
+                        'quantity': quantity,
+                        'prescription_image': prescription_image,
+                        'ocr_validation_data': ocr_result
+                    }
+                )
+                
+                if not created:
+                    # Update existing cart item
+                    cart_item.quantity += quantity
+                    cart_item.prescription_image = prescription_image
+                    cart_item.ocr_validation_data = ocr_result
+                    cart_item.save()
+                    messages.success(request, f'Updated {medicine.name} quantity in cart.')
+                else:
+                    messages.success(request, f'Added {medicine.name} to cart.')
+                
+                return redirect('cart_view')
+            else:
+                messages.error(request, 'Please complete prescription validation first.')
+                return redirect('prescription_validation', medicine_id=medicine_id)
+        else:
+            # Direct add to cart (need to process prescription)
+            prescription_image = request.FILES.get('prescription_image')
+            
+            if not prescription_image:
+                messages.error(request, 'Please upload a prescription image.')
+                return redirect('prescription_validation', medicine_id=medicine_id)
+            
+            # Process OCR validation first
+            try:
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+                    for chunk in prescription_image.chunks():
+                        temp_file.write(chunk)
+                    temp_image_path = temp_file.name
+                
+                ocr_service = PrescriptionOCRService()
+                ocr_result = ocr_service.validate_medicine_name(
+                    medicine.name, 
+                    temp_image_path, 
+                    threshold=60
+                )
+                
+                os.unlink(temp_image_path)
+                
+                # Get or create cart
+                cart, created = Cart.objects.get_or_create(customer=customer)
+                
+                # Check if medicine already in cart
+                cart_item, created = CartItem.objects.get_or_create(
+                    cart=cart,
+                    medicine=medicine,
+                    defaults={
+                        'quantity': quantity,
+                        'prescription_image': prescription_image,
+                        'ocr_validation_data': ocr_result
+                    }
+                )
+                
+                if not created:
+                    # Update existing cart item
+                    cart_item.quantity += quantity
+                    cart_item.prescription_image = prescription_image
+                    cart_item.ocr_validation_data = ocr_result
+                    cart_item.save()
+                    messages.success(request, f'Updated {medicine.name} quantity in cart.')
+                else:
+                    messages.success(request, f'Added {medicine.name} to cart.')
+                
+                return redirect('cart_view')
+                
+            except Exception as e:
+                logger.error(f"Error adding to cart: {str(e)}")
+                messages.error(request, f'Error adding to cart: {str(e)}')
+                return redirect('prescription_validation', medicine_id=medicine_id)
+    
+    return redirect('prescription_validation', medicine_id=medicine_id)
+
+@login_required
+def cart_view(request):
+    """View shopping cart"""
+    try:
+        customer = request.user.customer
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    
+    cart, created = Cart.objects.get_or_create(customer=customer)
+    cart_items = cart.cartitem_set.all().select_related('medicine', 'medicine__pharmacy')
+    
+    # Group cart items by pharmacy
+    pharmacy_groups = {}
+    for item in cart_items:
+        pharmacy = item.medicine.pharmacy
+        if pharmacy not in pharmacy_groups:
+            pharmacy_groups[pharmacy] = []
+        pharmacy_groups[pharmacy].append(item)
+    
+    context = {
+        'cart': cart,
+        'cart_items': cart_items,
+        'pharmacy_groups': pharmacy_groups,
+        'total_items': cart.get_total_items(),
+        'total_amount': cart.get_total_amount(),
+    }
+    
+    return render(request, 'customer/cart.html', context)
+
+@login_required
+def update_cart_item(request, item_id):
+    """Update cart item quantity"""
+    try:
+        customer = request.user.customer
+        cart_item = get_object_or_404(CartItem, id=item_id, cart__customer=customer)
+        
+        if request.method == 'POST':
+            new_quantity = int(request.POST.get('quantity', 1))
+            
+            if new_quantity > 0:
+                if new_quantity <= cart_item.medicine.stock_quantity:
+                    cart_item.quantity = new_quantity
+                    cart_item.save()
+                    messages.success(request, f'Updated {cart_item.medicine.name} quantity.')
+                else:
+                    messages.error(request, f'Only {cart_item.medicine.stock_quantity} units available.')
+            else:
+                messages.error(request, 'Quantity must be greater than 0.')
+        
+        return redirect('cart_view')
+        
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    except Exception as e:
+        messages.error(request, f'Error updating cart: {str(e)}')
+        return redirect('cart_view')
+
+@login_required
+def remove_from_cart(request, item_id):
+    """Remove item from cart"""
+    try:
+        customer = request.user.customer
+        cart_item = get_object_or_404(CartItem, id=item_id, cart__customer=customer)
+        
+        medicine_name = cart_item.medicine.name
+        cart_item.delete()
+        
+        messages.success(request, f'Removed {medicine_name} from cart.')
+        return redirect('cart_view')
+        
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    except Exception as e:
+        messages.error(request, f'Error removing from cart: {str(e)}')
+        return redirect('cart_view')
+
+@login_required
+def clear_cart(request):
+    """Clear all items from cart"""
+    try:
+        customer = request.user.customer
+        cart = get_object_or_404(Cart, customer=customer)
+        
+        cart.clear()
+        messages.success(request, 'Cart cleared successfully.')
+        return redirect('cart_view')
+        
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    except Exception as e:
+        messages.error(request, f'Error clearing cart: {str(e)}')
+        return redirect('cart_view')
+
+@login_required
+def checkout_cart(request):
+    """Convert cart items to orders"""
+    try:
+        customer = request.user.customer
+        cart = get_object_or_404(Cart, customer=customer)
+        cart_items = cart.cartitem_set.all().select_related('medicine', 'medicine__pharmacy')
+        
+        if not cart_items.exists():
+            messages.error(request, 'Your cart is empty.')
+            return redirect('cart_view')
+        
+        # Group cart items by pharmacy to create separate orders
+        pharmacy_groups = {}
+        for item in cart_items:
+            pharmacy = item.medicine.pharmacy
+            if pharmacy not in pharmacy_groups:
+                pharmacy_groups[pharmacy] = []
+            pharmacy_groups[pharmacy].append(item)
+        
+        created_orders = []
+        
+        with transaction.atomic():
+            for pharmacy, items in pharmacy_groups.items():
+                # Calculate total for this pharmacy
+                total_amount = sum(item.get_total_price() for item in items)
+                
+                # Create order
+                order = Order.objects.create(
+                    customer=customer,
+                    pharmacy=pharmacy,
+                    total_amount=total_amount,
+                    status='pending',
+                    notes=f'Order created from cart - {len(items)} items'
+                )
+                
+                # Create order items
+                for cart_item in items:
+                    # Check stock availability
+                    if cart_item.quantity > cart_item.medicine.stock_quantity:
+                        raise Exception(f'Only {cart_item.medicine.stock_quantity} units of {cart_item.medicine.name} available.')
+                    
+                    OrderItem.objects.create(
+                        order=order,
+                        medicine=cart_item.medicine,
+                        quantity=cart_item.quantity,
+                        price=cart_item.medicine.price
+                    )
+                    
+                    # Update stock
+                    cart_item.medicine.stock_quantity -= cart_item.quantity
+                    cart_item.medicine.save()
+                
+                created_orders.append(order)
+            
+            # Clear cart after successful order creation
+            cart.clear()
+        
+        if len(created_orders) == 1:
+            messages.success(request, f'Order #{created_orders[0].id} created successfully!')
+            return redirect('order_detail', order_id=created_orders[0].id)
+        else:
+            messages.success(request, f'Created {len(created_orders)} orders successfully!')
+            return redirect('order_history')
+            
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    except Exception as e:
+        logger.error(f"Error during checkout: {str(e)}")
+        messages.error(request, f'Error during checkout: {str(e)}')
+        return redirect('cart_view')

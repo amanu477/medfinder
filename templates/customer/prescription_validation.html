@@ -173,12 +173,23 @@
                             </button>
                         </form>
                         
-                        <form method="post" action="{% url 'confirm_order_with_prescription' medicine.id %}" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" name="action" value="confirm_order" class="btn btn-success">
-                                <i class="fas fa-shopping-cart"></i> Proceed to Order
-                            </button>
-                        </form>
+                        <div class="d-flex gap-2">
+                            <form method="post" action="{% url 'add_to_cart' medicine.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="quantity" value="{{ quantity }}">
+                                <input type="hidden" name="prescription_uploaded" value="true">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-cart-plus"></i> Add to Cart
+                                </button>
+                            </form>
+                            
+                            <form method="post" action="{% url 'confirm_order_with_prescription' medicine.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" name="action" value="confirm_order" class="btn btn-success">
+                                    <i class="fas fa-shopping-cart"></i> Order Now
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

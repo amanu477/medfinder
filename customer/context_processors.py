@@ -2,7 +2,7 @@
 Context processors for customer app
 """
 from django.contrib.auth.models import User
-from .models import AdminNotification
+from .models import AdminNotification, Cart
 
 
 def notification_context(request):
@@ -62,5 +62,30 @@ def moh_context(request):
         # Explicitly set to False for non-MoH pages
         context['is_moh_authenticated'] = False
         context['moh_officer'] = None
+    
+    return context
+
+
+def cart_context(request):
+    """
+    Add cart context for authenticated customers
+    """
+    context = {
+        'cart_item_count': 0,
+        'cart_total': 0,
+    }
+    
+    if request.user.is_authenticated:
+        try:
+            # Check if user has customer profile
+            customer = request.user.customer
+            cart = Cart.objects.filter(customer=customer).first()
+            
+            if cart:
+                context['cart_item_count'] = cart.get_total_items()
+                context['cart_total'] = cart.get_total_amount()
+        except:
+            # Handle case where user doesn't have customer profile or other errors
+            pass
     
     return context

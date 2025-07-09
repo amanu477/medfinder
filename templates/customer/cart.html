@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Shopping Cart{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-shopping-cart"></i> Shopping Cart</h5>
+                    <span class="badge bg-primary">{{ total_items }} item{{ total_items|pluralize }}</span>
+                </div>
+                <div class="card-body">
+                    {% if cart_items %}
+                        {% for pharmacy, items in pharmacy_groups.items %}
+                            <div class="pharmacy-group mb-4">
+                                <h6 class="text-primary border-bottom pb-2">
+                                    <i class="fas fa-store"></i> {{ pharmacy.name }}
+                                </h6>
+                                <div class="row">
+                                    {% for item in items %}
+                                    <div class="col-12 mb-3">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="row align-items-center">
+                                                    <div class="col-md-2">
+                                                        {% if item.medicine.medicine_image %}
+                                                            <img src="{{ item.medicine.medicine_image.url }}" class="img-fluid rounded" alt="{{ item.medicine.name }}">
+                                                        {% else %}
+                                                            <div class="d-flex align-items-center justify-content-center bg-light rounded" style="height: 60px;">
+                                                                <i class="fas fa-pills fa-2x text-muted"></i>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <h6 class="mb-1">{{ item.medicine.name }}</h6>
+                                                        <p class="text-muted small mb-1">{{ item.medicine.description|truncatewords:10 }}</p>
+                                                        <span class="badge bg-success">{{ item.medicine.price }} ETB</span>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <form method="post" action="{% url 'update_cart_item' item.id %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <div class="input-group input-group-sm">
+                                                                <input type="number" name="quantity" value="{{ item.quantity }}" 
+                                                                       min="1" max="{{ item.medicine.stock_quantity }}" 
+                                                                       class="form-control" style="width: 70px;">
+                                                                <button type="submit" class="btn btn-outline-secondary">
+                                                                    <i class="fas fa-sync"></i>
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <strong>{{ item.get_total_price }} ETB</strong>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                                <i class="fas fa-ellipsis-v"></i>
+                                                            </button>
+                                                            <ul class="dropdown-menu">
+                                                                <li>
+                                                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#prescriptionModal{{ item.id }}">
+                                                                        <i class="fas fa-prescription"></i> View Prescription
+                                                                    </a>
+                                                                </li>
+                                                                <li>
+                                                                    <a class="dropdown-item text-danger" href="{% url 'remove_from_cart' item.id %}" onclick="return confirm('Remove this item from cart?')">
+                                                                        <i class="fas fa-trash"></i> Remove
+                                                                    </a>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <!-- OCR Validation Status -->
+                                                {% if item.ocr_validation_data %}
+                                                    <div class="mt-2">
+                                                        {% if item.ocr_validation_data.is_valid %}
+                                                            <span class="badge bg-success">
+                                                                <i class="fas fa-check-circle"></i> Prescription Validated ({{ item.ocr_validation_data.confidence }}%)
+                                                            </span>
+                                                        {% else %}
+                                                            <span class="badge bg-warning">
+                                                                <i class="fas fa-exclamation-triangle"></i> Prescription Warning ({{ item.ocr_validation_data.confidence }}%)
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Prescription Modal -->
+                                    <div class="modal fade" id="prescriptionModal{{ item.id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Prescription - {{ item.medicine.name }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    {% if item.prescription_image %}
+                                                        <img src="{{ item.prescription_image.url }}" class="img-fluid" alt="Prescription">
+                                                    {% else %}
+                                                        <p>No prescription image available.</p>
+                                                    {% endif %}
+                                                    
+                                                    {% if item.ocr_validation_data %}
+                                                        <div class="mt-3">
+                                                            <h6>OCR Validation Results:</h6>
+                                                            <p><strong>Confidence:</strong> {{ item.ocr_validation_data.confidence }}%</p>
+                                                            <p><strong>Valid:</strong> {{ item.ocr_validation_data.is_valid|yesno:"Yes,No" }}</p>
+                                                            {% if item.ocr_validation_data.extracted_text %}
+                                                                <p><strong>Extracted Text:</strong></p>
+                                                                <div class="bg-light p-2 rounded">
+                                                                    <small>{{ item.ocr_validation_data.extracted_text|truncatewords:50 }}</small>
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'clear_cart' %}" class="btn btn-outline-danger" onclick="return confirm('Clear entire cart?')">
+                                <i class="fas fa-trash"></i> Clear Cart
+                            </a>
+                            <a href="{% url 'home' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-plus"></i> Continue Shopping
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                            <h4>Your cart is empty</h4>
+                            <p class="text-muted">Start shopping to add medicines to your cart</p>
+                            <a href="{% url 'home' %}" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Browse Medicines
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card sticky-top">
+                <div class="card-header">
+                    <h6><i class="fas fa-receipt"></i> Order Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Items ({{ total_items }}):</span>
+                        <span>{{ total_amount }} ETB</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <strong>Total:</strong>
+                        <strong>{{ total_amount }} ETB</strong>
+                    </div>
+                    
+                    {% if cart_items %}
+                        <div class="d-grid">
+                            <a href="{% url 'checkout_cart' %}" class="btn btn-success">
+                                <i class="fas fa-credit-card"></i> Proceed to Checkout
+                            </a>
+                        </div>
+                        
+                        <div class="alert alert-info mt-3">
+                            <small>
+                                <i class="fas fa-info-circle"></i>
+                                Orders will be grouped by pharmacy. You may receive multiple orders if medicines are from different pharmacies.
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.pharmacy-group {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f8f9fa;
+}
+
+.sticky-top {
+    top: 20px;
+}
+
+.input-group-sm .form-control {
+    font-size: 0.875rem;
+}
+
+.medicine-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .sticky-top {
+        position: relative !important;
+        top: 0 !important;
+    }
+}
+</style>
+{% endblock %}

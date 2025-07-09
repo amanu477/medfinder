@@ -62,6 +62,16 @@
                         <a href="{% url 'pharmacy_profile' %}" class="btn btn-outline-primary me-2">
                             <i class="fas fa-user-cog me-1"></i> Profile
                         </a>
+                        {% else %}
+                        <!-- Cart for customers -->
+                        <a href="{% url 'cart_view' %}" class="btn btn-outline-primary me-2 position-relative">
+                            <i class="fas fa-shopping-cart me-1"></i> Cart
+                            {% if cart_item_count > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ cart_item_count }}
+                                </span>
+                            {% endif %}
+                        </a>
                         {% endif %}
                         <a href="{% url 'logout' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-sign-out-alt me-1"></i> Logout

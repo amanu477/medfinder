@@ -94,6 +94,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'customer.context_processors.notification_context',
                 'customer.context_processors.moh_context',
+                'customer.context_processors.cart_context',
             ],
         },
     },
