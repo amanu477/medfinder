@@ -22,7 +22,7 @@ urlpatterns = [
     path('customer/', include('customer.urls')),
     
     # Unified Authentication System
-    path('login/', customer_views.login_selector, name='login'),
+    path('login/', customer_views.unified_login, name='login'),
     path('logout/', customer_views.customer_logout, name='logout'),
     
     # Pharmacy Routes

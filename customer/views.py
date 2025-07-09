@@ -466,7 +466,7 @@ def unified_login(request):
     
     # Pass the next parameter to the template
     context = {'next': next_url} if next_url else {}
-    return render(request, 'customer/unified_login.html', context)
+    return render(request, 'customer/login.html', context)
 
 def quick_report_incident(request):
     """Quick incident reporting form for urgent issues"""
