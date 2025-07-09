@@ -66,6 +66,14 @@ The platform operates four distinct user types with separate authentication flow
 ### Payment Integration
 The system includes Chapa payment service integration for Ethiopian Birr transactions, with comprehensive payment tracking and receipt generation.
 
+### OCR Integration
+The platform now includes advanced OCR (Optical Character Recognition) functionality:
+- **Technology**: Tesseract OCR with PIL image processing
+- **Purpose**: Validates manually entered medicine names against uploaded prescriptions
+- **Features**: Automatic text extraction, medicine name recognition, fuzzy matching
+- **Validation**: 60% confidence threshold with user-friendly warning messages
+- **Implementation**: Integrated into order placement process with real-time validation
+
 ## External Dependencies
 
 ### Required Python Packages
@@ -76,6 +84,10 @@ The system includes Chapa payment service integration for Ethiopian Birr transac
 - dj-database-url (database configuration)
 - gunicorn (WSGI server)
 - PyJWT (JSON Web Tokens)
+- pytesseract (OCR text extraction)
+- opencv-python (image processing)
+- fuzzywuzzy (string matching)
+- python-levenshtein (string similarity)
 
 ### Third-Party Services
 - **Chapa Payment Gateway**: For processing Ethiopian Birr transactions

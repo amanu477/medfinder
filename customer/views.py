@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 from .models import Customer, Prescription, Order, OrderItem, IncidentReport, AdminNotification, Payment
 from .chapa_service import ChapaService
+from .ocr_service import PrescriptionOCRService
 from pharmacy.models import Pharmacy, Medicine
 from moh.models import MoHOfficer
 from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm, QuickIncidentForm
@@ -265,6 +266,65 @@ def place_order(request, medicine_id):
                     'medicine': medicine,
                     'form': form
                 })
+            
+            # OCR Validation for prescription images
+            ocr_validation_passed = True
+            ocr_result = None
+            
+            if prescription_image:
+                try:
+                    # Save the uploaded image temporarily for OCR processing
+                    import tempfile
+                    import os
+                    
+                    # Create temporary file for OCR processing
+                    with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+                        for chunk in prescription_image.chunks():
+                            temp_file.write(chunk)
+                        temp_image_path = temp_file.name
+                    
+                    # Initialize OCR service
+                    ocr_service = PrescriptionOCRService()
+                    
+                    # Validate medicine name against prescription
+                    ocr_result = ocr_service.validate_medicine_name(
+                        medicine.name, 
+                        temp_image_path, 
+                        threshold=60  # Lower threshold for flexibility
+                    )
+                    
+                    # Clean up temporary file
+                    os.unlink(temp_image_path)
+                    
+                    # Check validation result
+                    if not ocr_result['is_valid']:
+                        ocr_validation_passed = False
+                        
+                        if ocr_result.get('confidence', 0) > 0:
+                            messages.warning(request, 
+                                f'OCR Warning: The medicine "{medicine.name}" was not clearly found in the prescription. '
+                                f'Best match: "{ocr_result.get("best_match", "None")}" with {ocr_result.get("confidence", 0)}% confidence. '
+                                f'Please verify the prescription matches the selected medicine.'
+                            )
+                        else:
+                            messages.warning(request, 
+                                f'OCR Warning: Could not verify "{medicine.name}" in the uploaded prescription. '
+                                f'Please ensure the prescription image is clear and contains the correct medicine name.'
+                            )
+                        
+                        # Still allow order but with warning
+                        ocr_validation_passed = True
+                    else:
+                        messages.success(request, 
+                            f'✓ OCR Verification: Medicine "{medicine.name}" confirmed in prescription '
+                            f'(Match: "{ocr_result.get("best_match")}" with {ocr_result.get("confidence")}% confidence)'
+                        )
+                
+                except Exception as e:
+                    messages.warning(request, 
+                        f'OCR processing encountered an issue: {str(e)}. Order will proceed without OCR validation.'
+                    )
+                    ocr_validation_passed = True
             
             # Create order
             order = Order.objects.create(
