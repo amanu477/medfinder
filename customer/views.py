@@ -447,20 +447,35 @@ def unified_login(request):
             # Redirect based on user type
             if user.is_superuser:
                 messages.success(request, f'Welcome back, {user.username}!')
-                return redirect('padmin:admin_dashboard')
+                return redirect('/platform-admin/')
             elif hasattr(user, 'customer'):
                 messages.success(request, f'Welcome back, {user.customer.name}!')
                 return redirect('customer_dashboard')
-            elif hasattr(user, 'pharmacy'):
-                messages.success(request, f'Welcome back, {user.pharmacy.name}!')
-                return redirect('pharmacy_dashboard')
             else:
+                # Try to get pharmacy
+                try:
+                    from pharmacy.models import Pharmacy
+                    pharmacy = Pharmacy.objects.get(user=user)
+                    messages.success(request, f'Welcome back, {pharmacy.name}!')
+                    return redirect('pharmacy_dashboard')
+                except Pharmacy.DoesNotExist:
+                    pass
+                
+                # Try to get MoH officer
+                try:
+                    moh_officer = MoHOfficer.objects.get(user=user, is_active=True)
+                    messages.success(request, f'Welcome back, {moh_officer.user.get_full_name()}!')
+                    return redirect('moh_dashboard')
+                except MoHOfficer.DoesNotExist:
+                    pass
+                
+                # Default fallback
                 messages.success(request, f'Welcome back, {user.username}!')
-            
-            # Handle next parameter
-            if next_url:
-                return redirect(next_url)
-            return redirect('home')
+                
+                # Handle next parameter
+                if next_url:
+                    return redirect(next_url)
+                return redirect('home')
         else:
             messages.error(request, 'Invalid username or password.')
     
