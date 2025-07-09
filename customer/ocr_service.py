@@ -40,8 +40,19 @@ class PrescriptionOCRService:
             # Open image using PIL
             img = Image.open(image_path)
             
-            # Convert to grayscale
+            # Convert to RGB first, then to grayscale
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
             img = img.convert('L')
+            
+            # Resize image if too small (improves OCR accuracy)
+            width, height = img.size
+            if width < 300 or height < 300:
+                # Scale up small images
+                scale = max(300/width, 300/height)
+                new_width = int(width * scale)
+                new_height = int(height * scale)
+                img = img.resize((new_width, new_height), Image.LANCZOS)
             
             # Enhance contrast
             enhancer = ImageEnhance.Contrast(img)
@@ -53,6 +64,9 @@ class PrescriptionOCRService:
             
             # Apply filter to reduce noise
             img = img.filter(ImageFilter.MedianFilter(size=3))
+            
+            # Apply edge enhancement for better text detection
+            img = img.filter(ImageFilter.EDGE_ENHANCE)
             
             return img
             
@@ -71,11 +85,25 @@ class PrescriptionOCRService:
                 # Try with original image if preprocessing fails
                 processed_img = Image.open(image_path)
             
-            # Configure Tesseract for better accuracy
-            custom_config = r'--oem 3 --psm 6'
+            # Configure Tesseract for better accuracy with multiple PSM modes
+            custom_configs = [
+                r'--oem 3 --psm 6',  # Uniform block of text
+                r'--oem 3 --psm 8',  # Single word
+                r'--oem 3 --psm 13', # Raw line
+                r'--oem 3 --psm 11', # Sparse text
+                r'--oem 3 --psm 12', # Sparse text with OSD
+            ]
             
-            # Extract text using pytesseract
-            text = pytesseract.image_to_string(processed_img, config=custom_config)
+            # Try multiple OCR configurations to get best results
+            text = ""
+            for config in custom_configs:
+                try:
+                    current_text = pytesseract.image_to_string(processed_img, config=config)
+                    if len(current_text) > len(text):
+                        text = current_text
+                except Exception as e:
+                    logger.warning(f"OCR config {config} failed: {str(e)}")
+                    continue
             
             # Clean up the extracted text
             text = self.clean_extracted_text(text)
@@ -101,6 +129,32 @@ class PrescriptionOCRService:
         text = re.sub(r'[^\w\s\.,\-\(\)\/:]', '', text)
         
         return text
+    
+    def apply_ocr_corrections(self, text):
+        """
+        Apply common OCR corrections to improve text matching
+        """
+        if not text:
+            return text
+            
+        # Common OCR character corrections
+        corrections = [
+            ('0', 'o'),  # Zero to lowercase o
+            ('1', 'l'),  # One to lowercase l
+            ('5', 'S'),  # Five to uppercase S
+            ('8', 'B'),  # Eight to uppercase B
+            ('6', 'G'),  # Six to uppercase G
+            ('rn', 'm'), # Common OCR error: rn -> m
+            ('nn', 'm'), # Common OCR error: nn -> m
+            ('|', 'l'),  # Pipe to lowercase l
+            ('I', 'l'),  # Uppercase I to lowercase l
+        ]
+        
+        corrected_text = text
+        for wrong, correct in corrections:
+            corrected_text = corrected_text.replace(wrong, correct)
+            
+        return corrected_text
     
     def extract_medicine_names(self, text):
         """
@@ -159,30 +213,26 @@ class PrescriptionOCRService:
         # Remove duplicates and return
         return list(set(potential_medicines))
     
-    def validate_medicine_name(self, manual_medicine_name, prescription_image_path, threshold=70):
+    def validate_medicine_name(self, manual_medicine_name, prescription_text_or_path, threshold=60):
         """
         Validate if the manually entered medicine name matches any medicine found in the prescription
         
         Args:
             manual_medicine_name (str): Medicine name entered manually
-            prescription_image_path (str): Path to the prescription image
+            prescription_text_or_path (str): Either prescription text or path to prescription image
             threshold (int): Similarity threshold (0-100)
         
         Returns:
             dict: Validation result with match status and details
         """
         try:
-            if not os.path.exists(prescription_image_path):
-                return {
-                    'is_valid': False,
-                    'error': 'Prescription image not found',
-                    'confidence': 0,
-                    'extracted_medicines': [],
-                    'best_match': None
-                }
-            
-            # Extract text from prescription image
-            extracted_text = self.extract_text_from_image(prescription_image_path)
+            # Determine if input is file path or text
+            if os.path.exists(prescription_text_or_path):
+                # It's a file path
+                extracted_text = self.extract_text_from_image(prescription_text_or_path)
+            else:
+                # It's text content
+                extracted_text = prescription_text_or_path
             
             if not extracted_text:
                 return {
@@ -210,15 +260,46 @@ class PrescriptionOCRService:
             manual_name_clean = re.sub(r'\d+', '', manual_medicine_name).strip()
             manual_name_clean = re.sub(r'mg|ml|gm|mcg', '', manual_name_clean, flags=re.IGNORECASE).strip()
             
-            # Find the best match using fuzzy string matching
-            best_match = process.extractOne(
-                manual_name_clean, 
-                extracted_medicines,
-                scorer=fuzz.token_sort_ratio
-            )
+            # Find the best match using multiple fuzzy matching strategies
+            best_match = None
+            best_confidence = 0
+            
+            # Try different fuzzy matching strategies
+            strategies = [
+                fuzz.token_sort_ratio,
+                fuzz.token_set_ratio,
+                fuzz.partial_ratio,
+                fuzz.ratio
+            ]
+            
+            for strategy in strategies:
+                match = process.extractOne(
+                    manual_name_clean, 
+                    extracted_medicines,
+                    scorer=strategy
+                )
+                if match and match[1] > best_confidence:
+                    best_match = match
+                    best_confidence = match[1]
+                    
+            # Also try matching against the full prescription text for better results
+            if not best_match or best_confidence < threshold:
+                # Try direct text matching with common OCR corrections
+                corrected_text = self.apply_ocr_corrections(extracted_text)
+                text_match = process.extractOne(
+                    manual_name_clean,
+                    [corrected_text],
+                    scorer=fuzz.partial_ratio
+                )
+                if text_match and text_match[1] > best_confidence:
+                    best_match = text_match
+                    best_confidence = text_match[1]
             
             if best_match:
                 match_name, confidence = best_match
+                # Use the better confidence score
+                if best_confidence > confidence:
+                    confidence = best_confidence
                 is_valid = confidence >= threshold
                 
                 return {
@@ -250,6 +331,24 @@ class PrescriptionOCRService:
                 'extracted_medicines': [],
                 'best_match': None
             }
+    
+    def get_medicine_confidence(self, manual_medicine_name, prescription_text_or_path):
+        """
+        Simple method to get confidence score for a medicine name
+        
+        Args:
+            manual_medicine_name (str): Medicine name entered manually
+            prescription_text_or_path (str): Either prescription text or path to prescription image
+        
+        Returns:
+            float: Confidence score (0-100)
+        """
+        try:
+            result = self.validate_medicine_name(manual_medicine_name, prescription_text_or_path)
+            return result.get('confidence', 0)
+        except Exception as e:
+            logger.error(f"Error getting medicine confidence: {str(e)}")
+            return 0
     
     def batch_validate_medicines(self, medicine_list, prescription_image_path, threshold=70):
         """
