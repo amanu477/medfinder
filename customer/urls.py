@@ -44,4 +44,5 @@ urlpatterns = [
     path('cart/remove/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('cart/clear/', views.clear_cart, name='clear_cart'),
     path('cart/checkout/', views.checkout_cart, name='checkout_cart'),
+    path('cart/bulk-ocr/', views.bulk_ocr_verification, name='bulk_ocr_verification'),
 ]

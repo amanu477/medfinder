@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}Bulk OCR Verification{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-prescription"></i> Bulk OCR Verification</h5>
+                    <p class="mb-0 text-muted">Upload one prescription image to validate all medicines in your cart</p>
+                </div>
+                <div class="card-body">
+                    <!-- Medicine List -->
+                    <div class="mb-4">
+                        <h6>Medicines in Cart ({{ total_items }})</h6>
+                        <div class="row">
+                            {% for item in cart_items %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-left-primary">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 me-3">
+                                                {% if item.medicine.medicine_image %}
+                                                    <img src="{{ item.medicine.medicine_image.url }}" 
+                                                         class="rounded" style="width: 50px; height: 50px; object-fit: cover;" 
+                                                         alt="{{ item.medicine.name }}">
+                                                {% else %}
+                                                    <div class="d-flex align-items-center justify-content-center bg-light rounded" style="width: 50px; height: 50px;">
+                                                        <i class="fas fa-pills text-muted"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">{{ item.medicine.name }}</h6>
+                                                <p class="text-muted small mb-1">Qty: {{ item.quantity }}</p>
+                                                <p class="text-success mb-0">{{ item.get_total_price }} ETB</p>
+                                                
+                                                <!-- OCR Status -->
+                                                {% if item.ocr_validation_data %}
+                                                    {% if item.ocr_validation_data.is_valid %}
+                                                        <span class="badge bg-success">
+                                                            <i class="fas fa-check"></i> Validated ({{ item.ocr_validation_data.confidence }}%)
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">
+                                                            <i class="fas fa-exclamation-triangle"></i> Low Confidence ({{ item.ocr_validation_data.confidence }}%)
+                                                        </span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-secondary">
+                                                        <i class="fas fa-clock"></i> Not Validated
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Form -->
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6><i class="fas fa-upload"></i> Upload Prescription Image</h6>
+                            <p class="text-muted small mb-3">
+                                Upload a single prescription image that contains all the medicines in your cart. 
+                                Our OCR system will automatically check each medicine against your prescription.
+                            </p>
+                            
+                            <form method="post" enctype="multipart/form-data" id="bulk-ocr-form">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                    <label for="prescription_image" class="form-label">Prescription Image</label>
+                                    <input type="file" class="form-control" id="prescription_image" name="prescription_image" 
+                                           accept="image/*" required>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle"></i> 
+                                        Accepted formats: JPG, PNG, JPEG. Maximum file size: 10MB
+                                    </div>
+                                </div>
+                                
+                                <!-- Image Preview -->
+                                <div class="mb-3" id="image-preview" style="display: none;">
+                                    <h6>Image Preview:</h6>
+                                    <img id="preview-img" class="img-fluid rounded border" style="max-width: 300px;">
+                                </div>
+                                
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search"></i> Validate All Medicines
+                                    </button>
+                                    <a href="{% url 'cart_view' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left"></i> Back to Cart
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    <div class="alert alert-info mt-4">
+                        <h6><i class="fas fa-lightbulb"></i> Tips for better OCR results:</h6>
+                        <ul class="mb-0">
+                            <li>Ensure the prescription image is clear and well-lit</li>
+                            <li>Make sure medicine names are clearly visible and not blurry</li>
+                            <li>Avoid shadows or glare on the prescription</li>
+                            <li>If validation fails, you can try a different image or individual validation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('prescription_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('image-preview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('image-preview').style.display = 'none';
+    }
+});
+
+// Form submission with loading state
+document.getElementById('bulk-ocr-form').addEventListener('submit', function(e) {
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    submitBtn.disabled = true;
+    
+    // Re-enable button after 30 seconds as fallback
+    setTimeout(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }, 30000);
+});
+</script>
+
+<style>
+.border-left-primary {
+    border-left: 3px solid #007bff;
+}
+
+.card-body {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+#image-preview {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+</style>
+{% endblock %}

@@ -74,6 +74,15 @@ The platform now includes advanced OCR (Optical Character Recognition) functiona
 - **Validation**: 60% confidence threshold with user-friendly warning messages
 - **Implementation**: Integrated into order placement process with real-time validation
 
+### Shopping Cart System
+The platform includes a comprehensive shopping cart system:
+- **Models**: Cart and CartItem with prescription validation data storage
+- **Features**: Add/remove items, update quantities, prescription validation per item
+- **Bulk OCR**: Single prescription image validates all cart medicines simultaneously
+- **Workflow**: Medicine search → Add to cart → Bulk OCR verification → Checkout
+- **Multi-pharmacy**: Automatic order grouping by pharmacy during checkout
+- **Navigation**: Cart icon with live item count in main navigation
+
 ## External Dependencies
 
 ### Required Python Packages

@@ -172,7 +172,10 @@
                     </div>
                     
                     {% if cart_items %}
-                        <div class="d-grid">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'bulk_ocr_verification' %}" class="btn btn-primary">
+                                <i class="fas fa-file-prescription"></i> Verify All Prescriptions
+                            </a>
                             <a href="{% url 'checkout_cart' %}" class="btn btn-success">
                                 <i class="fas fa-credit-card"></i> Proceed to Checkout
                             </a>

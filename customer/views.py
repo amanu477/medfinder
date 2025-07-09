@@ -1003,7 +1003,7 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
 
 @login_required
 def add_to_cart(request, medicine_id):
-    """Add medicine to cart after prescription validation"""
+    """Add medicine to cart with or without prescription"""
     try:
         customer = request.user.customer
     except Customer.DoesNotExist:
@@ -1015,6 +1015,10 @@ def add_to_cart(request, medicine_id):
     if request.method == 'POST':
         quantity = int(request.POST.get('quantity', 1))
         prescription_uploaded = request.POST.get('prescription_uploaded')
+        skip_prescription = request.POST.get('skip_prescription')
+        
+        # Get or create cart
+        cart, created = Cart.objects.get_or_create(customer=customer)
         
         # Check if coming from prescription validation flow
         if prescription_uploaded == 'true':
@@ -1025,9 +1029,6 @@ def add_to_cart(request, medicine_id):
             
             if validation_data and prescription_image_data:
                 ocr_result = validation_data.get('ocr_result')
-                
-                # Get or create cart
-                cart, created = Cart.objects.get_or_create(customer=customer)
                 
                 # Recreate prescription image file
                 from django.core.files.base import ContentFile
@@ -1059,6 +1060,29 @@ def add_to_cart(request, medicine_id):
             else:
                 messages.error(request, 'Please complete prescription validation first.')
                 return redirect('prescription_validation', medicine_id=medicine_id)
+        
+        elif skip_prescription == 'true':
+            # Add to cart without prescription (for bulk OCR later)
+            cart_item, created = CartItem.objects.get_or_create(
+                cart=cart,
+                medicine=medicine,
+                defaults={
+                    'quantity': quantity,
+                    'prescription_image': None,
+                    'ocr_validation_data': None
+                }
+            )
+            
+            if not created:
+                # Update existing cart item
+                cart_item.quantity += quantity
+                cart_item.save()
+                messages.success(request, f'Updated {medicine.name} quantity in cart.')
+            else:
+                messages.success(request, f'Added {medicine.name} to cart. You can upload prescriptions later.')
+            
+            return redirect('cart_view')
+        
         else:
             # Direct add to cart (need to process prescription)
             prescription_image = request.FILES.get('prescription_image')
@@ -1082,9 +1106,6 @@ def add_to_cart(request, medicine_id):
                 )
                 
                 os.unlink(temp_image_path)
-                
-                # Get or create cart
-                cart, created = Cart.objects.get_or_create(customer=customer)
                 
                 # Check if medicine already in cart
                 cart_item, created = CartItem.objects.get_or_create(
@@ -1284,4 +1305,103 @@ def checkout_cart(request):
     except Exception as e:
         logger.error(f"Error during checkout: {str(e)}")
         messages.error(request, f'Error during checkout: {str(e)}')
+        return redirect('cart_view')
+
+@login_required
+def bulk_ocr_verification(request):
+    """Bulk OCR verification for all cart items"""
+    try:
+        customer = request.user.customer
+        cart = get_object_or_404(Cart, customer=customer)
+        cart_items = cart.cartitem_set.all().select_related('medicine')
+        
+        if not cart_items.exists():
+            messages.error(request, 'Your cart is empty.')
+            return redirect('cart_view')
+        
+        if request.method == 'POST':
+            prescription_image = request.FILES.get('prescription_image')
+            
+            if not prescription_image:
+                messages.error(request, 'Please upload a prescription image.')
+                return redirect('bulk_ocr_verification')
+            
+            # Save prescription image temporarily
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+                for chunk in prescription_image.chunks():
+                    temp_file.write(chunk)
+                temp_image_path = temp_file.name
+            
+            try:
+                ocr_service = PrescriptionOCRService()
+                validated_items = []
+                failed_items = []
+                
+                # Process each cart item
+                for cart_item in cart_items:
+                    try:
+                        ocr_result = ocr_service.validate_medicine_name(
+                            cart_item.medicine.name, 
+                            temp_image_path, 
+                            threshold=60
+                        )
+                        
+                        # Update cart item with OCR result
+                        cart_item.prescription_image = prescription_image
+                        cart_item.ocr_validation_data = ocr_result
+                        cart_item.save()
+                        
+                        if ocr_result.get('is_valid', False):
+                            validated_items.append(cart_item.medicine.name)
+                        else:
+                            failed_items.append({
+                                'name': cart_item.medicine.name,
+                                'confidence': ocr_result.get('confidence', 0)
+                            })
+                    
+                    except Exception as e:
+                        logger.error(f"Error validating {cart_item.medicine.name}: {str(e)}")
+                        failed_items.append({
+                            'name': cart_item.medicine.name,
+                            'error': str(e)
+                        })
+                
+                # Clean up temporary file
+                os.unlink(temp_image_path)
+                
+                # Show results
+                if validated_items:
+                    messages.success(request, f'Successfully validated: {", ".join(validated_items)}')
+                
+                if failed_items:
+                    failed_names = [item['name'] for item in failed_items]
+                    messages.warning(request, f'Low confidence validation for: {", ".join(failed_names)}. Please review these items.')
+                
+                return redirect('cart_view')
+                
+            except Exception as e:
+                os.unlink(temp_image_path)
+                logger.error(f"Error during bulk OCR: {str(e)}")
+                messages.error(request, f'Error during bulk OCR verification: {str(e)}')
+                return redirect('bulk_ocr_verification')
+        
+        # Get items without prescription validation
+        items_without_prescription = cart_items.filter(prescription_image__isnull=True)
+        items_with_prescription = cart_items.filter(prescription_image__isnull=False)
+        
+        context = {
+            'cart_items': cart_items,
+            'items_without_prescription': items_without_prescription,
+            'items_with_prescription': items_with_prescription,
+            'total_items': cart_items.count(),
+        }
+        
+        return render(request, 'customer/bulk_ocr_verification.html', context)
+        
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    except Exception as e:
+        logger.error(f"Error in bulk OCR verification: {str(e)}")
+        messages.error(request, f'Error: {str(e)}')
         return redirect('cart_view')
