@@ -22,17 +22,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-v6srk55iwb3zde16bg0b8$7!j@0gosr5t$y@489&d&%h&=jkv)'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-v6srk55iwb3zde16bg0b8$7!j@0gosr5t$y@489&d&%h&=jkv)')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 # Allow all hosts for development - use environment variable approach
-import os
-if os.environ.get('DJANGO_DEVELOPMENT'):
-    ALLOWED_HOSTS = ['*']
-else:
-    ALLOWED_HOSTS = ['*']  # Permissive for all environments
+ALLOWED_HOSTS = ['*']  # Permissive for Replit environment
 
 # CSRF settings for development
 CSRF_COOKIE_SECURE = False
@@ -40,6 +36,8 @@ CSRF_COOKIE_SAMESITE = None
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5000',
     'http://127.0.0.1:5000',
+    'https://*.replit.app',
+    'https://*.replit.dev',
 ]
 
 # Disable CSRF for development
@@ -107,26 +105,25 @@ WSGI_APPLICATION = 'pharmacy_finder.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pharmacy_platform',
-        'USER': 'pharmacy_user',
-        'PASSWORD': 'your_database_password',  # Change this to your actual password
-        'HOST': 'localhost',
-        'PORT': '5432',
-        'CONN_MAX_AGE': 600,
-    },
-    'moh_db': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'pharmacy_platform_moh',
-        'USER': 'pharmacy_user',
-        'PASSWORD': 'your_database_password',  # Change this to your actual password
-        'HOST': 'localhost',
-        'PORT': '5432',
-        'CONN_MAX_AGE': 600,
+# Use PostgreSQL from Replit environment
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600),
+        'moh_db': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-}
+else:
+    # Fallback for local development
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        },
+        'moh_db': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'moh_db.sqlite3',
+        }
+    }
 
 # Note: Database separation implemented at application level
 
