@@ -13,6 +13,9 @@ urlpatterns = [
     
     # Order management
     path('order/<int:medicine_id>/', views.place_order, name='place_order'),
+    # New prescription validation flow
+    path('prescription-validation/<int:medicine_id>/', views.prescription_validation_view, name='prescription_validation'),
+    path('confirm-order/<int:medicine_id>/', views.confirm_order_with_prescription, name='confirm_order_with_prescription'),
     path('orders/', views.order_history, name='order_history'),
     path('order/detail/<int:order_id>/', views.order_detail, name='order_detail'),
     path('order/cancel/<int:order_id>/', views.cancel_order, name='cancel_order'),
