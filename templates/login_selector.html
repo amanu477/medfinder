@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - MedFinder{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="text-center mb-5">
+                <h2>Login to MedFinder</h2>
+                <p class="lead">Choose your account type to access your dashboard</p>
+            </div>
+            
+            <div class="row">
+                <!-- Customer Login -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-user fa-3x text-primary mb-3"></i>
+                            <h4>Customer Login</h4>
+                            <p class="text-muted">Access your account to search medicines and manage orders</p>
+                            <a href="{% url 'customer_login' %}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Customer Login
+                            </a>
+                            <div class="mt-2">
+                                <small><a href="{% url 'customer_register' %}">Don't have an account? Register</a></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pharmacy Login -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-store fa-3x text-success mb-3"></i>
+                            <h4>Pharmacy Login</h4>
+                            <p class="text-muted">Manage your pharmacy inventory and process orders</p>
+                            <a href="{% url 'pharmacy_login' %}" class="btn btn-success btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Pharmacy Login
+                            </a>
+                            <div class="mt-2">
+                                <small><a href="{% url 'pharmacy_register' %}">Register your pharmacy</a></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-4">
+                <!-- MoH Login -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-shield-alt fa-3x text-warning mb-3"></i>
+                            <h4>MoH Officer Login</h4>
+                            <p class="text-muted">Ministry of Health official access for regulatory oversight</p>
+                            <a href="/moh/login/" class="btn btn-warning btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>MoH Login
+                            </a>
+                            <div class="mt-2">
+                                <small class="text-muted">Government officials only</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Platform Admin Login -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body text-center">
+                            <i class="fas fa-cogs fa-3x text-danger mb-3"></i>
+                            <h4>Platform Admin</h4>
+                            <p class="text-muted">Administrative access for system management</p>
+                            <a href="{% url 'platform_admin:admin_login' %}" class="btn btn-danger btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Admin Login
+                            </a>
+                            <div class="mt-2">
+                                <small class="text-muted">System administrators only</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <h5>Test Login Credentials (for testing purposes)</h5>
+                <div class="row mt-3">
+                    <div class="col-md-3">
+                        <strong>Customer:</strong><br>
+                        <code>customer / customer123</code>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Pharmacy:</strong><br>
+                        <code>pharmacy / pharmacy123</code>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>MoH Officer:</strong><br>
+                        <code>moh_officer / moh123</code>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Platform Admin:</strong><br>
+                        <code>admin / admin123</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -21,6 +21,10 @@ def home(request):
     }
     return render(request, 'home.html', context)
 
+def login_selector(request):
+    """Login selector page showing all login options"""
+    return render(request, 'login_selector.html')
+
 def search_medicines(request):
     """Search medicines and return results sorted by proximity"""
     query = request.GET.get('query', '')
