@@ -99,7 +99,7 @@ def upload_prescription(request):
     user_lon = request.GET.get('lon')
     
     # Get all active pharmacies
-    pharmacies = Pharmacy.objects.filter(is_active=True, is_verified=True)
+    pharmacies = Pharmacy.objects.filter(is_active=True, verification_status='verified')
     
     # If user location is provided, sort pharmacies by proximity
     if user_lat and user_lon:
