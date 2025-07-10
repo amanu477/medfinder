@@ -16,9 +16,25 @@
                 <p class="mb-0"><strong>Total Amount:</strong> {{ order.total_amount }} ETB</p>
                 <p class="mb-0"><strong>Pharmacy:</strong> {{ order.pharmacy.name }}</p>
             </div>
-            <a href="{% url 'payment_choice' order.id %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-credit-card"></i> Pay Now
-            </a>
+            <div class="d-flex gap-2">
+                <!-- Online Payment Button -->
+                <form method="post" action="{% url 'initiate_payment' order.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="payment_type" value="online">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-credit-card"></i> Pay Now
+                    </button>
+                </form>
+                
+                <!-- Cash Payment Button -->
+                <form method="post" action="{% url 'cash_payment_choice' order.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="payment_type" value="cash_on_delivery">
+                    <button type="submit" class="btn btn-warning btn-lg">
+                        <i class="fas fa-money-bill-wave"></i> Pay on Cash
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
     {% elif order.status == 'paid' %}
