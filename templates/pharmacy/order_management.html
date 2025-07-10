@@ -154,7 +154,12 @@
                                         {% if order.status == 'pending' %}
                                             <span class="badge bg-warning">Pending</span>
                                         {% elif order.status == 'approved' %}
-                                            <span class="badge bg-success">Approved</span>
+                                            {% if order.payment and order.payment.payment_type == 'cash_on_delivery' and order.payment.status == 'cash_paid' %}
+                                                <span class="badge bg-warning">Pay on Cash</span>
+                                                <br><small class="text-success">Cash Confirmed</small>
+                                            {% else %}
+                                                <span class="badge bg-success">Approved</span>
+                                            {% endif %}
                                         {% elif order.status == 'paid' %}
                                             <span class="badge bg-info">Paid</span>
                                         {% elif order.status == 'rejected' %}
@@ -184,7 +189,18 @@
                                                 </form>
                                             </div>
                                         {% elif order.status == 'approved' %}
-                                            <span class="text-muted">Waiting for payment</span>
+                                            {% if order.payment and order.payment.payment_type == 'cash_on_delivery' and order.payment.status == 'cash_paid' %}
+                                                <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="status" value="completed">
+                                                    <button type="submit" class="btn btn-primary btn-sm">
+                                                        <i class="fas fa-check-circle"></i> Complete
+                                                    </button>
+                                                </form>
+                                                <br><small class="text-success">Cash payment confirmed</small>
+                                            {% else %}
+                                                <span class="text-muted">Waiting for payment</span>
+                                            {% endif %}
                                         {% elif order.status == 'paid' %}
                                             <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
                                                 {% csrf_token %}
