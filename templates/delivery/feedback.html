@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %}
+
+{% block title %}Delivery Feedback{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>💬 Delivery Feedback</h5>
+                    <p class="mb-0">Order #{{ delivery.order.id }} - {{ delivery.tracking_number }}</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-success mb-4">
+                        <h6>✅ Delivery Completed Successfully!</h6>
+                        <p class="mb-0">Your order was delivered on {{ delivery.delivery_time|date:"M d, Y H:i" }}</p>
+                    </div>
+
+                    <!-- Delivery Summary -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Order Summary</h6>
+                            <p><strong>Total Amount:</strong> {{ delivery.order.total_amount }} ETB</p>
+                            <p><strong>Delivery Fee:</strong> {{ delivery.delivery_fee }} ETB</p>
+                            <p><strong>Items:</strong> {{ delivery.order.get_total_items }} items</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Delivery Person</h6>
+                            <p><strong>Name:</strong> {{ delivery.delivery_person.user.get_full_name }}</p>
+                            <p><strong>Phone:</strong> {{ delivery.delivery_person.phone }}</p>
+                            <p><strong>Vehicle:</strong> {{ delivery.delivery_person.get_vehicle_type_display }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Feedback Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.customer_rating.id_for_label }}" class="form-label">Rate Your Delivery Experience</label>
+                            {{ form.customer_rating }}
+                            {% if form.customer_rating.errors %}
+                                <div class="text-danger">{{ form.customer_rating.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                <small>⭐ 1 = Poor, ⭐⭐⭐⭐⭐ 5 = Excellent</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.customer_feedback.id_for_label }}" class="form-label">Share Your Experience</label>
+                            {{ form.customer_feedback }}
+                            {% if form.customer_feedback.errors %}
+                                <div class="text-danger">{{ form.customer_feedback.errors }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                <small>Tell us about your delivery experience. This helps us improve our service.</small>
+                            </div>
+                        </div>
+
+                        <!-- Rating Guide -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6>Rating Guide:</h6>
+                                <ul class="mb-0">
+                                    <li><strong>⭐⭐⭐⭐⭐ (5 stars):</strong> Excellent - Fast, professional, and friendly service</li>
+                                    <li><strong>⭐⭐⭐⭐ (4 stars):</strong> Good - Delivered on time with good service</li>
+                                    <li><strong>⭐⭐⭐ (3 stars):</strong> Average - Delivery was acceptable</li>
+                                    <li><strong>⭐⭐ (2 stars):</strong> Below Average - Some issues with delivery</li>
+                                    <li><strong>⭐ (1 star):</strong> Poor - Significant problems with delivery</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'customer_delivery_tracking' delivery.order.id %}" class="btn btn-secondary">Back to Tracking</a>
+                            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

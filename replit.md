@@ -83,6 +83,15 @@ The platform includes a comprehensive shopping cart system:
 - **Multi-pharmacy**: Automatic order grouping by pharmacy during checkout
 - **Navigation**: Cart icon with live item count in main navigation
 
+### Delivery System
+The platform now includes a complete delivery management system:
+- **Models**: DeliveryPerson, Delivery, DeliveryTracking, DeliveryNotification, DeliveryZone
+- **Features**: Automatic delivery creation when orders are completed, real-time tracking, delivery personnel management
+- **Authentication**: Delivery personnel login through unified authentication system
+- **Real-time Tracking**: GPS location updates, delivery status tracking, customer notifications
+- **Multi-user Interface**: Separate dashboards for delivery personnel, pharmacy managers, and customers
+- **Workflow**: Order completion → Automatic delivery creation → Assignment to delivery personnel → Real-time tracking → Customer feedback
+
 ## External Dependencies
 
 ### Required Python Packages

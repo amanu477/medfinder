@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %}
+
+{% block title %}Pharmacy Delivery Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>🏥 Delivery Management</h1>
+                <div class="text-end">
+                    <h5>{{ pharmacy.name }}</h5>
+                    <a href="{% url 'create_delivery_person' %}" class="btn btn-success">Add Delivery Person</a>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Pending Deliveries</h5>
+                            <h3>{{ stats.pending_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Active Deliveries</h5>
+                            <h3>{{ stats.active_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Delivery Staff</h5>
+                            <h3>{{ stats.staff_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Available Staff</h5>
+                            <h3>{{ stats.available_staff }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Deliveries -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>⏳ Pending Delivery Assignments</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_deliveries %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Address</th>
+                                        <th>Phone</th>
+                                        <th>Order Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for delivery in pending_deliveries %}
+                                    <tr>
+                                        <td>#{{ delivery.order.id }}</td>
+                                        <td>{{ delivery.order.customer.name }}</td>
+                                        <td>{{ delivery.customer_address|truncatechars:30 }}</td>
+                                        <td>{{ delivery.customer_phone }}</td>
+                                        <td>{{ delivery.order.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'assign_delivery' delivery.order.id %}" class="btn btn-sm btn-primary">Assign</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <h5 class="text-muted">No pending deliveries</h5>
+                            <p>All deliveries have been assigned to delivery personnel.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Active Deliveries -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>🚚 Active Deliveries</h5>
+                </div>
+                <div class="card-body">
+                    {% if active_deliveries %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Tracking #</th>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Delivery Person</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for delivery in active_deliveries %}
+                                    <tr>
+                                        <td>{{ delivery.tracking_number }}</td>
+                                        <td>#{{ delivery.order.id }}</td>
+                                        <td>{{ delivery.order.customer.name }}</td>
+                                        <td>{{ delivery.delivery_person.user.get_full_name }}</td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ delivery.get_status_display }}</span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'delivery_detail' delivery.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <h5 class="text-muted">No active deliveries</h5>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Delivery Staff -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>👥 Delivery Staff</h5>
+                </div>
+                <div class="card-body">
+                    {% if delivery_staff %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Employee ID</th>
+                                        <th>Phone</th>
+                                        <th>Vehicle</th>
+                                        <th>Status</th>
+                                        <th>Total Deliveries</th>
+                                        <th>Rating</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for staff in delivery_staff %}
+                                    <tr>
+                                        <td>{{ staff.user.get_full_name }}</td>
+                                        <td>{{ staff.employee_id }}</td>
+                                        <td>{{ staff.phone }}</td>
+                                        <td>{{ staff.get_vehicle_type_display }}</td>
+                                        <td>
+                                            {% if staff.is_available %}
+                                                <span class="badge bg-success">Available</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">Busy</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ staff.total_deliveries }}</td>
+                                        <td>{{ staff.rating }}/5.0</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <h5 class="text-muted">No delivery staff</h5>
+                            <p>Add delivery personnel to handle deliveries.</p>
+                            <a href="{% url 'create_delivery_person' %}" class="btn btn-success">Add Delivery Person</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %}
+
+{% block title %}Delivery Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🚚 Delivery Details</h5>
+                    <p class="mb-0">Tracking #{{ delivery.tracking_number }}</p>
+                </div>
+                <div class="card-body">
+                    <!-- Status -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Current Status</h6>
+                            <h4>{{ delivery.get_status_display_with_icon }}</h4>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Progress</h6>
+                            <div class="progress" style="height: 20px;">
+                                {% if delivery.status == 'pending' %}
+                                    <div class="progress-bar bg-warning" style="width: 20%">20%</div>
+                                {% elif delivery.status == 'assigned' %}
+                                    <div class="progress-bar bg-info" style="width: 40%">40%</div>
+                                {% elif delivery.status == 'picked_up' %}
+                                    <div class="progress-bar bg-primary" style="width: 60%">60%</div>
+                                {% elif delivery.status == 'in_transit' %}
+                                    <div class="progress-bar bg-primary" style="width: 80%">80%</div>
+                                {% elif delivery.status == 'delivered' %}
+                                    <div class="progress-bar bg-success" style="width: 100%">100%</div>
+                                {% elif delivery.status == 'failed' %}
+                                    <div class="progress-bar bg-danger" style="width: 100%">Failed</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Customer Information</h6>
+                            <p><strong>Name:</strong> {{ delivery.order.customer.name }}</p>
+                            <p><strong>Phone:</strong> {{ delivery.customer_phone }}</p>
+                            <p><strong>Order ID:</strong> #{{ delivery.order.id }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Delivery Address</h6>
+                            <p>{{ delivery.customer_address }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Person Information -->
+                    {% if delivery.delivery_person %}
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h6>Delivery Person</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>{{ delivery.delivery_person.user.get_full_name }}</strong><br>
+                                            Employee ID: {{ delivery.delivery_person.employee_id }}<br>
+                                            Phone: {{ delivery.delivery_person.phone }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            Vehicle: {{ delivery.delivery_person.get_vehicle_type_display }}<br>
+                                            Rating: {{ delivery.delivery_person.rating }}/5.0<br>
+                                            Total Deliveries: {{ delivery.delivery_person.total_deliveries }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Timeline -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h6>Delivery Timeline</h6>
+                            <div class="timeline">
+                                {% for track in tracking_history %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6>{{ track.status|capfirst }}</h6>
+                                        <p class="text-muted">{{ track.timestamp|date:"M d, Y H:i" }}</p>
+                                        {% if track.notes %}
+                                        <p>{{ track.notes }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    {% if delivery.pharmacy_notes or delivery.delivery_notes %}
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h6>Notes</h6>
+                            {% if delivery.pharmacy_notes %}
+                            <div class="alert alert-info">
+                                <strong>Pharmacy Notes:</strong> {{ delivery.pharmacy_notes }}
+                            </div>
+                            {% endif %}
+                            {% if delivery.delivery_notes %}
+                            <div class="alert alert-primary">
+                                <strong>Delivery Notes:</strong> {{ delivery.delivery_notes }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Customer Feedback -->
+                    {% if delivery.customer_feedback %}
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h6>Customer Feedback</h6>
+                            <div class="alert alert-success">
+                                <strong>Rating:</strong> 
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= delivery.customer_rating %}⭐{% endif %}
+                                {% endfor %}
+                                <br>
+                                <strong>Feedback:</strong> {{ delivery.customer_feedback }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Order Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h6>Order Summary</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Order Date:</strong> {{ delivery.order.created_at|date:"M d, Y" }}</p>
+                    <p><strong>Total Amount:</strong> {{ delivery.order.total_amount }} ETB</p>
+                    <p><strong>Delivery Fee:</strong> {{ delivery.delivery_fee }} ETB</p>
+                    {% if delivery.distance_km %}
+                    <p><strong>Distance:</strong> {{ delivery.distance_km }} km</p>
+                    {% endif %}
+                    <hr>
+                    <p><strong>Pharmacy:</strong> {{ delivery.order.pharmacy.name }}</p>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6>Order Items</h6>
+                </div>
+                <div class="card-body">
+                    {% for item in delivery.order.items.all %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <div>
+                            <strong>{{ item.medicine.name }}</strong><br>
+                            <small class="text-muted">{{ item.quantity }} x {{ item.price }} ETB</small>
+                        </div>
+                        <div>
+                            <strong>{{ item.subtotal }} ETB</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6>Actions</h6>
+                </div>
+                <div class="card-body">
+                    {% if delivery.delivery_person and delivery.delivery_person.user == user %}
+                        <a href="{% url 'update_delivery_status' delivery.id %}" class="btn btn-primary btn-sm mb-2">Update Status</a><br>
+                    {% endif %}
+                    {% if delivery.status == 'delivered' and delivery.order.customer.user == user and not delivery.customer_feedback %}
+                        <a href="{% url 'delivery_feedback' delivery.id %}" class="btn btn-success btn-sm mb-2">Leave Feedback</a><br>
+                    {% endif %}
+                    <a href="{% url 'customer_delivery_tracking' delivery.order.id %}" class="btn btn-outline-info btn-sm">Track Order</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    background-color: #007bff;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #007bff;
+}
+
+.timeline-item:not(:last-child):before {
+    content: '';
+    position: absolute;
+    left: -30px;
+    top: 12px;
+    width: 2px;
+    height: calc(100% + 8px);
+    background-color: #dee2e6;
+}
+
+.timeline-content h6 {
+    margin-bottom: 5px;
+    color: #007bff;
+}
+</style>
+{% endblock %}

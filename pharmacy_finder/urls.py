@@ -33,6 +33,9 @@ urlpatterns = [
     
     # Platform Admin Dashboard (Independent Admin System)
     path('platform-admin/', include('platform_admin.urls')),
+    
+    # Delivery System
+    path('delivery/', include('delivery.urls')),
 ]
 
 # Serve media files in development

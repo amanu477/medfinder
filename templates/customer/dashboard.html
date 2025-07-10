@@ -88,6 +88,9 @@
                                                 {% elif order.status == 'approved' %}bg-success
                                                 {% elif order.status == 'paid' %}bg-info
                                                 {% elif order.status == 'completed' %}bg-primary
+                                                {% elif order.status == 'ready_for_delivery' %}bg-warning
+                                                {% elif order.status == 'out_for_delivery' %}bg-info
+                                                {% elif order.status == 'delivered' %}bg-success
                                                 {% elif order.status == 'rejected' %}bg-danger
                                                 {% elif order.status == 'cancelled' %}bg-secondary
                                                 {% endif %}">
@@ -97,6 +100,9 @@
                                         <td>{{ order.created_at|date:"M d, Y" }}</td>
                                         <td>
                                             <a href="{% url 'order_detail' order.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                            {% if order.status == 'ready_for_delivery' or order.status == 'out_for_delivery' or order.status == 'delivered' %}
+                                                <a href="{% url 'customer_delivery_tracking' order.id %}" class="btn btn-sm btn-success">Track</a>
+                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% endfor %}

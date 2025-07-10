@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %}
+
+{% block title %}Assign Delivery{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🚚 Assign Delivery for Order #{{ order.id }}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Order Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Order Details</h6>
+                            <p><strong>Customer:</strong> {{ order.customer.name }}</p>
+                            <p><strong>Order Date:</strong> {{ order.created_at|date:"M d, Y" }}</p>
+                            <p><strong>Total Amount:</strong> {{ order.total_amount }} ETB</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Delivery Address</h6>
+                            <p>{{ delivery.customer_address }}</p>
+                            <p><strong>Phone:</strong> {{ delivery.customer_phone }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="mb-4">
+                        <h6>Order Items</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Medicine</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                        <th>Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in order.items.all %}
+                                    <tr>
+                                        <td>{{ item.medicine.name }}</td>
+                                        <td>{{ item.quantity }}</td>
+                                        <td>{{ item.price }} ETB</td>
+                                        <td>{{ item.subtotal }} ETB</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Assignment Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.delivery_person.id_for_label }}" class="form-label">Assign to Delivery Person</label>
+                                    {{ form.delivery_person }}
+                                    {% if form.delivery_person.errors %}
+                                        <div class="text-danger">{{ form.delivery_person.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.estimated_delivery_time.id_for_label }}" class="form-label">Estimated Delivery Time</label>
+                                    {{ form.estimated_delivery_time }}
+                                    {% if form.estimated_delivery_time.errors %}
+                                        <div class="text-danger">{{ form.estimated_delivery_time.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.pharmacy_notes.id_for_label }}" class="form-label">Pharmacy Notes (Optional)</label>
+                            {{ form.pharmacy_notes }}
+                            {% if form.pharmacy_notes.errors %}
+                                <div class="text-danger">{{ form.pharmacy_notes.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'pharmacy_delivery_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Assign Delivery</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

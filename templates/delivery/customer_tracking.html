@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %}
+
+{% block title %}Track Delivery - Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🚚 Track Your Delivery</h5>
+                    <p class="mb-0">Order #{{ order.id }} - Tracking #{{ delivery.tracking_number }}</p>
+                </div>
+                <div class="card-body">
+                    <!-- Current Status -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Current Status</h6>
+                            <h4>{{ delivery.get_status_display_with_icon }}</h4>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Estimated Delivery</h6>
+                            <p>{{ delivery.estimated_delivery_time|date:"M d, Y H:i"|default:"TBD" }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress mb-4" style="height: 25px;">
+                        {% if delivery.status == 'pending' %}
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 20%">Pending</div>
+                        {% elif delivery.status == 'assigned' %}
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 40%">Assigned</div>
+                        {% elif delivery.status == 'picked_up' %}
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 60%">Picked Up</div>
+                        {% elif delivery.status == 'in_transit' %}
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 80%">In Transit</div>
+                        {% elif delivery.status == 'delivered' %}
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%">Delivered</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Delivery Person Info -->
+                    {% if delivery.delivery_person %}
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h6>Delivery Person</h6>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>{{ delivery.delivery_person.user.get_full_name }}</strong><br>
+                                            📱 {{ delivery.delivery_person.phone }}<br>
+                                            🚚 {{ delivery.delivery_person.get_vehicle_type_display }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Rating:</strong> {{ delivery.delivery_person.rating }}/5.0<br>
+                                            <strong>Total Deliveries:</strong> {{ delivery.delivery_person.total_deliveries }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Live Map -->
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h6>Live Tracking Map</h6>
+                            <div id="map" style="height: 300px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px; position: relative;">
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                    <h5>📍 Live Tracking</h5>
+                                    <p class="text-muted">Real-time location updates will appear here</p>
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Timeline -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h6>Delivery Timeline</h6>
+                            <div class="timeline">
+                                {% for track in tracking_history %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6>{{ track.status|capfirst }}</h6>
+                                        <p class="text-muted">{{ track.timestamp|date:"M d, Y H:i" }}</p>
+                                        {% if track.notes %}
+                                        <p>{{ track.notes }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feedback Section -->
+                    {% if delivery.status == 'delivered' %}
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h6>✅ Delivery Completed!</h6>
+                                    <p>Your order has been delivered successfully.</p>
+                                    {% if not delivery.customer_feedback %}
+                                    <a href="{% url 'delivery_feedback' delivery.id %}" class="btn btn-light">Leave Feedback</a>
+                                    {% else %}
+                                    <p><strong>Your Feedback:</strong> {{ delivery.customer_feedback }}</p>
+                                    <p><strong>Rating:</strong> 
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= delivery.customer_rating %}⭐{% endif %}
+                                        {% endfor %}
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Order Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h6>Order Summary</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Order ID:</strong> #{{ order.id }}</p>
+                    <p><strong>Order Date:</strong> {{ order.created_at|date:"M d, Y" }}</p>
+                    <p><strong>Total Amount:</strong> {{ order.total_amount }} ETB</p>
+                    <p><strong>Delivery Fee:</strong> {{ delivery.delivery_fee }} ETB</p>
+                    <hr>
+                    <p><strong>Delivery Address:</strong></p>
+                    <p>{{ delivery.customer_address }}</p>
+                    <p><strong>Contact:</strong> {{ delivery.customer_phone }}</p>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6>Order Items</h6>
+                </div>
+                <div class="card-body">
+                    {% for item in order.items.all %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <div>
+                            <strong>{{ item.medicine.name }}</strong><br>
+                            <small class="text-muted">{{ item.quantity }} x {{ item.price }} ETB</small>
+                        </div>
+                        <div>
+                            <strong>{{ item.subtotal }} ETB</strong>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    background-color: #007bff;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #007bff;
+}
+
+.timeline-item:not(:last-child):before {
+    content: '';
+    position: absolute;
+    left: -30px;
+    top: 12px;
+    width: 2px;
+    height: calc(100% + 8px);
+    background-color: #dee2e6;
+}
+
+.timeline-content h6 {
+    margin-bottom: 5px;
+    color: #007bff;
+}
+</style>
+
+<script>
+// Auto-refresh tracking data every 30 seconds
+setInterval(function() {
+    fetch('{% url "delivery_tracking_data" delivery.id %}')
+        .then(response => response.json())
+        .then(data => {
+            // Update map with new tracking points
+            updateMap(data);
+        })
+        .catch(error => {
+            console.error('Error fetching tracking data:', error);
+        });
+}, 30000);
+
+function updateMap(data) {
+    // Simple map update - in a real implementation, you'd use a proper map library
+    const mapDiv = document.getElementById('map');
+    if (data.tracking_points && data.tracking_points.length > 0) {
+        const latest = data.tracking_points[0];
+        mapDiv.innerHTML = `
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                <h5>📍 Current Location</h5>
+                <p>Lat: ${latest.lat.toFixed(4)}, Lon: ${latest.lon.toFixed(4)}</p>
+                <p>Status: ${latest.status}</p>
+                <p>Updated: ${new Date(latest.timestamp).toLocaleString()}</p>
+            </div>
+        `;
+    }
+}
+</script>
+{% endblock %}

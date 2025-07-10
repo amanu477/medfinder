@@ -68,6 +68,9 @@ class Order(models.Model):
         ('rejected', 'Rejected'),
         ('paid', 'Paid'),
         ('completed', 'Completed'),
+        ('ready_for_delivery', 'Ready for Delivery'),
+        ('out_for_delivery', 'Out for Delivery'),
+        ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
     )
 

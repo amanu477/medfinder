@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %}
+
+{% block title %}Update Delivery Status{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>📋 Update Delivery Status</h5>
+                    <p class="mb-0">Tracking #{{ delivery.tracking_number }}</p>
+                </div>
+                <div class="card-body">
+                    <!-- Current Status -->
+                    <div class="alert alert-info mb-4">
+                        <strong>Current Status:</strong> {{ delivery.get_status_display_with_icon }}
+                    </div>
+
+                    <!-- Order Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Order Details</h6>
+                            <p><strong>Order ID:</strong> #{{ delivery.order.id }}</p>
+                            <p><strong>Customer:</strong> {{ delivery.order.customer.name }}</p>
+                            <p><strong>Phone:</strong> {{ delivery.customer_phone }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Delivery Address</h6>
+                            <p>{{ delivery.customer_address }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Status Update Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="{{ form.status.id_for_label }}" class="form-label">Update Status</label>
+                                    {{ form.status }}
+                                    {% if form.status.errors %}
+                                        <div class="text-danger">{{ form.status.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.delivery_notes.id_for_label }}" class="form-label">Delivery Notes (Optional)</label>
+                            {{ form.delivery_notes }}
+                            {% if form.delivery_notes.errors %}
+                                <div class="text-danger">{{ form.delivery_notes.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Status Guide -->
+                        <div class="card bg-light mb-3">
+                            <div class="card-body">
+                                <h6>Status Guide:</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Assigned:</strong> Delivery has been assigned to you</li>
+                                    <li><strong>Picked Up:</strong> You have picked up the order from pharmacy</li>
+                                    <li><strong>In Transit:</strong> You are on the way to customer</li>
+                                    <li><strong>Delivered:</strong> Order has been delivered to customer</li>
+                                    <li><strong>Failed:</strong> Delivery could not be completed</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'delivery_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Update Status</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

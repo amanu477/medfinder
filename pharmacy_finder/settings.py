@@ -63,6 +63,7 @@ INSTALLED_APPS = [
     'customer',
     'moh',
     'platform_admin',
+    'delivery',
 ]
 
 MIDDLEWARE = [

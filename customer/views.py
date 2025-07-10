@@ -164,7 +164,16 @@ def customer_login(request):
             except:
                 pass
             
-            # 4. Check if user has MoH officer profile
+            # 4. Check if user has delivery person profile
+            try:
+                from delivery.models import DeliveryPerson
+                delivery_person = DeliveryPerson.objects.get(user=user, is_active=True)
+                messages.success(request, f'Welcome back, {delivery_person.user.get_full_name()}!')
+                return redirect('delivery_dashboard')
+            except:
+                pass
+            
+            # 5. Check if user has MoH officer profile
             try:
                 moh_officer = MoHOfficer.objects.get(user=user, is_active=True)
                 messages.success(request, f'Welcome back, {moh_officer.user.get_full_name()}!')

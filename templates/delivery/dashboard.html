@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %}
+
+{% block title %}Delivery Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>🚚 Delivery Dashboard</h1>
+                <div class="text-end">
+                    <h5>Welcome, {{ delivery_person.user.get_full_name }}!</h5>
+                    <small class="text-muted">{{ delivery_person.pharmacy.name }}</small>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Deliveries</h5>
+                            <h3>{{ stats.total_deliveries }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Active Deliveries</h5>
+                            <h3>{{ stats.current_active }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Rating</h5>
+                            <h3>{{ stats.rating }}/5.0</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">Status</h5>
+                            <h3>{% if delivery_person.is_available %}Available{% else %}Busy{% endif %}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Deliveries -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>🚚 Current Deliveries</h5>
+                </div>
+                <div class="card-body">
+                    {% if current_deliveries %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Address</th>
+                                        <th>Phone</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for delivery in current_deliveries %}
+                                    <tr>
+                                        <td>#{{ delivery.order.id }}</td>
+                                        <td>{{ delivery.order.customer.name }}</td>
+                                        <td>{{ delivery.customer_address|truncatechars:30 }}</td>
+                                        <td>{{ delivery.customer_phone }}</td>
+                                        <td>
+                                            <span class="badge bg-primary">{{ delivery.get_status_display }}</span>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'delivery_detail' delivery.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                            <a href="{% url 'update_delivery_status' delivery.id %}" class="btn btn-sm btn-warning">Update</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <h5 class="text-muted">No active deliveries</h5>
+                            <p>You'll see new deliveries here when they're assigned to you.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Deliveries -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>📋 Recent Completed Deliveries</h5>
+                </div>
+                <div class="card-body">
+                    {% if completed_deliveries %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Delivered At</th>
+                                        <th>Rating</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for delivery in completed_deliveries %}
+                                    <tr>
+                                        <td>#{{ delivery.order.id }}</td>
+                                        <td>{{ delivery.order.customer.name }}</td>
+                                        <td>{{ delivery.delivery_time|date:"M d, Y H:i" }}</td>
+                                        <td>
+                                            {% if delivery.customer_rating %}
+                                                {% for i in "12345" %}
+                                                    {% if forloop.counter <= delivery.customer_rating %}⭐{% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <span class="text-muted">No rating</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'delivery_detail' delivery.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <h5 class="text-muted">No completed deliveries yet</h5>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Location Tracking Script -->
+<script>
+let watchId;
+
+function startLocationTracking() {
+    if (navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition(
+            function(position) {
+                updateLocation(position.coords.latitude, position.coords.longitude);
+            },
+            function(error) {
+                console.error('Error getting location:', error);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 300000 // 5 minutes
+            }
+        );
+    }
+}
+
+function updateLocation(latitude, longitude) {
+    fetch('{% url "update_location" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            latitude: latitude,
+            longitude: longitude
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Location updated successfully');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating location:', error);
+    });
+}
+
+// Start location tracking when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    startLocationTracking();
+});
+</script>
+{% endblock %}
