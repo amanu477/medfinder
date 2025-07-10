@@ -1409,10 +1409,22 @@ def bulk_ocr_verification(request):
                 return redirect('bulk_ocr_verification')
             
             # Save prescription image temporarily
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
-                for chunk in prescription_image.chunks():
-                    temp_file.write(chunk)
-                temp_image_path = temp_file.name
+            try:
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
+                    for chunk in prescription_image.chunks():
+                        temp_file.write(chunk)
+                    temp_image_path = temp_file.name
+                
+                # Verify the file was created and is readable
+                if not os.path.exists(temp_image_path):
+                    raise FileNotFoundError(f"Failed to create temporary file: {temp_image_path}")
+                
+                logger.info(f"Temporary file created successfully: {temp_image_path}")
+                
+            except Exception as e:
+                logger.error(f"Error creating temporary file: {str(e)}")
+                messages.error(request, 'Error uploading prescription image. Please try again.')
+                return redirect('bulk_ocr_verification')
             
             try:
                 ocr_service = PrescriptionOCRService()

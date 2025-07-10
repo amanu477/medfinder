@@ -31,6 +31,18 @@ class PrescriptionOCRService:
             'mebendazole', 'iron', 'folic acid', 'vitamin', 'omeprazole', 'ranitidine',
             'diclofenac', 'prednisolone', 'hydrocortisone', 'salbutamol', 'theophylline'
         ]
+        
+        # Medicine name variations and common misspellings
+        self.medicine_variations = {
+            'aspirin': ['asprin', 'asperin', 'asperine', 'asirin', 'aspirine', 'asa', 'acetylsalicylic'],
+            'paracetamol': ['panadol', 'acetaminophen', 'tylenol', 'parcetamol', 'paracetarnol'],
+            'ibuprofen': ['brufen', 'advil', 'motrin', 'ibuprophen', 'ibupropen'],
+            'amoxicillin': ['amoxycillin', 'amoxil', 'amoxicilin', 'amoxicilline'],
+            'ciprofloxacin': ['cipro', 'ciproxin', 'ciprofloxacine', 'ciproloxacin'],
+            'metronidazole': ['flagyl', 'metronidazol', 'metronidazole'],
+            'omeprazole': ['losec', 'prilosec', 'omeprazol', 'omeprazole'],
+            'diclofenac': ['voltaren', 'diclofenac', 'diclofen', 'diclofenac'],
+        }
     
     def preprocess_image(self, image_path):
         """
@@ -260,40 +272,86 @@ class PrescriptionOCRService:
             manual_name_clean = re.sub(r'\d+', '', manual_medicine_name).strip()
             manual_name_clean = re.sub(r'mg|ml|gm|mcg', '', manual_name_clean, flags=re.IGNORECASE).strip()
             
+            # Check for medicine variations first
+            medicine_to_check = [manual_name_clean.lower()]
+            
+            # Add variations if the medicine is in our variations dictionary
+            for base_med, variations in self.medicine_variations.items():
+                if manual_name_clean.lower() == base_med.lower():
+                    medicine_to_check.extend(variations)
+                elif manual_name_clean.lower() in [v.lower() for v in variations]:
+                    medicine_to_check.append(base_med)
+                    medicine_to_check.extend(variations)
+            
+            # Remove duplicates
+            medicine_to_check = list(set(medicine_to_check))
+            
             # Find the best match using multiple fuzzy matching strategies
             best_match = None
             best_confidence = 0
             
-            # Try different fuzzy matching strategies
-            strategies = [
-                fuzz.token_sort_ratio,
-                fuzz.token_set_ratio,
-                fuzz.partial_ratio,
-                fuzz.ratio
-            ]
+            # Log what we're looking for and what we found
+            logger.info(f"Looking for medicine: {manual_medicine_name}")
+            logger.info(f"Variations to check: {medicine_to_check}")
+            logger.info(f"Extracted medicines: {extracted_medicines}")
+            logger.info(f"Extracted text sample: {extracted_text[:200]}...")
             
-            for strategy in strategies:
-                match = process.extractOne(
-                    manual_name_clean, 
-                    extracted_medicines,
-                    scorer=strategy
-                )
-                if match and match[1] > best_confidence:
-                    best_match = match
-                    best_confidence = match[1]
+            # Try matching each variation
+            for med_variation in medicine_to_check:
+                # Try different fuzzy matching strategies
+                strategies = [
+                    fuzz.token_sort_ratio,
+                    fuzz.token_set_ratio,
+                    fuzz.partial_ratio,
+                    fuzz.ratio
+                ]
+                
+                for strategy in strategies:
+                    match = process.extractOne(
+                        med_variation, 
+                        extracted_medicines,
+                        scorer=strategy
+                    )
+                    if match and match[1] > best_confidence:
+                        best_match = match
+                        best_confidence = match[1]
+                        logger.info(f"Found better match: {match} using {strategy.__name__} for variation '{med_variation}'")
+                        
+                    # Also try direct text search for this variation
+                    if med_variation.lower() in extracted_text.lower():
+                        # Direct match found, set high confidence
+                        direct_confidence = 95
+                        if direct_confidence > best_confidence:
+                            best_match = (med_variation, direct_confidence)
+                            best_confidence = direct_confidence
+                            logger.info(f"Found direct text match for '{med_variation}' with confidence {direct_confidence}")
+            
+            # Also try partial matching against the full extracted text
+            for med_variation in medicine_to_check:
+                text_words = extracted_text.lower().split()
+                for word in text_words:
+                    # Clean the word
+                    clean_word = re.sub(r'[^\w]', '', word)
+                    if len(clean_word) >= 4:
+                        similarity = fuzz.ratio(med_variation.lower(), clean_word)
+                        if similarity > best_confidence and similarity >= threshold * 0.8:  # Lower threshold for direct word matching
+                            best_match = (clean_word, similarity)
+                            best_confidence = similarity
+                            logger.info(f"Found word match: '{clean_word}' for '{med_variation}' with confidence {similarity}")
                     
             # Also try matching against the full prescription text for better results
             if not best_match or best_confidence < threshold:
                 # Try direct text matching with common OCR corrections
                 corrected_text = self.apply_ocr_corrections(extracted_text)
-                text_match = process.extractOne(
-                    manual_name_clean,
-                    [corrected_text],
-                    scorer=fuzz.partial_ratio
-                )
-                if text_match and text_match[1] > best_confidence:
-                    best_match = text_match
-                    best_confidence = text_match[1]
+                for med_variation in medicine_to_check:
+                    text_match = process.extractOne(
+                        med_variation,
+                        [corrected_text],
+                        scorer=fuzz.partial_ratio
+                    )
+                    if text_match and text_match[1] > best_confidence:
+                        best_match = text_match
+                        best_confidence = text_match[1]
             
             if best_match:
                 match_name, confidence = best_match

@@ -1,0 +1,126 @@
+=== Testing Aspirin Detection ===
+
+Test Case 1: Take Aspirin 100mg once daily after meals
+------------------------------------------------------------
+Result: {'is_valid': True, 'confidence': 100, 'extracted_medicines': ['Aspirin', 'once', 'meals', 'aspirin'], 'best_match': 'Aspirin', 'manual_medicine': 'aspirin', 'threshold': 60, 'extracted_text': 'Take Aspirin 100mg once daily after meals'}
+Is Valid: True
+Confidence: 100
+Best Match: Aspirin
+Extracted Medicines: ['Aspirin', 'once', 'meals', 'aspirin']
+
+  asprin -> Valid: True, Confidence: 100
+  asa -> Valid: True, Confidence: 100
+  acetylsalicylic -> Valid: True, Confidence: 100
+
+Test Case 2: Aspirin tablet 81mg daily for heart health
+------------------------------------------------------------
+Result: {'is_valid': True, 'confidence': 100, 'extracted_medicines': ['Aspirin', 'health', 'heart', 'aspirin'], 'best_match': 'Aspirin', 'manual_medicine': 'aspirin', 'threshold': 60, 'extracted_text': 'Aspirin tablet 81mg daily for heart health'}
+Is Valid: True
+Confidence: 100
+Best Match: Aspirin
+Extracted Medicines: ['Aspirin', 'health', 'heart', 'aspirin']
+
+  asprin -> Valid: True, Confidence: 100
+  asa -> Valid: True, Confidence: 100
+  acetylsalicylic -> Valid: True, Confidence: 100
+
+Test Case 3: Prescribe: Paracetamol 500mg, Aspirin 100mg
+------------------------------------------------------------
+Result: {'is_valid': True, 'confidence': 100, 'extracted_medicines': ['paracetamol', 'Paracetamol', 'Aspirin', 'Prescribe', 'aspirin'], 'best_match': 'Aspirin', 'manual_medicine': 'aspirin', 'threshold': 60, 'extracted_text': 'Prescribe: Paracetamol 500mg, Aspirin 100mg'}
+Is Valid: True
+Confidence: 100
+Best Match: Aspirin
+Extracted Medicines: ['paracetamol', 'Paracetamol', 'Aspirin', 'Prescribe', 'aspirin']
+
+  asprin -> Valid: True, Confidence: 100
+  asa -> Valid: True, Confidence: 100
+  acetylsalicylic -> Valid: True, Confidence: 100
+
+Test Case 4: 1. Aspirin 100mg - Take one tablet daily
+2. Paracetamol 500mg - Take as needed
+------------------------------------------------------------
+Result: {'is_valid': True, 'confidence': 100, 'extracted_medicines': ['paracetamol', 'Paracetamol', 'Aspirin', 'needed', 'aspirin'], 'best_match': 'Aspirin', 'manual_medicine': 'aspirin', 'threshold': 60, 'extracted_text': '1. Aspirin 100mg - Take one tablet daily\n2. Paracetamol 500mg - Take as needed'}
+Is Valid: True
+Confidence: 100
+Best Match: Aspirin
+Extracted Medicines: ['paracetamol', 'Paracetamol', 'Aspirin', 'needed', 'aspirin']
+
+  asprin -> Valid: True, Confidence: 100
+  asa -> Valid: True, Confidence: 100
+  acetylsalicylic -> Valid: True, Confidence: 100
+
+Test Case 5: Patient needs:
+- Aspirin 100mg tablets
+- Paracetamol 500mg tablets
+------------------------------------------------------------
+Result: {'is_valid': True, 'confidence': 100, 'extracted_medicines': ['tablets', 'paracetamol', 'Paracetamol', 'Aspirin', 'aspirin'], 'best_match': 'Aspirin', 'manual_medicine': 'aspirin', 'threshold': 60, 'extracted_text': 'Patient needs:\n- Aspirin 100mg tablets\n- Paracetamol 500mg tablets'}
+Is Valid: True
+Confidence: 100
+Best Match: Aspirin
+Extracted Medicines: ['tablets', 'paracetamol', 'Paracetamol', 'Aspirin', 'aspirin']
+
+  asprin -> Valid: True, Confidence: 100
+  asa -> Valid: True, Confidence: 100
+  acetylsalicylic -> Valid: True, Confidence: 100
+
+Test Case 6: Rx: Aspirin (low dose) 81mg od
+------------------------------------------------------------
+Result: {'is_valid': True, 'confidence': 100, 'extracted_medicines': ['Aspirin', 'dose', 'aspirin'], 'best_match': 'Aspirin', 'manual_medicine': 'aspirin', 'threshold': 60, 'extracted_text': 'Rx: Aspirin (low dose) 81mg od'}
+Is Valid: True
+Confidence: 100
+Best Match: Aspirin
+Extracted Medicines: ['Aspirin', 'dose', 'aspirin']
+
+  asprin -> Valid: True, Confidence: 100
+  asa -> Valid: True, Confidence: 100
+  acetylsalicylic -> Valid: True, Confidence: 100
+
+Test Case 7: ASA 100mg daily
+------------------------------------------------------------
+Result: {'is_valid': False, 'error': 'No medicine names found in prescription', 'confidence': 0, 'extracted_medicines': [], 'best_match': None, 'extracted_text': 'ASA 100mg daily'}
+Is Valid: False
+Confidence: 0
+Best Match: None
+Extracted Medicines: []
+
+  asprin -> Valid: False, Confidence: 0
+  asa -> Valid: False, Confidence: 0
+  acetylsalicylic -> Valid: False, Confidence: 0
+
+Test Case 8: Acetylsalicylic acid 100mg daily
+------------------------------------------------------------
+Result: {'is_valid': True, 'confidence': 100, 'extracted_medicines': ['acid', 'Acetylsalicylic'], 'best_match': 'Acetylsalicylic', 'manual_medicine': 'aspirin', 'threshold': 60, 'extracted_text': 'Acetylsalicylic acid 100mg daily'}
+Is Valid: True
+Confidence: 100
+Best Match: Acetylsalicylic
+Extracted Medicines: ['acid', 'Acetylsalicylic']
+
+  asprin -> Valid: True, Confidence: 100
+  asa -> Valid: True, Confidence: 100
+  acetylsalicylic -> Valid: True, Confidence: 100
+
+=== Testing Medicine Extraction ===
+Test text: 
+    Patient: John Doe
+    Date: 2024-01-01
+    
+    Prescription:
+    1. Aspirin 100mg - Take one tablet daily after meals
+    2. Paracetamol 500mg - Take as needed for pain
+    3. Amoxicillin 250mg - Take three times daily
+    
+    Instructions: Take all medications with food
+    
+
+Extracted medicines: ['paracetamol', 'pain', 'Paracetamol', 'three', 'amoxicillin', 'Amoxicillin', 'meals', 'Aspirin', 'needed', 'aspirin']
+
+paracetamol -> Valid: True, Confidence: 100
+pain -> Valid: True, Confidence: 100
+Paracetamol -> Valid: True, Confidence: 100
+three -> Valid: True, Confidence: 100
+amoxicillin -> Valid: True, Confidence: 100
+Amoxicillin -> Valid: True, Confidence: 100
+meals -> Valid: True, Confidence: 100
+Aspirin -> Valid: True, Confidence: 100
+needed -> Valid: True, Confidence: 100
+aspirin -> Valid: True, Confidence: 100
