@@ -43,6 +43,29 @@ class DeliveryPerson(models.Model):
         self.current_location_lon = lon
         self.last_location_update = timezone.now()
         self.save()
+    
+    def has_active_deliveries(self):
+        """Check if delivery person has any active deliveries"""
+        active_statuses = ['assigned', 'picked_up', 'in_transit']
+        return self.delivery_set.filter(status__in=active_statuses).exists()
+    
+    def update_availability_status(self):
+        """Update availability status based on active deliveries"""
+        if self.has_active_deliveries():
+            self.is_available = False
+        else:
+            self.is_available = True
+        self.save()
+    
+    def get_active_deliveries_count(self):
+        """Get count of active deliveries"""
+        active_statuses = ['assigned', 'picked_up', 'in_transit']
+        return self.delivery_set.filter(status__in=active_statuses).count()
+    
+    def get_active_deliveries(self):
+        """Get all active deliveries"""
+        active_statuses = ['assigned', 'picked_up', 'in_transit']
+        return self.delivery_set.filter(status__in=active_statuses)
 
 
 class Delivery(models.Model):
@@ -98,7 +121,38 @@ class Delivery(models.Model):
     def save(self, *args, **kwargs):
         if not self.tracking_number:
             self.tracking_number = f"DEL{timezone.now().strftime('%Y%m%d%H%M%S')}"
+        
+        # Update delivery person availability when delivery status changes
+        is_new = self.pk is None
+        old_status = None
+        
+        if not is_new:
+            old_delivery = Delivery.objects.get(pk=self.pk)
+            old_status = old_delivery.status
+        
         super().save(*args, **kwargs)
+        
+        # Update delivery person availability if status changed
+        if self.delivery_person and (is_new or old_status != self.status):
+            self.delivery_person.update_availability_status()
+    
+    def assign_delivery_person(self, delivery_person):
+        """Assign delivery person and update their availability"""
+        self.delivery_person = delivery_person
+        self.status = 'assigned'
+        self.save()
+        
+        # Update delivery person availability
+        delivery_person.update_availability_status()
+        
+        # Create tracking entry
+        DeliveryTracking.objects.create(
+            delivery=self,
+            status='assigned',
+            location_lat=delivery_person.current_location_lat,
+            location_lon=delivery_person.current_location_lon,
+            notes=f'Delivery assigned to {delivery_person.user.get_full_name()}'
+        )
 
     def get_status_display_with_icon(self):
         """Get status with appropriate icon"""

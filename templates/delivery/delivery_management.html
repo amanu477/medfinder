@@ -84,6 +84,52 @@
             </div>
         </div>
 
+        <!-- Delivery Staff Availability -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-users"></i> Delivery Staff Availability
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for staff in delivery_staff %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card {% if staff.is_available %}border-success{% else %}border-danger{% endif %}">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title mb-1">{{ staff.user.get_full_name }}</h6>
+                                        <small class="text-muted">{{ staff.phone }}</small><br>
+                                        <small class="text-muted">{{ staff.vehicle_type|title }}</small>
+                                    </div>
+                                    <div class="text-end">
+                                        {% if staff.is_available %}
+                                            <span class="badge bg-success">Available</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Busy</span>
+                                        {% endif %}
+                                        <br><small class="text-muted">{{ staff.get_active_deliveries_count }} active</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="text-center py-3">
+                            <i class="fas fa-user-plus fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">No delivery staff registered.</p>
+                            <a href="{% url 'create_delivery_person' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Add Delivery Person
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
         <!-- Deliveries List -->
         <div class="card shadow-sm">
             <div class="card-header">
@@ -135,7 +181,13 @@
                                         {% if delivery.delivery_person %}
                                             <div>{{ delivery.delivery_person.user.get_full_name }}</div>
                                             <small class="text-muted">{{ delivery.delivery_person.phone }}</small><br>
-                                            <small class="text-muted">{{ delivery.delivery_person.vehicle_type|title }}</small>
+                                            <small class="text-muted">{{ delivery.delivery_person.vehicle_type|title }}</small><br>
+                                            {% if delivery.delivery_person.is_available %}
+                                                <span class="badge bg-success">Available</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Busy</span>
+                                                <small class="text-muted">({{ delivery.delivery_person.get_active_deliveries_count }} active)</small>
+                                            {% endif %}
                                         {% else %}
                                             <span class="text-muted">Not assigned</span>
                                         {% endif %}

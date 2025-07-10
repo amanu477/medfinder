@@ -90,7 +90,9 @@ The platform now includes a complete delivery management system:
 - **Authentication**: Delivery personnel login through unified authentication system
 - **Real-time Tracking**: GPS location updates, delivery status tracking, customer notifications
 - **Multi-user Interface**: Separate dashboards for delivery personnel, pharmacy managers, and customers
+- **Automatic Availability Management**: Delivery personnel status automatically changes based on active deliveries
 - **Workflow**: Order completion → Automatic delivery creation → Assignment to delivery personnel → Real-time tracking → Customer feedback
+- **Smart Status Updates**: Available/Not Available status updates automatically when deliveries are assigned, in progress, or completed
 
 ## External Dependencies
 
