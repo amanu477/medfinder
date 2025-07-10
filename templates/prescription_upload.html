@@ -23,19 +23,44 @@
                             <div class="mb-4">
                                 <h5 class="mb-3">1. Choose a Pharmacy</h5>
                                 
+                                <!-- Location Detection -->
+                                <div class="mb-3">
+                                    <button type="button" id="locationBtn" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-map-marker-alt me-1"></i> Use My Location
+                                    </button>
+                                    <div id="locationStatus" class="mt-2"></div>
+                                    {% if user_has_location %}
+                                    <div class="alert alert-info mt-2">
+                                        <i class="fas fa-check-circle me-1"></i> 
+                                        Pharmacies are sorted by distance from your location
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
                                 <div class="mb-3">
                                     <label for="pharmacySelect" class="form-label">Select a Pharmacy</label>
                                     <select name="pharmacy_id" id="pharmacySelect" class="form-select" required>
                                         <option value="" selected disabled>-- Select a Pharmacy --</option>
                                         {% for pharmacy in pharmacies %}
-                                        <option value="{{ pharmacy.id }}" data-address="{{ pharmacy.address }}" data-phone="{{ pharmacy.phone }}" data-email="{{ pharmacy.email }}">
+                                        <option value="{{ pharmacy.id }}" 
+                                                data-address="{{ pharmacy.address }}" 
+                                                data-phone="{{ pharmacy.phone }}" 
+                                                data-email="{{ pharmacy.email }}"
+                                                data-distance="{{ pharmacy.distance|default:'' }}">
                                             {{ pharmacy.name }}
+                                            {% if pharmacy.distance %}
+                                                ({{ pharmacy.distance }} km away)
+                                            {% endif %}
                                         </option>
                                         {% endfor %}
                                     </select>
                                     <div class="form-text">
                                         <i class="fas fa-info-circle me-1"></i> 
-                                        Select a pharmacy from the list
+                                        {% if user_has_location %}
+                                            Pharmacies are sorted by distance from your location
+                                        {% else %}
+                                            Click "Use My Location" to see nearby pharmacies first
+                                        {% endif %}
                                     </div>
                                 </div>
                                 
@@ -53,18 +78,36 @@
                                 <h5 class="mb-3">2. Your Information</h5>
                                 
                                 <div class="mb-3">
-                                    <label for="customer_name" class="form-label">Your Name</label>
-                                    <input type="text" name="customer_name" id="customer_name" class="form-control" required>
+                                    {{ form.customer_name.label_tag }}
+                                    {{ form.customer_name }}
+                                    {% if form.customer_name.errors %}
+                                        <div class="text-danger">{{ form.customer_name.errors }}</div>
+                                    {% endif %}
+                                    {% if form.customer_name.help_text %}
+                                        <div class="form-text">{{ form.customer_name.help_text }}</div>
+                                    {% endif %}
                                 </div>
                                 
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label for="customer_email" class="form-label">Email Address</label>
-                                        <input type="email" name="customer_email" id="customer_email" class="form-control" required>
+                                        {{ form.customer_email.label_tag }}
+                                        {{ form.customer_email }}
+                                        {% if form.customer_email.errors %}
+                                            <div class="text-danger">{{ form.customer_email.errors }}</div>
+                                        {% endif %}
+                                        {% if form.customer_email.help_text %}
+                                            <div class="form-text">{{ form.customer_email.help_text }}</div>
+                                        {% endif %}
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="customer_phone" class="form-label">Phone Number</label>
-                                        <input type="tel" name="customer_phone" id="customer_phone" class="form-control" required>
+                                        {{ form.customer_phone.label_tag }}
+                                        {{ form.customer_phone }}
+                                        {% if form.customer_phone.errors %}
+                                            <div class="text-danger">{{ form.customer_phone.errors }}</div>
+                                        {% endif %}
+                                        {% if form.customer_phone.help_text %}
+                                            <div class="form-text">{{ form.customer_phone.help_text }}</div>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -74,14 +117,25 @@
                                 <h5 class="mb-3">3. Upload Prescription</h5>
                                 
                                 <div class="mb-3">
-                                    <label for="prescription_image" class="form-label">Prescription Image</label>
-                                    <input type="file" name="prescription_image" id="prescription_image" class="form-control" accept="image/*" required>
-                                    <div class="form-text">Upload a clear photo or scan of your prescription</div>
+                                    {{ form.prescription_image.label_tag }}
+                                    {{ form.prescription_image }}
+                                    {% if form.prescription_image.errors %}
+                                        <div class="text-danger">{{ form.prescription_image.errors }}</div>
+                                    {% endif %}
+                                    {% if form.prescription_image.help_text %}
+                                        <div class="form-text">{{ form.prescription_image.help_text }}</div>
+                                    {% endif %}
                                 </div>
                                 
                                 <div class="mb-3">
-                                    <label for="notes" class="form-label">Additional Notes (Optional)</label>
-                                    <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
+                                    {{ form.notes.label_tag }}
+                                    {{ form.notes }}
+                                    {% if form.notes.errors %}
+                                        <div class="text-danger">{{ form.notes.errors }}</div>
+                                    {% endif %}
+                                    {% if form.notes.help_text %}
+                                        <div class="form-text">{{ form.notes.help_text }}</div>
+                                    {% endif %}
                                 </div>
                             </div>
                             
@@ -107,7 +161,57 @@
         const selectedPharmacyName = document.getElementById('selectedPharmacyName');
         const selectedPharmacyAddress = document.getElementById('selectedPharmacyAddress');
         const selectedPharmacyPhone = document.getElementById('selectedPharmacyPhone');
+        const locationBtn = document.getElementById('locationBtn');
+        const locationStatus = document.getElementById('locationStatus');
         
+        // Location detection
+        if (locationBtn) {
+            locationBtn.addEventListener('click', function() {
+                if ('geolocation' in navigator) {
+                    locationStatus.innerHTML = '<div class="text-info"><i class="fas fa-spinner fa-spin me-1"></i>Getting your location...</div>';
+                    
+                    navigator.geolocation.getCurrentPosition(
+                        function(position) {
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
+                            
+                            // Reload page with location parameters
+                            const url = new URL(window.location);
+                            url.searchParams.set('lat', lat);
+                            url.searchParams.set('lon', lon);
+                            window.location.href = url.toString();
+                        },
+                        function(error) {
+                            let message = 'Unable to get your location. ';
+                            switch(error.code) {
+                                case error.PERMISSION_DENIED:
+                                    message += 'Please allow location access to see nearby pharmacies.';
+                                    break;
+                                case error.POSITION_UNAVAILABLE:
+                                    message += 'Location information is unavailable.';
+                                    break;
+                                case error.TIMEOUT:
+                                    message += 'The request to get your location timed out.';
+                                    break;
+                                default:
+                                    message += 'An unknown error occurred.';
+                                    break;
+                            }
+                            locationStatus.innerHTML = '<div class="text-danger"><i class="fas fa-exclamation-triangle me-1"></i>' + message + '</div>';
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 300000
+                        }
+                    );
+                } else {
+                    locationStatus.innerHTML = '<div class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i>Geolocation is not supported by this browser.</div>';
+                }
+            });
+        }
+        
+        // Pharmacy selection
         pharmacySelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             
@@ -117,6 +221,12 @@
                 selectedPharmacyAddress.textContent = selectedOption.getAttribute('data-address');
                 selectedPharmacyPhone.textContent = selectedOption.getAttribute('data-phone');
                 
+                // Show distance if available
+                const distance = selectedOption.getAttribute('data-distance');
+                if (distance) {
+                    selectedPharmacyName.textContent += ' (' + distance + ' km away)';
+                }
+                
                 // Show the card
                 pharmacyDetails.classList.remove('d-none');
             } else {
@@ -124,6 +234,15 @@
                 pharmacyDetails.classList.add('d-none');
             }
         });
+        
+        // Auto-load location if not already provided
+        {% if not user_has_location %}
+        if ('geolocation' in navigator) {
+            // Show location button as available
+            locationBtn.classList.add('btn-primary');
+            locationBtn.classList.remove('btn-outline-primary');
+        }
+        {% endif %}
     });
 </script>
 {% endblock %}

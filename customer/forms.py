@@ -176,15 +176,70 @@ class OrderForm(forms.ModelForm):
 
 class PrescriptionForm(forms.ModelForm):
     """Form for prescription upload"""
-    customer_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    customer_email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
-    customer_phone = forms.CharField(max_length=20, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    prescription_image = forms.ImageField(widget=forms.FileInput(attrs={'class': 'form-control'}))
-    notes = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}))
+    customer_name = forms.CharField(
+        max_length=100, 
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Your full name'}),
+        help_text="Enter your full name as it appears on your prescription"
+    )
+    customer_email = forms.EmailField(
+        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'your.email@example.com'}),
+        help_text="We'll use this to contact you about your prescription"
+    )
+    customer_phone = forms.CharField(
+        max_length=20, 
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+251912345678'}),
+        help_text="Include country code (e.g., +251 for Ethiopia)"
+    )
+    prescription_image = forms.ImageField(
+        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+        help_text="Upload a clear photo or scan of your prescription (JPG, PNG, max 5MB)"
+    )
+    notes = forms.CharField(
+        required=False, 
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Any additional notes for the pharmacy...'}),
+        help_text="Optional: Add any special instructions or notes"
+    )
     
     class Meta:
         model = Prescription
         fields = ['customer_name', 'customer_email', 'customer_phone', 'prescription_image', 'notes']
+    
+    def clean_customer_name(self):
+        """Validate customer name"""
+        name = self.cleaned_data.get('customer_name')
+        if name:
+            name = name.strip()
+            if len(name) < 2:
+                raise forms.ValidationError("Name must be at least 2 characters long.")
+            if len(name) > 100:
+                raise forms.ValidationError("Name cannot exceed 100 characters.")
+        return name
+    
+    def clean_customer_phone(self):
+        """Validate phone number"""
+        phone = self.cleaned_data.get('customer_phone')
+        if phone:
+            import re
+            # Remove spaces and common characters
+            cleaned_phone = re.sub(r'[\s\-\(\)]', '', phone)
+            if not re.match(r'^[+]?[\d]{10,15}$', cleaned_phone):
+                raise forms.ValidationError("Please enter a valid phone number (10-15 digits with optional country code).")
+        return phone
+    
+    def clean_prescription_image(self):
+        """Validate prescription image"""
+        image = self.cleaned_data.get('prescription_image')
+        if image:
+            # Check file size (5MB limit)
+            if image.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Image file too large. Maximum size is 5MB.")
+            
+            # Check file type
+            allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+            if hasattr(image, 'content_type') and image.content_type not in allowed_types:
+                raise forms.ValidationError("Only JPG, PNG, and GIF images are allowed.")
+        
+        return image
 
 
 class IncidentReportForm(forms.ModelForm):

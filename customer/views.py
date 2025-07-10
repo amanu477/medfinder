@@ -94,10 +94,60 @@ def search_medicines(request):
 
 def upload_prescription(request):
     """View for customers to upload prescriptions"""
+    # Get user location if available
+    user_lat = request.GET.get('lat')
+    user_lon = request.GET.get('lon')
+    
+    # Get all active pharmacies
+    pharmacies = Pharmacy.objects.filter(is_active=True, is_verified=True)
+    
+    # If user location is provided, sort pharmacies by proximity
+    if user_lat and user_lon:
+        try:
+            from .utils import haversine_distance
+            user_lat = float(user_lat)
+            user_lon = float(user_lon)
+            
+            pharmacies_with_distance = []
+            for pharmacy in pharmacies:
+                if pharmacy.latitude and pharmacy.longitude:
+                    distance = haversine_distance(
+                        user_lat, user_lon,
+                        float(pharmacy.latitude), float(pharmacy.longitude)
+                    )
+                    pharmacy.distance = round(distance, 1)
+                    pharmacies_with_distance.append((pharmacy, distance))
+                else:
+                    pharmacy.distance = None
+                    pharmacies_with_distance.append((pharmacy, float('inf')))
+            
+            # Sort by distance (closest first)
+            pharmacies_with_distance.sort(key=lambda x: x[1])
+            pharmacies = [pharmacy for pharmacy, distance in pharmacies_with_distance]
+            
+        except (ValueError, TypeError) as e:
+            logging.error(f"Error calculating pharmacy distances: {e}")
+            pass
+    
     if request.method == 'POST':
         form = PrescriptionForm(request.POST, request.FILES)
         if form.is_valid():
             prescription = form.save(commit=False)
+            
+            # Get selected pharmacy
+            pharmacy_id = request.POST.get('pharmacy_id')
+            if pharmacy_id:
+                try:
+                    pharmacy = Pharmacy.objects.get(id=pharmacy_id, is_active=True)
+                    prescription.pharmacy = pharmacy
+                except Pharmacy.DoesNotExist:
+                    messages.error(request, 'Selected pharmacy not found.')
+                    return render(request, 'prescription_upload.html', {
+                        'form': form, 
+                        'pharmacies': pharmacies,
+                        'user_location': {'lat': user_lat, 'lon': user_lon} if user_lat and user_lon else None
+                    })
+            
             prescription.status = 'pending'
             prescription.save()
             
@@ -105,11 +155,30 @@ def upload_prescription(request):
             request.session['prescription_uploaded'] = True
             request.session['prescription_id'] = prescription.id
             
+            messages.success(request, 'Prescription uploaded successfully!')
             return redirect('prescription_success')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = PrescriptionForm()
+        # Pre-fill customer information if user is logged in
+        if request.user.is_authenticated:
+            try:
+                customer = request.user.customer
+                form.fields['customer_name'].initial = customer.name
+                form.fields['customer_email'].initial = customer.email
+                form.fields['customer_phone'].initial = customer.phone
+            except:
+                pass
     
-    return render(request, 'prescription_upload.html', {'form': form})
+    context = {
+        'form': form,
+        'pharmacies': pharmacies,
+        'user_location': {'lat': user_lat, 'lon': user_lon} if user_lat and user_lon else None,
+        'user_has_location': bool(user_lat and user_lon),
+    }
+    
+    return render(request, 'prescription_upload.html', context)
 
 def prescription_success(request):
     """Success page after prescription submission"""
