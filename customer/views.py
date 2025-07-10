@@ -1341,13 +1341,21 @@ def checkout_cart(request):
                 # Calculate total for this pharmacy
                 total_amount = sum(item.get_total_price() for item in items)
                 
-                # Create order
+                # Check if any cart item has prescription image
+                prescription_image = None
+                for item in items:
+                    if item.prescription_image:
+                        prescription_image = item.prescription_image
+                        break
+                
+                # Create order with prescription image
                 order = Order.objects.create(
                     customer=customer,
                     pharmacy=pharmacy,
                     total_amount=total_amount,
                     status='pending',
-                    notes=f'Order created from cart - {len(items)} items'
+                    prescription_image=prescription_image,
+                    notes=f'Order created from cart - {len(items)} items{"" if not prescription_image else " (with prescription)"}'
                 )
                 
                 # Create order items
@@ -1469,6 +1477,10 @@ def bulk_ocr_verification(request):
                         cart_item.prescription_image = prescription_image
                         cart_item.ocr_validation_data = ocr_result
                         cart_item.save()
+                        
+                        # Store the prescription image path for later use in order creation
+                        if not hasattr(cart_item, '_prescription_file_path'):
+                            cart_item._prescription_file_path = temp_image_path
                         
                         if ocr_result.get('is_valid', False):
                             validated_items.append({

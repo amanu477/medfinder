@@ -52,6 +52,17 @@
                         <h6>Order Notes:</h6>
                         <p class="text-muted">{{ order.notes|linebreaks }}</p>
                         {% endif %}
+                        
+                        {% if order.prescription_image %}
+                        <hr>
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-file-medical"></i> Prescription Image Available</h6>
+                            <p class="mb-2">This order includes a prescription that has been processed with OCR validation. Please review the prescription image and verify the medicines manually if needed.</p>
+                            <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#prescriptionModal">
+                                <i class="fas fa-eye"></i> View Prescription
+                            </button>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -252,4 +263,52 @@
     padding-left: 10px;
 }
 </style>
+
+{% if order.prescription_image %}
+<!-- Prescription Modal -->
+<div class="modal fade" id="prescriptionModal" tabindex="-1" aria-labelledby="prescriptionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="prescriptionModalLabel">
+                    <i class="fas fa-file-medical"></i> Prescription for Order #{{ order.id }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="alert alert-warning">
+                    <strong><i class="fas fa-exclamation-triangle"></i> Manual Verification Required</strong><br>
+                    Please manually verify that all medicines in this order match the prescription image below.
+                </div>
+                <img src="{{ order.prescription_image.url }}" 
+                     alt="Prescription Image" 
+                     class="img-fluid rounded border"
+                     style="max-height: 70vh; width: auto;">
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle"></i> 
+                        This prescription has been processed with OCR technology, but manual verification is recommended for accuracy.
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="d-flex justify-content-between w-100">
+                    <div>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar"></i> Order Date: {{ order.created_at|date:"M d, Y H:i" }}
+                        </small>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <a href="{{ order.prescription_image.url }}" target="_blank" class="btn btn-primary">
+                            <i class="fas fa-external-link-alt"></i> Open Full Size
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}
