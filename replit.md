@@ -64,7 +64,11 @@ The platform operates four distinct user types with separate authentication flow
 4. Verification status updated with compliance scoring
 
 ### Payment Integration
-The system includes Chapa payment service integration for Ethiopian Birr transactions, with comprehensive payment tracking and receipt generation.
+The system includes comprehensive dual payment system:
+- **Chapa Payment Gateway**: For online payment processing in Ethiopian Birr
+- **Cash on Delivery**: With QR code generation for delivery personnel verification
+- **Order Workflow**: Orders start as "pending" → Pharmacy approval → "approved" status → Payment options appear
+- **Payment Tracking**: Comprehensive payment tracking and receipt generation for both payment methods
 
 ### OCR Integration
 The platform now includes advanced OCR (Optical Character Recognition) functionality:

@@ -413,7 +413,7 @@ def place_order(request, medicine_id):
                 customer=customer,
                 pharmacy=medicine.pharmacy,
                 total_amount=medicine.price * quantity,
-                status='approved',  # Set to approved for immediate payment
+                status='pending',  # Wait for pharmacy approval
                 notes=form.cleaned_data.get('notes', ''),
                 prescription_image=prescription_image
             )
@@ -430,8 +430,8 @@ def place_order(request, medicine_id):
             medicine.stock_quantity -= quantity
             medicine.save()
             
-            messages.success(request, f'Order placed successfully! Please choose your payment method.')
-            return redirect('payment_choice', order_id=order.id)
+            messages.success(request, f'Order placed successfully! Waiting for pharmacy approval.')
+            return redirect('order_detail', order_id=order.id)
     else:
         form = OrderForm()
     
@@ -1032,7 +1032,7 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
                 customer=customer,
                 pharmacy=medicine.pharmacy,
                 total_amount=medicine.price * quantity,
-                status='approved',  # Set to approved for immediate payment
+                status='pending',  # Wait for pharmacy approval
                 notes=f'OCR Validation - Confidence: {ocr_result.get("confidence", 0):.1f}%'
             )
             
@@ -1071,8 +1071,8 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
             if 'prescription_image_name' in request.session:
                 del request.session['prescription_image_name']
             
-            messages.success(request, f'Order #{order.id} placed successfully! Please choose your payment method.')
-            return redirect('payment_choice', order_id=order.id)
+            messages.success(request, f'Order #{order.id} placed successfully! Waiting for pharmacy approval.')
+            return redirect('order_detail', order_id=order.id)
             
     except Exception as e:
         logger.error(f"Error creating order: {str(e)}")
@@ -1353,7 +1353,7 @@ def checkout_cart(request):
                     customer=customer,
                     pharmacy=pharmacy,
                     total_amount=total_amount,
-                    status='approved',  # Set to approved for immediate payment
+                    status='pending',  # Wait for pharmacy approval
                     prescription_image=prescription_image,
                     notes=f'Order created from cart - {len(items)} items{"" if not prescription_image else " (with prescription)"}'
                 )
@@ -1381,10 +1381,10 @@ def checkout_cart(request):
             cart.clear()
         
         if len(created_orders) == 1:
-            messages.success(request, f'Order #{created_orders[0].id} created successfully! Please choose your payment method.')
-            return redirect('payment_choice', order_id=created_orders[0].id)
+            messages.success(request, f'Order #{created_orders[0].id} created successfully! Waiting for pharmacy approval.')
+            return redirect('order_detail', order_id=created_orders[0].id)
         else:
-            messages.success(request, f'Created {len(created_orders)} orders successfully! Please complete payment for each order.')
+            messages.success(request, f'Created {len(created_orders)} orders successfully! Waiting for pharmacy approval.')
             return redirect('order_history')
             
     except Customer.DoesNotExist:
@@ -1618,8 +1618,8 @@ def payment_choice(request, order_id):
     order = get_object_or_404(Order, id=order_id, customer=customer)
     
     # Check if order is eligible for payment
-    if order.status not in ['pending', 'approved']:
-        messages.error(request, 'This order is not eligible for payment.')
+    if order.status != 'approved':
+        messages.error(request, 'This order is not approved for payment yet. Please wait for pharmacy approval.')
         return redirect('order_detail', order_id=order.id)
     
     return render(request, 'customer/payment_choice.html', {
@@ -1676,6 +1676,8 @@ def cash_payment_choice(request, order_id):
                     })
                     
             except Exception as e:
+                import logging
+                logger = logging.getLogger(__name__)
                 logger.error(f"Error creating cash payment: {str(e)}")
                 messages.error(request, 'Error setting up cash payment. Please try again.')
                 return redirect('payment_choice', order_id=order.id)
