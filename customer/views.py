@@ -1315,6 +1315,8 @@ def clear_cart(request):
 @login_required
 def checkout_cart(request):
     """Convert cart items to orders"""
+    logger = logging.getLogger(__name__)
+    
     try:
         customer = request.user.customer
         cart = get_object_or_404(Cart, customer=customer)
@@ -1388,6 +1390,8 @@ def checkout_cart(request):
 @login_required
 def bulk_ocr_verification(request):
     """Bulk OCR verification for all cart items"""
+    logger = logging.getLogger(__name__)
+    
     try:
         customer = request.user.customer
         cart = get_object_or_404(Cart, customer=customer)
