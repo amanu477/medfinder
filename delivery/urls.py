@@ -24,4 +24,8 @@ urlpatterns = [
     
     # API endpoints
     path('api/tracking/<int:delivery_id>/', views.get_delivery_tracking_data, name='delivery_tracking_data'),
+    
+    # Cash payment confirmation
+    path('cash-payment/scanner/<int:delivery_id>/', views.cash_payment_qr_scanner, name='cash_payment_qr_scanner'),
+    path('cash-payment/confirm/<int:delivery_id>/', views.confirm_cash_payment, name='confirm_cash_payment'),
 ]

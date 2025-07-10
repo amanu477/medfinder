@@ -26,6 +26,8 @@ urlpatterns = [
     path('prescription/success/', views.prescription_success, name='prescription_success'),
     
     # Payment management
+    path('payment/choice/<int:order_id>/', views.payment_choice, name='payment_choice'),
+    path('payment/cash/<int:order_id>/', views.cash_payment_choice, name='cash_payment_choice'),
     path('payment/initiate/<int:order_id>/', views.initiate_payment, name='initiate_payment'),
     path('payment/callback/', views.payment_callback, name='payment_callback'),
     path('payment/success/<int:payment_id>/', views.payment_success, name='payment_success'),

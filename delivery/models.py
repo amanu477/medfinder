@@ -191,6 +191,25 @@ class Delivery(models.Model):
             message=f"New delivery assigned: Order #{self.order.id}",
             notification_type='assignment'
         )
+    
+    def needs_cash_payment_confirmation(self):
+        """Check if delivery needs cash payment confirmation"""
+        try:
+            payment = self.order.payment
+            return (payment.is_cash_payment() and 
+                   payment.needs_cash_confirmation())
+        except:
+            return False
+    
+    def confirm_cash_payment(self, delivery_person):
+        """Confirm cash payment received"""
+        try:
+            payment = self.order.payment
+            if payment.confirm_cash_payment(delivery_person.user):
+                return True
+        except:
+            pass
+        return False
 
 
 class DeliveryTracking(models.Model):

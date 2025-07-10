@@ -1605,3 +1605,80 @@ def bulk_ocr_verification(request):
         logger.error(f"Error in bulk OCR verification: {str(e)}")
         messages.error(request, f'Error: {str(e)}')
         return redirect('cart_view')
+
+@login_required
+def payment_choice(request, order_id):
+    """Show payment method selection page"""
+    try:
+        customer = request.user.customer
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    
+    order = get_object_or_404(Order, id=order_id, customer=customer)
+    
+    # Check if order is eligible for payment
+    if order.status not in ['pending', 'approved']:
+        messages.error(request, 'This order is not eligible for payment.')
+        return redirect('order_detail', order_id=order.id)
+    
+    return render(request, 'customer/payment_choice.html', {
+        'order': order
+    })
+
+@login_required
+def cash_payment_choice(request, order_id):
+    """Handle cash payment selection"""
+    try:
+        customer = request.user.customer
+    except Customer.DoesNotExist:
+        messages.error(request, 'Customer profile not found.')
+        return redirect('home')
+    
+    order = get_object_or_404(Order, id=order_id, customer=customer)
+    
+    if request.method == 'POST':
+        payment_type = request.POST.get('payment_type')
+        
+        if payment_type == 'cash_on_delivery':
+            # Create cash payment record
+            try:
+                with transaction.atomic():
+                    # Generate transaction reference
+                    import uuid
+                    tx_ref = f"CASH_{uuid.uuid4().hex[:8].upper()}"
+                    
+                    # Create payment record
+                    payment = Payment.objects.create(
+                        order=order,
+                        tx_ref=tx_ref,
+                        amount=order.total_amount,
+                        currency='ETB',
+                        payment_type='cash_on_delivery',
+                        status='cash_pending',
+                        customer_email=customer.email,
+                        customer_first_name=customer.name.split()[0] if customer.name else '',
+                        customer_last_name=' '.join(customer.name.split()[1:]) if len(customer.name.split()) > 1 else '',
+                        customer_phone=customer.phone,
+                    )
+                    
+                    # Generate QR code data
+                    payment.generate_qr_code_data()
+                    
+                    # Update order status
+                    order.status = 'approved'  # Approved for processing
+                    order.save()
+                    
+                    messages.success(request, 'Cash payment option selected successfully. You will pay when the delivery person arrives.')
+                    return render(request, 'customer/cash_payment_confirmation.html', {
+                        'order': order,
+                        'payment': payment
+                    })
+                    
+            except Exception as e:
+                logger.error(f"Error creating cash payment: {str(e)}")
+                messages.error(request, 'Error setting up cash payment. Please try again.')
+                return redirect('payment_choice', order_id=order.id)
+    
+    # If not POST or invalid payment type, redirect back
+    return redirect('payment_choice', order_id=order.id)

@@ -462,3 +462,82 @@ def get_delivery_tracking_data(request, delivery_id):
     }
     
     return JsonResponse(data)
+
+@login_required
+def confirm_cash_payment(request, delivery_id):
+    """Confirm cash payment received by delivery person"""
+    try:
+        delivery_person = request.user.deliveryperson
+    except DeliveryPerson.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Not authorized'}, status=403)
+    
+    delivery = get_object_or_404(Delivery, id=delivery_id, delivery_person=delivery_person)
+    
+    if request.method == 'POST':
+        # Check if delivery needs cash payment confirmation
+        if delivery.needs_cash_payment_confirmation():
+            if delivery.confirm_cash_payment(delivery_person):
+                # Update delivery status if payment confirmed
+                if delivery.status == 'in_transit':
+                    delivery.status = 'delivered'
+                    delivery.delivery_time = timezone.now()
+                    delivery.save()
+                    
+                    # Update delivery person stats
+                    delivery_person.total_deliveries += 1
+                    delivery_person.save()
+                    
+                    # Update availability
+                    delivery_person.update_availability_status()
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Cash payment confirmed successfully'
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Failed to confirm payment'
+                })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'This delivery does not require cash payment confirmation'
+            })
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+@login_required
+def cash_payment_qr_scanner(request, delivery_id):
+    """QR code scanner page for delivery personnel"""
+    try:
+        delivery_person = request.user.deliveryperson
+    except DeliveryPerson.DoesNotExist:
+        messages.error(request, 'You are not registered as a delivery person.')
+        return redirect('home')
+    
+    delivery = get_object_or_404(Delivery, id=delivery_id, delivery_person=delivery_person)
+    
+    # Check if this delivery needs cash payment
+    if not delivery.needs_cash_payment_confirmation():
+        messages.error(request, 'This delivery does not require cash payment.')
+        return redirect('delivery_dashboard')
+    
+    try:
+        payment = delivery.order.payment
+        if payment.qr_code_data:
+            import json
+            qr_data = json.loads(payment.qr_code_data)
+        else:
+            qr_data = None
+    except:
+        qr_data = None
+    
+    context = {
+        'delivery': delivery,
+        'order': delivery.order,
+        'payment': payment,
+        'qr_data': qr_data,
+    }
+    
+    return render(request, 'delivery/cash_payment_scanner.html', context)

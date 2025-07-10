@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 from pharmacy.models import Pharmacy
 
 class Customer(models.Model):
@@ -116,19 +117,27 @@ class OrderItem(models.Model):
 
 
 class Payment(models.Model):
-    """Model for tracking Chapa payments"""
+    """Model for tracking payments (online and cash-on-delivery)"""
     STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('success', 'Success'),
         ('failed', 'Failed'),
         ('cancelled', 'Cancelled'),
+        ('cash_pending', 'Cash Payment Pending'),
+        ('cash_paid', 'Cash Payment Received'),
+    )
+    
+    PAYMENT_TYPE_CHOICES = (
+        ('online', 'Online Payment'),
+        ('cash_on_delivery', 'Cash on Delivery'),
     )
 
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment')
-    tx_ref = models.CharField(max_length=100, unique=True)  # Chapa transaction reference
+    tx_ref = models.CharField(max_length=100, unique=True)  # Transaction reference
     chapa_tx_ref = models.CharField(max_length=100, blank=True, null=True)  # Chapa's transaction reference
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='ETB')
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, default='online')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     # Customer information for payment
@@ -137,9 +146,15 @@ class Payment(models.Model):
     customer_last_name = models.CharField(max_length=50)
     customer_phone = models.CharField(max_length=20)
     
-    # Chapa response data
+    # Online payment data
     chapa_response = models.JSONField(blank=True, null=True)
     checkout_url = models.URLField(blank=True, null=True)
+    
+    # Cash on delivery fields
+    qr_code_data = models.TextField(blank=True, null=True)  # QR code data for cash payment
+    cash_received_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='cash_payments_received')
+    cash_received_at = models.DateTimeField(blank=True, null=True)
+    cash_confirmation_notes = models.TextField(blank=True, null=True)
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -151,6 +166,47 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.tx_ref} - {self.amount} {self.currency} ({self.status})"
+    
+    def generate_qr_code_data(self):
+        """Generate QR code data for cash payment"""
+        import json
+        qr_data = {
+            'payment_id': self.tx_ref,
+            'order_id': self.order.id,
+            'amount': str(self.amount),
+            'currency': self.currency,
+            'customer_name': f"{self.customer_first_name} {self.customer_last_name}",
+            'customer_phone': self.customer_phone,
+            'pharmacy': self.order.pharmacy.name,
+            'created_at': self.created_at.isoformat(),
+        }
+        self.qr_code_data = json.dumps(qr_data)
+        self.save()
+        return qr_data
+    
+    def confirm_cash_payment(self, delivery_person):
+        """Confirm cash payment received by delivery person"""
+        if self.payment_type == 'cash_on_delivery':
+            self.status = 'cash_paid'
+            self.cash_received_by = delivery_person
+            self.cash_received_at = timezone.now()
+            self.paid_at = timezone.now()
+            self.save()
+            
+            # Update order status
+            self.order.status = 'paid'
+            self.order.save()
+            
+            return True
+        return False
+    
+    def is_cash_payment(self):
+        """Check if this is a cash on delivery payment"""
+        return self.payment_type == 'cash_on_delivery'
+    
+    def needs_cash_confirmation(self):
+        """Check if cash payment needs confirmation"""
+        return self.payment_type == 'cash_on_delivery' and self.status == 'cash_pending'
 
 class Prescription(models.Model):
     """Model for storing prescription information"""

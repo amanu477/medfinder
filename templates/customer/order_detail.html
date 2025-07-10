@@ -16,7 +16,7 @@
                 <p class="mb-0"><strong>Total Amount:</strong> {{ order.total_amount }} ETB</p>
                 <p class="mb-0"><strong>Pharmacy:</strong> {{ order.pharmacy.name }}</p>
             </div>
-            <a href="{% url 'initiate_payment' order.id %}" class="btn btn-primary btn-lg">
+            <a href="{% url 'payment_choice' order.id %}" class="btn btn-primary btn-lg">
                 <i class="fas fa-credit-card"></i> Pay Now
             </a>
         </div>
