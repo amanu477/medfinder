@@ -369,9 +369,40 @@ def update_order_status(request, order_id):
     if request.method == 'POST':
         new_status = request.POST.get('status')
         if new_status in [s[0] for s in Order.STATUS_CHOICES]:
+            old_status = order.status
             order.status = new_status
             order.save()
-            messages.success(request, f'Order #{order.id} status updated to {new_status}!')
+            
+            # If order is completed, create delivery and redirect to delivery system
+            if new_status == 'completed' and old_status != 'completed':
+                from delivery.models import Delivery
+                from django.utils import timezone
+                import uuid
+                
+                # Create delivery if it doesn't exist
+                delivery, created = Delivery.objects.get_or_create(
+                    order=order,
+                    defaults={
+                        'customer_address': order.customer.address or 'Address not provided',
+                        'customer_phone': order.customer.phone,
+                        'customer_location_lat': order.customer.latitude,
+                        'customer_location_lon': order.customer.longitude,
+                        'tracking_number': f"DEL{timezone.now().strftime('%Y%m%d%H%M%S')}{order.id}",
+                        'status': 'pending',
+                        'pharmacy_notes': f'Order #{order.id} completed and ready for delivery',
+                        'estimated_delivery_time': timezone.now() + timezone.timedelta(hours=2),
+                        'delivery_fee': 50.00,  # Default delivery fee
+                    }
+                )
+                
+                if created:
+                    messages.success(request, f'Order #{order.id} completed! Delivery #{delivery.tracking_number} created.')
+                    # Redirect to delivery management instead of order management
+                    return redirect('delivery_management')
+                else:
+                    messages.success(request, f'Order #{order.id} status updated to {new_status}!')
+            else:
+                messages.success(request, f'Order #{order.id} status updated to {new_status}!')
         else:
             messages.error(request, 'Invalid status value!')
     

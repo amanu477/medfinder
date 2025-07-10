@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Delivery Management - Pharmacy Dashboard{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">Delivery Management</h1>
+            <div>
+                <a href="{% url 'pharmacy_delivery_dashboard' %}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-tachometer-alt"></i> Delivery Dashboard
+                </a>
+                <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Main Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Delivery Statistics -->
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <div class="card text-center border-warning">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">{{ stats.pending_count }}</h5>
+                        <p class="card-text">Pending Assignment</p>
+                        <a href="?status=pending" class="btn btn-sm btn-warning">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center border-info">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">{{ stats.assigned_count }}</h5>
+                        <p class="card-text">Assigned</p>
+                        <a href="?status=assigned" class="btn btn-sm btn-info">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="card text-center border-primary">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">{{ stats.in_transit_count }}</h5>
+                        <p class="card-text">In Transit</p>
+                        <a href="?status=in_transit" class="btn btn-sm btn-primary">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-success">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">{{ stats.delivered_count }}</h5>
+                        <p class="card-text">Delivered</p>
+                        <a href="?status=delivered" class="btn btn-sm btn-success">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-secondary">
+                    <div class="card-body">
+                        <h5 class="card-title text-secondary">{{ stats.total_count }}</h5>
+                        <p class="card-text">Total Deliveries</p>
+                        <a href="{% url 'delivery_management' %}" class="btn btn-sm btn-secondary">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Options -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <a href="{% url 'delivery_management' %}" class="btn btn-outline-secondary btn-sm">All Deliveries</a>
+                        <a href="?status=pending" class="btn btn-outline-warning btn-sm">Pending</a>
+                        <a href="?status=assigned" class="btn btn-outline-info btn-sm">Assigned</a>
+                        <a href="?status=in_transit" class="btn btn-outline-primary btn-sm">In Transit</a>
+                        <a href="?status=delivered" class="btn btn-outline-success btn-sm">Delivered</a>
+                    </div>
+                    {% if status_filter %}
+                        <small class="text-muted">Showing: {{ status_filter|title }} deliveries</small>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Deliveries List -->
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-truck"></i> Customer Deliveries
+                    {% if status_filter %}
+                        - {{ status_filter|title }}
+                    {% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if deliveries %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Tracking #</th>
+                                    <th>Order</th>
+                                    <th>Customer</th>
+                                    <th>Delivery Person</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Delivery Fee</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for delivery in deliveries %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ delivery.tracking_number }}</strong>
+                                        {% if delivery.order.prescription_image %}
+                                            <br><small class="text-success">
+                                                <i class="fas fa-file-medical"></i> Prescription
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>Order #{{ delivery.order.id }}</strong>
+                                        <br><small class="text-muted">{{ delivery.order.total_amount }} ETB</small>
+                                        <br><small class="text-muted">{{ delivery.order.get_total_items }} items</small>
+                                    </td>
+                                    <td>
+                                        <div>{{ delivery.order.customer.name }}</div>
+                                        <small class="text-muted">{{ delivery.order.customer.email }}</small><br>
+                                        <small class="text-muted">{{ delivery.customer_phone }}</small>
+                                    </td>
+                                    <td>
+                                        {% if delivery.delivery_person %}
+                                            <div>{{ delivery.delivery_person.user.get_full_name }}</div>
+                                            <small class="text-muted">{{ delivery.delivery_person.phone }}</small><br>
+                                            <small class="text-muted">{{ delivery.delivery_person.vehicle_type|title }}</small>
+                                        {% else %}
+                                            <span class="text-muted">Not assigned</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if delivery.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending Assignment</span>
+                                        {% elif delivery.status == 'assigned' %}
+                                            <span class="badge bg-info">Assigned</span>
+                                        {% elif delivery.status == 'picked_up' %}
+                                            <span class="badge bg-primary">Picked Up</span>
+                                        {% elif delivery.status == 'in_transit' %}
+                                            <span class="badge bg-primary">In Transit</span>
+                                        {% elif delivery.status == 'delivered' %}
+                                            <span class="badge bg-success">Delivered</span>
+                                        {% elif delivery.status == 'failed' %}
+                                            <span class="badge bg-danger">Failed</span>
+                                        {% elif delivery.status == 'cancelled' %}
+                                            <span class="badge bg-secondary">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ delivery.created_at|date:"M d, Y H:i" }}
+                                        {% if delivery.estimated_delivery_time %}
+                                            <br><small class="text-muted">
+                                                Est: {{ delivery.estimated_delivery_time|date:"M d, H:i" }}
+                                            </small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ delivery.delivery_fee }} ETB</strong>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group-vertical btn-group-sm">
+                                            <a href="{% url 'delivery_detail' delivery.id %}" class="btn btn-outline-info btn-sm">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </a>
+                                            {% if delivery.status == 'pending' %}
+                                                <a href="{% url 'assign_delivery' delivery.order.id %}" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-user-plus"></i> Assign
+                                                </a>
+                                            {% endif %}
+                                            {% if delivery.order.prescription_image %}
+                                                <button type="button" class="btn btn-outline-success btn-sm" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#prescriptionModal{{ delivery.id }}">
+                                                    <i class="fas fa-file-medical"></i> Prescription
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No deliveries found</h5>
+                        <p class="text-muted">
+                            {% if status_filter %}
+                                No {{ status_filter }} deliveries found.
+                            {% else %}
+                                Deliveries will appear here when orders are completed.
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'order_management' %}" class="btn btn-primary">
+                            <i class="fas fa-shopping-cart"></i> Manage Orders
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Prescription Image Modals -->
+{% for delivery in deliveries %}
+    {% if delivery.order.prescription_image %}
+    <div class="modal fade" id="prescriptionModal{{ delivery.id }}" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-medical"></i> Prescription for Delivery {{ delivery.tracking_number }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="alert alert-info">
+                        <strong>Customer:</strong> {{ delivery.order.customer.name }}<br>
+                        <strong>Order:</strong> #{{ delivery.order.id }}<br>
+                        <strong>Status:</strong> {{ delivery.get_status_display }}
+                    </div>
+                    <img src="{{ delivery.order.prescription_image.url }}" 
+                         alt="Prescription" 
+                         class="img-fluid rounded border"
+                         style="max-height: 70vh; width: auto;">
+                </div>
+                <div class="modal-footer">
+                    <a href="{{ delivery.order.prescription_image.url }}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i> Open Full Size
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
+{% endblock %}

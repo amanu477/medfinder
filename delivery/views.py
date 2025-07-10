@@ -108,6 +108,51 @@ def pharmacy_delivery_dashboard(request):
 
 
 @login_required
+def delivery_management(request):
+    """Pharmacy delivery management view"""
+    try:
+        pharmacy = request.user.pharmacy
+    except Pharmacy.DoesNotExist:
+        messages.error(request, 'You are not registered as a pharmacy.')
+        return redirect('home')
+    
+    # Get all deliveries for this pharmacy
+    deliveries = Delivery.objects.filter(
+        order__pharmacy=pharmacy
+    ).select_related('order', 'order__customer', 'delivery_person').order_by('-created_at')
+    
+    # Filter by status if provided
+    status_filter = request.GET.get('status')
+    if status_filter:
+        deliveries = deliveries.filter(status=status_filter)
+    
+    # Get delivery statistics
+    pending_count = deliveries.filter(status='pending').count()
+    assigned_count = deliveries.filter(status='assigned').count()
+    in_transit_count = deliveries.filter(status='in_transit').count()
+    delivered_count = deliveries.filter(status='delivered').count()
+    
+    # Get delivery staff
+    delivery_staff = DeliveryPerson.objects.filter(pharmacy=pharmacy, is_active=True)
+    
+    context = {
+        'pharmacy': pharmacy,
+        'deliveries': deliveries,
+        'status_filter': status_filter,
+        'delivery_staff': delivery_staff,
+        'stats': {
+            'pending_count': pending_count,
+            'assigned_count': assigned_count,
+            'in_transit_count': in_transit_count,
+            'delivered_count': delivered_count,
+            'total_count': deliveries.count(),
+        }
+    }
+    
+    return render(request, 'delivery/delivery_management.html', context)
+
+
+@login_required
 def create_delivery_person(request):
     """Create new delivery person account"""
     try:

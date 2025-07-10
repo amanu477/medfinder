@@ -7,6 +7,7 @@ urlpatterns = [
     
     # Pharmacy delivery management
     path('pharmacy/dashboard/', views.pharmacy_delivery_dashboard, name='pharmacy_delivery_dashboard'),
+    path('pharmacy/management/', views.delivery_management, name='delivery_management'),
     path('pharmacy/create-delivery-person/', views.create_delivery_person, name='create_delivery_person'),
     path('pharmacy/assign/<int:order_id>/', views.assign_delivery, name='assign_delivery'),
     
