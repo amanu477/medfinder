@@ -1408,18 +1408,30 @@ def bulk_ocr_verification(request):
                 messages.error(request, 'Please upload a prescription image.')
                 return redirect('bulk_ocr_verification')
             
-            # Save prescription image temporarily
+            # Save prescription image temporarily with proper error handling
             try:
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
-                    for chunk in prescription_image.chunks():
-                        temp_file.write(chunk)
-                    temp_image_path = temp_file.name
+                # Get the file extension from the uploaded file
+                file_extension = os.path.splitext(prescription_image.name)[1] or '.jpg'
+                
+                # Create temporary file with proper extension
+                temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=file_extension)
+                temp_image_path = temp_file.name
+                
+                # Write the uploaded file to temporary location
+                for chunk in prescription_image.chunks():
+                    temp_file.write(chunk)
+                temp_file.close()  # Close the file handle
                 
                 # Verify the file was created and is readable
                 if not os.path.exists(temp_image_path):
                     raise FileNotFoundError(f"Failed to create temporary file: {temp_image_path}")
                 
-                logger.info(f"Temporary file created successfully: {temp_image_path}")
+                # Check file size
+                file_size = os.path.getsize(temp_image_path)
+                if file_size == 0:
+                    raise ValueError("Uploaded file is empty")
+                
+                logger.info(f"Temporary file created successfully: {temp_image_path} (size: {file_size} bytes)")
                 
             except Exception as e:
                 logger.error(f"Error creating temporary file: {str(e)}")
@@ -1431,18 +1443,27 @@ def bulk_ocr_verification(request):
                 validated_items = []
                 failed_items = []
                 
-                # Process each cart item
+                # Process each cart item ONE BY ONE
                 total_items = cart_items.count()
                 validated_count = 0
                 failed_count = 0
                 
-                for cart_item in cart_items:
+                logger.info(f"Starting individual medicine validation for {total_items} medicines")
+                
+                for i, cart_item in enumerate(cart_items, 1):
+                    medicine_name = cart_item.medicine.name
+                    logger.info(f"Step {i}/{total_items}: Validating '{medicine_name}' in prescription")
+                    
                     try:
+                        # Validate THIS medicine in the prescription
                         ocr_result = ocr_service.validate_medicine_name(
-                            cart_item.medicine.name, 
+                            medicine_name, 
                             temp_image_path, 
                             threshold=60
                         )
+                        
+                        # Log the result for this specific medicine
+                        logger.info(f"Medicine '{medicine_name}' validation result: {ocr_result}")
                         
                         # Update cart item with OCR result
                         cart_item.prescription_image = prescription_image
@@ -1451,51 +1472,70 @@ def bulk_ocr_verification(request):
                         
                         if ocr_result.get('is_valid', False):
                             validated_items.append({
-                                'name': cart_item.medicine.name,
-                                'confidence': ocr_result.get('confidence', 0)
+                                'name': medicine_name,
+                                'confidence': ocr_result.get('confidence', 0),
+                                'best_match': ocr_result.get('best_match', 'N/A')
                             })
                             validated_count += 1
+                            logger.info(f"✓ Medicine '{medicine_name}' VALIDATED with {ocr_result.get('confidence', 0):.1f}% confidence")
                         else:
                             failed_items.append({
-                                'name': cart_item.medicine.name,
-                                'confidence': ocr_result.get('confidence', 0)
+                                'name': medicine_name,
+                                'confidence': ocr_result.get('confidence', 0),
+                                'best_match': ocr_result.get('best_match', 'N/A')
                             })
                             failed_count += 1
+                            logger.info(f"✗ Medicine '{medicine_name}' FAILED validation with {ocr_result.get('confidence', 0):.1f}% confidence")
                     
                     except Exception as e:
-                        logger.error(f"Error validating {cart_item.medicine.name}: {str(e)}")
+                        logger.error(f"Error validating medicine '{medicine_name}': {str(e)}")
                         failed_items.append({
-                            'name': cart_item.medicine.name,
+                            'name': medicine_name,
                             'error': str(e),
                             'confidence': 0
                         })
                         failed_count += 1
+                        logger.error(f"✗ Medicine '{medicine_name}' ERROR: {str(e)}")
                 
                 # Clean up temporary file
-                os.unlink(temp_image_path)
+                try:
+                    if os.path.exists(temp_image_path):
+                        os.unlink(temp_image_path)
+                        logger.info(f"Cleaned up temporary file: {temp_image_path}")
+                except Exception as e:
+                    logger.warning(f"Failed to clean up temporary file {temp_image_path}: {str(e)}")
                 
                 # Calculate overall validation percentage
                 validation_percentage = (validated_count / total_items) * 100 if total_items > 0 else 0
                 
-                # Show detailed results with percentages
+                # Show detailed step-by-step results
+                logger.info(f"Final validation results: {validated_count} validated, {failed_count} failed out of {total_items}")
+                
                 if validated_items:
-                    validated_names = [item['name'] for item in validated_items]
-                    messages.success(request, f'✓ Successfully validated ({validated_count}/{total_items} = {validation_percentage:.1f}%): {", ".join(validated_names)}')
+                    validated_details = []
+                    for item in validated_items:
+                        validated_details.append(f"{item['name']} ({item['confidence']:.1f}%)")
+                    
+                    messages.success(
+                        request, 
+                        f'✓ Successfully validated {validated_count}/{total_items} medicines ({validation_percentage:.1f}%): {", ".join(validated_details)}'
+                    )
                 
                 if failed_items:
                     failed_details = []
                     for item in failed_items:
-                        confidence = item.get('confidence', 0)
                         if 'error' in item:
                             failed_details.append(f"{item['name']} (Error)")
                         else:
-                            failed_details.append(f"{item['name']} ({confidence:.1f}%)")
+                            confidence = item.get('confidence', 0)
+                            best_match = item.get('best_match', 'N/A')
+                            failed_details.append(f"{item['name']} ({confidence:.1f}% - closest: {best_match})")
                     
                     messages.warning(
                         request, 
-                        f'⚠ Low confidence validation ({failed_count}/{total_items}): {", ".join(failed_details)}. '
+                        f'⚠ Failed validation for {failed_count}/{total_items} medicines: {", ".join(failed_details)}. '
                         f'Overall validation: {validation_percentage:.1f}%. '
-                        f'{"Pharmacy must manually verify prescription." if validation_percentage < 100 else ""}'
+                        f'{"Pharmacy must manually verify prescription for these medicines." if validation_percentage < 100 else ""}'
                     )
                 
                 # Add pharmacy notification for manual verification if needed
@@ -1521,7 +1561,14 @@ def bulk_ocr_verification(request):
                 return redirect('cart_view')
                 
             except Exception as e:
-                os.unlink(temp_image_path)
+                # Clean up temporary file on error
+                try:
+                    if 'temp_image_path' in locals() and os.path.exists(temp_image_path):
+                        os.unlink(temp_image_path)
+                        logger.info(f"Cleaned up temporary file after error: {temp_image_path}")
+                except:
+                    pass
+                
                 logger.error(f"Error during bulk OCR: {str(e)}")
                 messages.error(request, f'Error during bulk OCR verification: {str(e)}')
                 return redirect('bulk_ocr_verification')
