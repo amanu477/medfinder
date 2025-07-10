@@ -68,7 +68,7 @@ def moh_context(request):
 
 def cart_context(request):
     """
-    Add cart context for authenticated customers
+    Add cart context only for authenticated customers (not pharmacy or delivery users)
     """
     context = {
         'cart_item_count': 0,
@@ -77,6 +77,11 @@ def cart_context(request):
     
     if request.user.is_authenticated:
         try:
+            # Only provide cart context for actual customers
+            # Skip if user is pharmacy or delivery person
+            if hasattr(request.user, 'pharmacy') or hasattr(request.user, 'deliveryperson'):
+                return context
+                
             # Check if user has customer profile
             customer = request.user.customer
             cart = Cart.objects.filter(customer=customer).first()
