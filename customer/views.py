@@ -1420,6 +1420,10 @@ def bulk_ocr_verification(request):
                 failed_items = []
                 
                 # Process each cart item
+                total_items = cart_items.count()
+                validated_count = 0
+                failed_count = 0
+                
                 for cart_item in cart_items:
                     try:
                         ocr_result = ocr_service.validate_medicine_name(
@@ -1434,30 +1438,73 @@ def bulk_ocr_verification(request):
                         cart_item.save()
                         
                         if ocr_result.get('is_valid', False):
-                            validated_items.append(cart_item.medicine.name)
+                            validated_items.append({
+                                'name': cart_item.medicine.name,
+                                'confidence': ocr_result.get('confidence', 0)
+                            })
+                            validated_count += 1
                         else:
                             failed_items.append({
                                 'name': cart_item.medicine.name,
                                 'confidence': ocr_result.get('confidence', 0)
                             })
+                            failed_count += 1
                     
                     except Exception as e:
                         logger.error(f"Error validating {cart_item.medicine.name}: {str(e)}")
                         failed_items.append({
                             'name': cart_item.medicine.name,
-                            'error': str(e)
+                            'error': str(e),
+                            'confidence': 0
                         })
+                        failed_count += 1
                 
                 # Clean up temporary file
                 os.unlink(temp_image_path)
                 
-                # Show results
+                # Calculate overall validation percentage
+                validation_percentage = (validated_count / total_items) * 100 if total_items > 0 else 0
+                
+                # Show detailed results with percentages
                 if validated_items:
-                    messages.success(request, f'Successfully validated: {", ".join(validated_items)}')
+                    validated_names = [item['name'] for item in validated_items]
+                    messages.success(request, f'✓ Successfully validated ({validated_count}/{total_items} = {validation_percentage:.1f}%): {", ".join(validated_names)}')
                 
                 if failed_items:
-                    failed_names = [item['name'] for item in failed_items]
-                    messages.warning(request, f'Low confidence validation for: {", ".join(failed_names)}. Please review these items.')
+                    failed_details = []
+                    for item in failed_items:
+                        confidence = item.get('confidence', 0)
+                        if 'error' in item:
+                            failed_details.append(f"{item['name']} (Error)")
+                        else:
+                            failed_details.append(f"{item['name']} ({confidence:.1f}%)")
+                    
+                    messages.warning(
+                        request, 
+                        f'⚠ Low confidence validation ({failed_count}/{total_items}): {", ".join(failed_details)}. '
+                        f'Overall validation: {validation_percentage:.1f}%. '
+                        f'{"Pharmacy must manually verify prescription." if validation_percentage < 100 else ""}'
+                    )
+                
+                # Add pharmacy notification for manual verification if needed
+                if validation_percentage < 100:
+                    # Group items by pharmacy for notification
+                    pharmacy_groups = {}
+                    for item in cart_items:
+                        pharmacy = item.medicine.pharmacy
+                        if pharmacy not in pharmacy_groups:
+                            pharmacy_groups[pharmacy] = []
+                        pharmacy_groups[pharmacy].append(item)
+                    
+                    for pharmacy, items in pharmacy_groups.items():
+                        pharmacy_failed = [item for item in items if item.medicine.name in [f['name'] for f in failed_items]]
+                        if pharmacy_failed:
+                            failed_med_names = [item.medicine.name for item in pharmacy_failed]
+                            messages.info(
+                                request,
+                                f'📋 {pharmacy.name}: Manual prescription verification required for: {", ".join(failed_med_names)}. '
+                                f'Validation rate: {((len(items) - len(pharmacy_failed)) / len(items)) * 100:.1f}%'
+                            )
                 
                 return redirect('cart_view')
                 

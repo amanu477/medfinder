@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block title %}OCR Validation Summary{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-medical"></i> OCR Validation Summary</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Overall Statistics -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                    <h4>{{ validated_count }}/{{ total_count }}</h4>
+                                    <p class="mb-0">Validated</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                    <h4>{{ failed_count }}/{{ total_count }}</h4>
+                                    <p class="mb-0">Need Review</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-percentage fa-2x mb-2"></i>
+                                    <h4>{{ validation_percentage }}%</h4>
+                                    <p class="mb-0">Overall Accuracy</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pharmacy-wise Results -->
+                    {% if pharmacy_results %}
+                        <h6 class="mb-3">Pharmacy-wise Validation Results:</h6>
+                        {% for pharmacy, result in pharmacy_results.items %}
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <i class="fas fa-store"></i> {{ pharmacy.name }}
+                                        </h6>
+                                        <span class="badge {% if result.validation_rate == 100 %}bg-success{% elif result.validation_rate >= 80 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ result.validation_rate }}% validated
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <h6 class="text-success">✓ Validated Medicines:</h6>
+                                            {% if result.validated_medicines %}
+                                                <ul class="list-unstyled">
+                                                    {% for medicine in result.validated_medicines %}
+                                                        <li class="mb-1">
+                                                            <i class="fas fa-check text-success me-2"></i>
+                                                            {{ medicine.name }} 
+                                                            <span class="badge bg-success">{{ medicine.confidence }}%</span>
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            {% else %}
+                                                <p class="text-muted">No medicines validated automatically</p>
+                                            {% endif %}
+
+                                            {% if result.failed_medicines %}
+                                                <h6 class="text-warning mt-3">⚠ Requires Manual Review:</h6>
+                                                <ul class="list-unstyled">
+                                                    {% for medicine in result.failed_medicines %}
+                                                        <li class="mb-1">
+                                                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                                            {{ medicine.name }} 
+                                                            <span class="badge bg-warning">{{ medicine.confidence }}%</span>
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            {% if result.validation_rate < 100 %}
+                                                <div class="alert alert-warning">
+                                                    <i class="fas fa-info-circle"></i>
+                                                    <strong>Pharmacy Notice:</strong><br>
+                                                    Please manually verify the prescription for medicines with low confidence scores.
+                                                </div>
+                                            {% else %}
+                                                <div class="alert alert-success">
+                                                    <i class="fas fa-check-circle"></i>
+                                                    <strong>All Clear:</strong><br>
+                                                    All medicines validated successfully.
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <!-- Instructions -->
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6><i class="fas fa-info-circle"></i> What This Means:</h6>
+                            <ul class="mb-0">
+                                <li><strong>100% Validation:</strong> All medicines found in prescription - pharmacy can process order immediately</li>
+                                <li><strong>80-99% Validation:</strong> Most medicines validated - pharmacy should review low-confidence items</li>
+                                <li><strong>Below 80% Validation:</strong> Pharmacy must manually verify prescription before processing</li>
+                                <li><strong>Error:</strong> Technical issue during validation - manual review required</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="{% url 'cart_view' %}" class="btn btn-primary">
+                            <i class="fas fa-arrow-left"></i> Back to Cart
+                        </a>
+                        <a href="{% url 'checkout_cart' %}" class="btn btn-success">
+                            <i class="fas fa-shopping-cart"></i> Proceed to Checkout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
