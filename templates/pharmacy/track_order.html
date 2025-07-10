@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+
+{% block title %}Track Order #{{ order.id }} - Pharmacy Dashboard{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3 mb-0">Track Order #{{ order.id }}</h1>
+            <div>
+                <a href="{% url 'order_detail_pharmacy' order.id %}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-eye"></i> Order Details
+                </a>
+                <a href="{% url 'order_management' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Orders
+                </a>
+            </div>
+        </div>
+
+        <!-- Order Information -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Order Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th>Customer:</th>
+                                <td>{{ order.customer.name }}</td>
+                            </tr>
+                            <tr>
+                                <th>Email:</th>
+                                <td>{{ order.customer.email }}</td>
+                            </tr>
+                            <tr>
+                                <th>Phone:</th>
+                                <td>{{ order.customer.phone }}</td>
+                            </tr>
+                            <tr>
+                                <th>Total Amount:</th>
+                                <td><strong>{{ order.total_amount }} ETB</strong></td>
+                            </tr>
+                            <tr>
+                                <th>Order Status:</th>
+                                <td>
+                                    {% if order.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% elif order.status == 'approved' %}
+                                        <span class="badge bg-success">Approved</span>
+                                    {% elif order.status == 'rejected' %}
+                                        <span class="badge bg-danger">Rejected</span>
+                                    {% elif order.status == 'completed' %}
+                                        <span class="badge bg-primary">Completed</span>
+                                    {% elif order.status == 'ready_for_delivery' %}
+                                        <span class="badge bg-info">Ready for Delivery</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Order Date:</th>
+                                <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                {% if delivery %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-truck"></i> Delivery Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th>Tracking Number:</th>
+                                    <td><strong>{{ delivery.tracking_number }}</strong></td>
+                                </tr>
+                                <tr>
+                                    <th>Delivery Status:</th>
+                                    <td>
+                                        {% if delivery.status == 'pending' %}
+                                            <span class="badge bg-warning">Pending Assignment</span>
+                                        {% elif delivery.status == 'assigned' %}
+                                            <span class="badge bg-info">Assigned</span>
+                                        {% elif delivery.status == 'picked_up' %}
+                                            <span class="badge bg-primary">Picked Up</span>
+                                        {% elif delivery.status == 'in_transit' %}
+                                            <span class="badge bg-primary">In Transit</span>
+                                        {% elif delivery.status == 'delivered' %}
+                                            <span class="badge bg-success">Delivered</span>
+                                        {% elif delivery.status == 'failed' %}
+                                            <span class="badge bg-danger">Failed</span>
+                                        {% elif delivery.status == 'cancelled' %}
+                                            <span class="badge bg-secondary">Cancelled</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% if delivery.delivery_person %}
+                                <tr>
+                                    <th>Delivery Person:</th>
+                                    <td>{{ delivery.delivery_person.user.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Phone:</th>
+                                    <td>{{ delivery.delivery_person.phone }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Vehicle:</th>
+                                    <td>{{ delivery.delivery_person.vehicle_type|title }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Delivery Fee:</th>
+                                    <td><strong>{{ delivery.delivery_fee }} ETB</strong></td>
+                                </tr>
+                                <tr>
+                                    <th>Created:</th>
+                                    <td>{{ delivery.created_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% if delivery.estimated_delivery_time %}
+                                <tr>
+                                    <th>Estimated Delivery:</th>
+                                    <td>{{ delivery.estimated_delivery_time|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if delivery.delivered_at %}
+                                <tr>
+                                    <th>Delivered At:</th>
+                                    <td>{{ delivery.delivered_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Delivery Status</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No Delivery Created Yet</h5>
+                            <p class="text-muted">
+                                {% if order.status == 'completed' or order.status == 'ready_for_delivery' %}
+                                    A delivery will be created automatically when the order is ready for delivery.
+                                {% else %}
+                                    Complete the order to create a delivery.
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-pills"></i> Order Items</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total Price</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.orderitem_set.all %}
+                            <tr>
+                                <td>
+                                    <strong>{{ item.medicine.name }}</strong>
+                                    <br><small class="text-muted">{{ item.medicine.category }}</small>
+                                </td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.price }} ETB</td>
+                                <td><strong>{{ item.get_total_price }} ETB</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-info">
+                                <th colspan="3">Total Amount:</th>
+                                <th>{{ order.total_amount }} ETB</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {% if delivery and tracking_history %}
+        <!-- Tracking History -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-route"></i> Tracking History</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for track in tracking_history %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker">
+                            {% if track.status == 'pending' %}
+                                <i class="fas fa-clock text-warning"></i>
+                            {% elif track.status == 'assigned' %}
+                                <i class="fas fa-user-plus text-info"></i>
+                            {% elif track.status == 'picked_up' %}
+                                <i class="fas fa-box text-primary"></i>
+                            {% elif track.status == 'in_transit' %}
+                                <i class="fas fa-truck text-primary"></i>
+                            {% elif track.status == 'delivered' %}
+                                <i class="fas fa-check-circle text-success"></i>
+                            {% elif track.status == 'failed' %}
+                                <i class="fas fa-times-circle text-danger"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle text-secondary"></i>
+                            {% endif %}
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-header">
+                                <h6 class="timeline-title">{{ track.get_status_display }}</h6>
+                                <small class="timeline-time">{{ track.timestamp|date:"M d, Y H:i" }}</small>
+                            </div>
+                            {% if track.notes %}
+                            <p class="timeline-description">{{ track.notes }}</p>
+                            {% endif %}
+                            {% if track.location %}
+                            <small class="text-muted">
+                                <i class="fas fa-map-marker-alt"></i> {{ track.location }}
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if order.prescription_image %}
+        <!-- Prescription Image -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-file-medical"></i> Prescription Image</h5>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ order.prescription_image.url }}" 
+                     alt="Prescription" 
+                     class="img-fluid rounded border"
+                     style="max-height: 400px; width: auto;">
+                <div class="mt-3">
+                    <a href="{{ order.prescription_image.url }}" target="_blank" class="btn btn-primary">
+                        <i class="fas fa-external-link-alt"></i> View Full Size
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+    border-left: 2px solid #e9ecef;
+}
+
+.timeline-item:last-child {
+    border-left: none;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -9px;
+    top: 0;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.timeline-content {
+    margin-left: 20px;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.timeline-title {
+    margin: 0;
+    font-weight: 600;
+}
+
+.timeline-time {
+    color: #6c757d;
+    margin-left: auto;
+}
+
+.timeline-description {
+    margin: 5px 0;
+    color: #495057;
+}
+</style>
+
+{% endblock %}

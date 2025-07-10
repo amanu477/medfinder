@@ -456,6 +456,41 @@ def pharmacy_receipt_detail(request, receipt_id):
     return render(request, 'pharmacy/receipt_detail.html', context)
 
 
+@login_required
+def track_order(request, order_id):
+    """Track order delivery status for pharmacy"""
+    try:
+        pharmacy = request.user.pharmacy
+    except Pharmacy.DoesNotExist:
+        messages.error(request, 'Pharmacy profile not found.')
+        return redirect('pharmacy_login')
+    
+    # Get the order and verify it belongs to this pharmacy
+    order = get_object_or_404(Order, id=order_id, pharmacy=pharmacy)
+    
+    # Get delivery information if it exists
+    from delivery.models import Delivery, DeliveryTracking
+    delivery = None
+    tracking_history = []
+    
+    try:
+        delivery = Delivery.objects.get(order=order)
+        tracking_history = DeliveryTracking.objects.filter(
+            delivery=delivery
+        ).order_by('-timestamp')
+    except Delivery.DoesNotExist:
+        pass
+    
+    context = {
+        'order': order,
+        'delivery': delivery,
+        'tracking_history': tracking_history,
+        'pharmacy': pharmacy,
+    }
+    
+    return render(request, 'pharmacy/track_order.html', context)
+
+
 def pharmacy_logout(request):
     """Custom logout view for pharmacy"""
     logout(request)

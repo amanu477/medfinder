@@ -201,6 +201,10 @@
                                             <i class="fas fa-eye"></i> View Details
                                         </a>
                                         
+                                        <a href="{% url 'pharmacy_track_order' order.id %}" class="btn btn-outline-success btn-sm mt-1">
+                                            <i class="fas fa-route"></i> Track Order
+                                        </a>
+                                        
                                         {% if order.notes %}
                                             <button type="button" class="btn btn-sm btn-outline-secondary mt-1" data-bs-toggle="modal" data-bs-target="#notesModal{{ order.id }}">
                                                 <i class="fas fa-sticky-note"></i> Notes
