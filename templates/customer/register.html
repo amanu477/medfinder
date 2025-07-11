@@ -21,6 +21,7 @@
                             {% if form.username.errors %}
                                 <div class="text-danger">{{ form.username.errors.0 }}</div>
                             {% endif %}
+                            <div class="form-text">3-30 characters, letters, numbers, and underscore only</div>
                         </div>
 
                         <div class="row">
@@ -50,6 +51,7 @@
                             {% if form.email.errors %}
                                 <div class="text-danger">{{ form.email.errors.0 }}</div>
                             {% endif %}
+                            <div class="form-text">Must be a valid email address - each email can only be used once</div>
                         </div>
 
                         <div class="mb-3">
