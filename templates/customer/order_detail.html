@@ -553,10 +553,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Generate QR codes if delivery status is in_transit or arrived
     {% if delivery and delivery.status == 'in_transit' or delivery and delivery.status == 'arrived' %}
         {% if order.payment %}
-            console.log('Generating QR code for Order {{ order.id }}');
-            console.log('Delivery status: {{ delivery.status }}');
-            console.log('Payment type: {{ order.payment.payment_type }}');
-            
             const qrData = {
                 order_id: {{ order.id }},
                 amount: {{ order.payment.amount }},
@@ -575,20 +571,13 @@ document.addEventListener('DOMContentLoaded', function() {
             };
             
             const qrDataString = JSON.stringify(qrData);
-            console.log('QR data:', qrDataString);
             
             {% if order.payment.payment_type == 'cash_on_delivery' %}
-                console.log('Generating QR code for cash payment');
                 generateQRCode('qr-code-customer-cash', qrDataString);
             {% else %}
-                console.log('Generating QR code for online payment');
                 generateQRCode('qr-code-customer-online', qrDataString);
             {% endif %}
-        {% else %}
-            console.log('No payment found for order {{ order.id }}');
         {% endif %}
-    {% else %}
-        console.log('QR code conditions not met - Delivery status: {{ delivery.status|default:"No delivery" }}');
     {% endif %}
 });
 </script>

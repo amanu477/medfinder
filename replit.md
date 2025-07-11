@@ -94,6 +94,8 @@ Preferred communication style: Simple, everyday language.
 - **Template Updates**: Enhanced customer order detail page to display new status badges and timeline items
 - **Workflow Integration**: Status changes automatically propagate from delivery system to customer order view
 - **Real-time Updates**: Customers now see live status updates that match delivery personnel actions
+- **QR Code Fix**: Fixed template logic for QR code display when delivery status is "in_transit" or "arrived"
+- **Test Credentials**: Order #21 - Username: amanu, Password: testpass123 (50.00 ETB cash payment, arrived status)
 
 ## System Architecture
 
