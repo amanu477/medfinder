@@ -120,7 +120,7 @@ class PrescriptionOCRService:
             # Clean up the extracted text
             text = self.clean_extracted_text(text)
             
-            logger.info(f"Extracted text from {image_path}: {text[:200]}...")
+            logger.info(f"Extracted text from {image_path}: {len(text)} characters extracted")
             return text
             
         except Exception as e:
@@ -265,7 +265,7 @@ class PrescriptionOCRService:
                     'confidence': 0,
                     'extracted_medicines': [],
                     'best_match': None,
-                    'extracted_text': extracted_text[:500]  # For debugging
+                    'extracted_text': extracted_text  # Full text without truncation
                 }
             
             # Clean the manual medicine name for comparison
@@ -294,7 +294,7 @@ class PrescriptionOCRService:
             logger.info(f"Looking for medicine: {manual_medicine_name}")
             logger.info(f"Variations to check: {medicine_to_check}")
             logger.info(f"Extracted medicines: {extracted_medicines}")
-            logger.info(f"Extracted text sample: {extracted_text[:200]}...")
+            logger.info(f"Extracted text length: {len(extracted_text)} characters")
             
             # Try matching each variation
             for med_variation in medicine_to_check:
@@ -367,7 +367,7 @@ class PrescriptionOCRService:
                     'best_match': match_name,
                     'manual_medicine': manual_medicine_name,
                     'threshold': threshold,
-                    'extracted_text': extracted_text[:500]  # For debugging
+                    'extracted_text': extracted_text  # Full text without truncation
                 }
             else:
                 return {
@@ -377,7 +377,7 @@ class PrescriptionOCRService:
                     'best_match': None,
                     'manual_medicine': manual_medicine_name,
                     'threshold': threshold,
-                    'extracted_text': extracted_text[:500]  # For debugging
+                    'extracted_text': extracted_text  # Full text without truncation
                 }
                 
         except Exception as e:
