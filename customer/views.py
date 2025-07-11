@@ -280,19 +280,20 @@ def customer_register(request):
                         name=f"{user.first_name} {user.last_name}",
                         email=user.email,
                         phone=form.cleaned_data['phone'],
-                        address=form.cleaned_data['address']
+                        address=form.cleaned_data['address'],
+                        is_verified=False  # Start with unverified status
                     )
                     
                     # Generate and send verification code
-                    import random
-                    import string
-                    verification_code = ''.join(random.choices(string.digits, k=6))
+                    verification_code = email_verification_service.generate_verification_code()
                     
-                    # Save verification code to customer
+                    # Create verification record
                     from django.utils import timezone
-                    customer.verification_code = verification_code
-                    customer.verification_code_expires_at = timezone.now() + timezone.timedelta(minutes=15)
-                    customer.save()
+                    EmailVerification.objects.create(
+                        email=user.email,
+                        verification_code=verification_code,
+                        user_type='customer'
+                    )
                     
                     # Send verification email
                     try:
