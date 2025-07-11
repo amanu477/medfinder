@@ -23,7 +23,12 @@
                                     <div>
                                         {% if pharmacy.is_open_now %}
                                             <span class="badge bg-success">
-                                                <i class="fas fa-check-circle me-1"></i> Open Now
+                                                <i class="fas fa-check-circle me-1"></i> 
+                                                {% if pharmacy.is_24_hour %}
+                                                    24/7 Open
+                                                {% else %}
+                                                    Open Now
+                                                {% endif %}
                                             </span>
                                         {% else %}
                                             <span class="badge bg-danger">
@@ -34,7 +39,12 @@
                                 </div>
                                 <div class="small text-muted mb-2">
                                     <i class="fas fa-clock me-1"></i>
-                                    Hours: {{ pharmacy.opening_time|time:"g:i A" }} - {{ pharmacy.closing_time|time:"g:i A" }}
+                                    Hours: 
+                                    {% if pharmacy.is_24_hour %}
+                                        24/7 Open
+                                    {% else %}
+                                        {{ pharmacy.opening_time|time:"g:i A" }} - {{ pharmacy.closing_time|time:"g:i A" }}
+                                    {% endif %}
                                     {% if not pharmacy.is_open_now and pharmacy.get_next_opening_time %}
                                         <br>{{ pharmacy.get_next_opening_time }}
                                     {% endif %}

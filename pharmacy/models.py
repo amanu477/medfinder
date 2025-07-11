@@ -118,6 +118,7 @@ class Pharmacy(models.Model):
     email = models.EmailField(max_length=100)
     opening_time = models.TimeField()
     closing_time = models.TimeField()
+    is_24_hour = models.BooleanField(default=False, help_text="Check if pharmacy operates 24/7")
     is_active = models.BooleanField(default=True)
     verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, default='pending')
     verification_documents = models.FileField(upload_to='pharmacy_documents/', null=True, blank=True)
@@ -126,6 +127,10 @@ class Pharmacy(models.Model):
     
     def is_open_now(self):
         """Check if pharmacy is currently open"""
+        # 24-hour pharmacies are always open
+        if self.is_24_hour:
+            return True
+            
         from datetime import datetime
         current_time = datetime.now().time()
         
@@ -150,6 +155,10 @@ class Pharmacy(models.Model):
     
     def get_next_opening_time(self):
         """Get the next time pharmacy will be open"""
+        # 24-hour pharmacies are always open
+        if self.is_24_hour:
+            return None
+            
         from datetime import datetime, timedelta
         
         if self.is_open_now():

@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from datetime import time
 from .models import Pharmacy, Medicine, MoHPharmacyRecord
 from .license_validation import LicenseValidationService
 
@@ -15,6 +16,11 @@ class PharmacyRegistrationForm(forms.ModelForm):
     email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control'}))
     opening_time = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}))
     closing_time = forms.TimeField(widget=forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}))
+    is_24_hour = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        help_text="Check if your pharmacy operates 24 hours a day"
+    )
     
     # Mandatory document uploads
     business_license = forms.FileField(
@@ -49,7 +55,7 @@ class PharmacyRegistrationForm(forms.ModelForm):
         model = Pharmacy
         fields = [
             'name', 'license_number', 'license_type', 'address', 'phone', 'email', 
-            'opening_time', 'closing_time', 'business_license', 'pharmacist_certificate', 
+            'opening_time', 'closing_time', 'is_24_hour', 'business_license', 'pharmacist_certificate', 
             'verification_documents', 'latitude', 'longitude'
         ]
     
@@ -137,10 +143,19 @@ class PharmacyRegistrationForm(forms.ModelForm):
         cleaned_data = super().clean()
         opening_time = cleaned_data.get('opening_time')
         closing_time = cleaned_data.get('closing_time')
+        is_24_hour = cleaned_data.get('is_24_hour')
         
-        if opening_time and closing_time:
-            if closing_time <= opening_time:
-                raise forms.ValidationError("Closing time must be after opening time.")
+        if is_24_hour:
+            # For 24-hour pharmacies, set default times if not provided
+            if not opening_time:
+                cleaned_data['opening_time'] = time(0, 0)  # 12:00 AM
+            if not closing_time:
+                cleaned_data['closing_time'] = time(23, 59)  # 11:59 PM
+        else:
+            # For non-24-hour pharmacies, validate times
+            if opening_time and closing_time:
+                if closing_time <= opening_time:
+                    raise forms.ValidationError("Closing time must be after opening time, or check '24 Hour Open' if your pharmacy operates around the clock.")
         
         return cleaned_data
 
@@ -221,7 +236,7 @@ class PharmacyProfileForm(forms.ModelForm):
         model = Pharmacy
         fields = [
             'name', 'license_number', 'license_type', 'address', 'phone', 'email', 'opening_time', 
-            'closing_time', 'is_active', 'business_license', 'pharmacist_certificate', 
+            'closing_time', 'is_24_hour', 'is_active', 'business_license', 'pharmacist_certificate', 
             'verification_documents', 'latitude', 'longitude'
         ]
         widgets = {
@@ -233,6 +248,7 @@ class PharmacyProfileForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'opening_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
             'closing_time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            'is_24_hour': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'business_license': forms.FileInput(attrs={
                 'class': 'form-control', 

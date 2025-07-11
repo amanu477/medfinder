@@ -223,6 +223,21 @@
                                     </div>
                                     {% endif %}
                                 </div>
+                                <div class="col-12 mb-3">
+                                    <div class="form-check">
+                                        {{ pharmacy_form.is_24_hour }}
+                                        <label class="form-check-label" for="{{ pharmacy_form.is_24_hour.id_for_label }}">
+                                            <i class="fas fa-clock me-2"></i>
+                                            <strong>24 Hour Open</strong>
+                                        </label>
+                                        {% if pharmacy_form.is_24_hour.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ pharmacy_form.is_24_hour.errors }}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">{{ pharmacy_form.is_24_hour.help_text }}</div>
+                                    </div>
+                                </div>
                             </div>
                             
                             <!-- Required Documents Upload -->
@@ -724,9 +739,10 @@ document.addEventListener('DOMContentLoaded', function() {
         else if (field.type === 'time' && value) {
             if (fieldName === 'closing_time') {
                 const openingTime = form.querySelector('[name="opening_time"]').value;
-                if (openingTime && value <= openingTime) {
+                const is24Hour = form.querySelector('[name="is_24_hour"]').checked;
+                if (openingTime && value <= openingTime && !is24Hour) {
                     isValid = false;
-                    errorMessage = 'Closing time must be after opening time';
+                    errorMessage = 'Closing time must be after opening time, or check "24 Hour Open"';
                 }
             }
         }
@@ -845,6 +861,39 @@ document.addEventListener('DOMContentLoaded', function() {
         submitButton.disabled = true;
         submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering...';
     });
+
+    // Handle 24-hour checkbox
+    const is24HourCheckbox = document.querySelector('[name="is_24_hour"]');
+    const openingTimeField = document.querySelector('[name="opening_time"]');
+    const closingTimeField = document.querySelector('[name="closing_time"]');
+    
+    if (is24HourCheckbox) {
+        is24HourCheckbox.addEventListener('change', function() {
+            const timeFields = [openingTimeField, closingTimeField];
+            const timeFieldContainers = timeFields.map(field => field.closest('.col-md-6'));
+            
+            if (this.checked) {
+                // Hide time fields and set default values
+                timeFieldContainers.forEach(container => {
+                    if (container) container.style.display = 'none';
+                });
+                openingTimeField.value = '00:00';
+                closingTimeField.value = '23:59';
+            } else {
+                // Show time fields and clear values
+                timeFieldContainers.forEach(container => {
+                    if (container) container.style.display = 'block';
+                });
+                openingTimeField.value = '';
+                closingTimeField.value = '';
+            }
+        });
+        
+        // Initial state check
+        if (is24HourCheckbox.checked) {
+            is24HourCheckbox.dispatchEvent(new Event('change'));
+        }
+    }
 });
 </script>
 {% endblock %}
