@@ -24,17 +24,23 @@ def email_verification_view(request):
         customer = request.user.customer
         
         # Check if already verified
-        if customer.is_email_verified:
+        if customer.is_verified:
             messages.info(request, 'Your email is already verified!')
             return redirect('home')
         
-        # Check if verification code exists and is valid
-        if not customer.verification_code or not customer.verification_code_expires_at:
+        # Get the latest verification record
+        verification = EmailVerification.objects.filter(
+            email=request.user.email,
+            user_type='customer',
+            used=False
+        ).order_by('-created_at').first()
+        
+        if not verification:
             messages.warning(request, 'No verification code found. Please request a new one.')
             return redirect('resend_verification')
         
         # Check if verification code has expired
-        if timezone.now() > customer.verification_code_expires_at:
+        if verification.is_expired():
             messages.warning(request, 'Your verification code has expired. Please request a new one.')
             return redirect('resend_verification')
         
@@ -44,15 +50,17 @@ def email_verification_view(request):
                 entered_code = form.cleaned_data['verification_code']
                 
                 # Check if code matches
-                if customer.verification_code == entered_code:
+                if verification.verification_code == entered_code:
                     # Mark as verified
-                    customer.is_email_verified = True
-                    customer.verification_code = None
-                    customer.verification_code_expires_at = None
+                    customer.is_verified = True
                     customer.save()
                     
+                    # Mark verification as used
+                    verification.used = True
+                    verification.save()
+                    
                     messages.success(request, 'Email verified successfully! Your account is now fully activated.')
-                    return redirect('dashboard')
+                    return redirect('home')
                 else:
                     form.add_error('verification_code', 'Invalid verification code. Please try again.')
             
@@ -60,8 +68,8 @@ def email_verification_view(request):
             form = EmailVerificationForm()
         
         # Calculate time remaining
-        time_remaining = customer.verification_code_expires_at - timezone.now()
-        minutes_remaining = int(time_remaining.total_seconds() / 60)
+        time_remaining = verification.created_at + timezone.timedelta(minutes=15) - timezone.now()
+        minutes_remaining = max(0, int(time_remaining.total_seconds() / 60))
         
         return render(request, 'customer/email_verification.html', {
             'form': form,
@@ -82,7 +90,7 @@ def resend_verification_view(request):
         customer = request.user.customer
         
         # Check if already verified
-        if customer.is_email_verified:
+        if customer.is_verified:
             messages.info(request, 'Your email is already verified!')
             return redirect('home')
         
@@ -94,10 +102,12 @@ def resend_verification_view(request):
                 # Generate new verification code
                 verification_code = ''.join(random.choices(string.digits, k=6))
                 
-                # Update customer record
-                customer.verification_code = verification_code
-                customer.verification_code_expires_at = timezone.now() + timezone.timedelta(minutes=15)
-                customer.save()
+                # Create new verification record
+                EmailVerification.objects.create(
+                    email=request.user.email,
+                    verification_code=verification_code,
+                    user_type='customer'
+                )
                 
                 # Send verification email
                 try:
