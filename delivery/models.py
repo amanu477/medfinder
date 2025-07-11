@@ -121,7 +121,10 @@ class Delivery(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.tracking_number:
-            self.tracking_number = f"DEL{timezone.now().strftime('%Y%m%d%H%M%S')}"
+            import uuid
+            timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+            unique_id = uuid.uuid4().hex[:6]
+            self.tracking_number = f"DEL{timestamp}{unique_id}"
         
         # Update delivery person availability when delivery status changes
         is_new = self.pk is None
