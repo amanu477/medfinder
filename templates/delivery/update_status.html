@@ -72,6 +72,14 @@
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{% url 'delivery_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                            
+                            <!-- QR Scanner Button when status is arrived -->
+                            {% if delivery.status == 'arrived' %}
+                                <a href="{% url 'qr_scanner' delivery.id %}" class="btn btn-success">
+                                    <i class="fas fa-qrcode"></i> QR Scanner
+                                </a>
+                            {% endif %}
+                            
                             <button type="submit" class="btn btn-primary">Update Status</button>
                         </div>
                     </form>

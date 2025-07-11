@@ -16,6 +16,7 @@ urlpatterns = [
     path('delivery/<int:delivery_id>/update-status/', views.update_delivery_status, name='update_delivery_status'),
     path('delivery/<int:delivery_id>/confirm-payment/', views.delivery_confirm_payment, name='delivery_confirm_payment'),
     path('delivery/<int:delivery_id>/feedback/', views.delivery_feedback, name='delivery_feedback'),
+    path('delivery/<int:delivery_id>/qr-scanner/', views.qr_scanner, name='qr_scanner'),
     
     # Location tracking
     path('update-location/', views.update_location, name='update_location'),

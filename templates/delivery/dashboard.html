@@ -100,6 +100,13 @@
                                             <a href="{% url 'delivery_detail' delivery.id %}" class="btn btn-sm btn-outline-primary">View</a>
                                             <a href="{% url 'update_delivery_status' delivery.id %}" class="btn btn-sm btn-warning">Update</a>
                                             
+                                            <!-- QR Scanner Button when arrived -->
+                                            {% if delivery.status == 'arrived' %}
+                                                <a href="{% url 'qr_scanner' delivery.id %}" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-qrcode"></i> QR Scanner
+                                                </a>
+                                            {% endif %}
+                                            
                                             <!-- Cash Payment Confirmation Button -->
                                             {% if delivery.needs_cash_payment_confirmation %}
                                                 <a href="{% url 'cash_payment_qr_scanner' delivery.id %}" class="btn btn-sm btn-success">

@@ -669,3 +669,28 @@ def cash_payment_qr_scanner(request, delivery_id):
     }
     
     return render(request, 'delivery/cash_payment_scanner.html', context)
+
+
+@login_required
+def qr_scanner(request, delivery_id):
+    """QR code scanner page for delivery personnel"""
+    try:
+        delivery_person = request.user.deliveryperson
+    except DeliveryPerson.DoesNotExist:
+        messages.error(request, 'You are not registered as a delivery person.')
+        return redirect('home')
+    
+    delivery = get_object_or_404(Delivery, id=delivery_id, delivery_person=delivery_person)
+    
+    # Check if delivery status is arrived
+    if delivery.status != 'arrived':
+        messages.error(request, 'QR scanner is only available when delivery status is "arrived".')
+        return redirect('delivery_dashboard')
+    
+    context = {
+        'delivery': delivery,
+        'order': delivery.order,
+        'payment': delivery.order.payment if hasattr(delivery.order, 'payment') else None,
+    }
+    
+    return render(request, 'delivery/qr_scanner.html', context)
