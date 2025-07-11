@@ -52,4 +52,7 @@ urlpatterns = [
     
     # Location update
     path('update-location/', views.update_customer_location, name='update_customer_location'),
+    
+    # QR Code generation
+    path('qr-code/<int:order_id>/', views.generate_qr_code, name='generate_qr_code'),
 ]

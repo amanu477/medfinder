@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import Q
 from django.utils import timezone
 from django.contrib import messages
@@ -13,6 +13,7 @@ import json
 from .models import Customer, Prescription, Order, OrderItem, Cart, CartItem, IncidentReport, AdminNotification, Payment
 from .chapa_service import ChapaService
 from .ocr_service import PrescriptionOCRService
+from .qr_utils import generate_qr_code_image, generate_payment_qr_data
 from pharmacy.models import Pharmacy, Medicine
 from moh.models import MoHOfficer
 from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm, QuickIncidentForm
@@ -1741,3 +1742,40 @@ def cash_payment_choice(request, order_id):
     
     # If not POST or invalid payment type, redirect back
     return redirect('payment_choice', order_id=order.id)
+
+@login_required
+def generate_qr_code(request, order_id):
+    """Generate QR code image for payment verification"""
+    try:
+        customer = request.user.customer
+        order = get_object_or_404(Order, id=order_id, customer=customer)
+        
+        # Check if order has delivery and payment
+        if not hasattr(order, 'delivery') or not hasattr(order, 'payment'):
+            return HttpResponse("QR code not available", status=400)
+        
+        # Check if delivery is in appropriate status
+        if order.delivery.status not in ['in_transit', 'arrived']:
+            return HttpResponse("QR code not available for current delivery status", status=400)
+        
+        # Generate QR data
+        qr_data = generate_payment_qr_data(order, order.delivery)
+        if not qr_data:
+            return HttpResponse("Error generating QR data", status=500)
+        
+        # Generate QR code image
+        qr_image = generate_qr_code_image(qr_data)
+        if not qr_image:
+            return HttpResponse("Error generating QR code", status=500)
+        
+        # Return as JSON with base64 image
+        return JsonResponse({
+            'success': True,
+            'qr_image': qr_image,
+            'qr_data': qr_data
+        })
+        
+    except Customer.DoesNotExist:
+        return HttpResponse("Customer not found", status=404)
+    except Exception as e:
+        return HttpResponse(f"Error: {str(e)}", status=500)

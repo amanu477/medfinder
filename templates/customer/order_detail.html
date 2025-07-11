@@ -537,98 +537,67 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Wait for QR code library to load with timeout
-    function waitForQRCode(callback, timeout = 10000) {
-        const startTime = Date.now();
-        
-        function checkQRCode() {
-            if (typeof QRCode !== 'undefined') {
-                callback();
-            } else if (Date.now() - startTime < timeout) {
-                setTimeout(checkQRCode, 100);
-            } else {
-                console.error('QR code library failed to load within timeout');
-                callback(new Error('QR code library not available'));
-            }
-        }
-        
-        checkQRCode();
-    }
-    
-    // Generate QR codes for payment verification with robust error handling
-    function generateQRCode(elementId, data) {
+    // Generate QR codes using server-side generation
+    function generateQRCode(elementId, orderId) {
         const element = document.getElementById(elementId);
         if (!element) {
             console.error('QR code element not found:', elementId);
             return;
         }
         
-        waitForQRCode(function(error) {
-            if (error) {
-                element.innerHTML = '<div class="alert alert-danger"><small>QR code library failed to load. Please refresh the page.</small></div>';
-                return;
-            }
-            
-            try {
-                // Clear existing content
-                element.innerHTML = '';
-                
-                // Generate new QR code
-                new QRCode(element, {
-                    text: data,
-                    width: 200,
-                    height: 200,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-                
-                console.log('QR code generated successfully for:', elementId);
-            } catch (error) {
+        // Show loading spinner
+        element.innerHTML = `
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Loading QR code...</span>
+            </div>
+            <p class="text-muted mt-2">Generating QR code...</p>
+        `;
+        
+        // Fetch QR code from server
+        fetch(`/customer/qr-code/${orderId}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.qr_image) {
+                    element.innerHTML = `
+                        <img src="data:image/png;base64,${data.qr_image}" 
+                             alt="QR Code for Payment Verification" 
+                             class="img-fluid" 
+                             style="max-width: 200px;">
+                        <p class="text-muted mt-2 small">Scan this QR code with delivery person</p>
+                    `;
+                    console.log('QR code generated successfully for:', elementId);
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            })
+            .catch(error => {
                 console.error('Error generating QR code:', error);
-                element.innerHTML = '<div class="alert alert-warning"><small>QR code generation failed. Please refresh the page.</small></div>';
-            }
-        });
+                element.innerHTML = `
+                    <div class="alert alert-warning">
+                        <small>QR code generation failed. Please refresh the page.</small>
+                    </div>
+                `;
+            });
     }
     
-    // Ensure we have all required data for QR code generation
+    // Check if QR code should be generated
     {% if delivery and order.payment %}
         {% if delivery.status == 'in_transit' or delivery.status == 'arrived' %}
-            console.log('Initializing QR code generation for order {{ order.id }}');
+            console.log('Initializing server-side QR code generation for order {{ order.id }}');
             console.log('Delivery status: {{ delivery.status }}');
             console.log('Payment type: {{ order.payment.payment_type }}');
             
-            try {
-                const qrData = {
-                    order_id: {{ order.id }},
-                    amount: "{{ order.payment.amount }}",
-                    currency: '{{ order.payment.currency }}',
-                    payment_type: '{{ order.payment.payment_type }}',
-                    payment_status: '{{ order.payment.status }}',
-                    customer_name: '{{ order.customer.name|escapejs }}',
-                    customer_email: '{{ order.customer.email|escapejs }}',
-                    customer_phone: '{{ order.customer.phone|escapejs }}',
-                    pharmacy_name: '{{ order.pharmacy.name|escapejs }}',
-                    pharmacy_phone: '{{ order.pharmacy.phone|escapejs }}',
-                    delivery_tracking: '{{ delivery.tracking_number }}',
-                    delivery_status: '{{ delivery.status }}',
-                    order_status: '{{ order.status }}',
-                    timestamp: '{{ order.created_at|date:"c" }}',
-                    verification_code: 'PC{{ order.id }}{{ delivery.id }}'
-                };
-                
-                const qrDataString = JSON.stringify(qrData);
-                console.log('QR data prepared:', qrDataString);
-                
-                // Generate QR code based on payment type
-                {% if order.payment.payment_type == 'cash_on_delivery' %}
-                    generateQRCode('qr-code-customer-cash', qrDataString);
-                {% else %}
-                    generateQRCode('qr-code-customer-online', qrDataString);
-                {% endif %}
-            } catch (error) {
-                console.error('Error preparing QR data:', error);
-            }
+            // Generate QR code based on payment type
+            {% if order.payment.payment_type == 'cash_on_delivery' %}
+                generateQRCode('qr-code-customer-cash', {{ order.id }});
+            {% else %}
+                generateQRCode('qr-code-customer-online', {{ order.id }});
+            {% endif %}
         {% else %}
             console.log('QR code not needed for delivery status: {{ delivery.status }}');
         {% endif %}
