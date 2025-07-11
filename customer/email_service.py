@@ -23,40 +23,21 @@ class EmailVerificationService:
         """Generate a 6-digit verification code"""
         return get_random_string(6, allowed_chars='0123456789')
     
-    def send_verification_email(self, email, verification_code, user_type='customer'):
+    def send_verification_email(self, email, verification_code, user_name=None):
         """
         Send verification email with code
         
         Args:
             email (str): Recipient email address
             verification_code (str): 6-digit verification code
-            user_type (str): Type of user (customer, pharmacy)
+            user_name (str): Name of the user (optional)
         """
         try:
-            if user_type == 'pharmacy':
-                subject = f"Verify Your Pharmacy Registration - {self.site_name}"
-                message = f"""
-Dear Pharmacy Owner,
-
-Thank you for registering with {self.site_name}!
-
-To complete your pharmacy registration, please enter the following verification code on the platform:
-
-Verification Code: {verification_code}
-
-This code will expire in 15 minutes.
-
-If you did not register for a pharmacy account, please ignore this email.
-
-Best regards,
-{self.site_name} Team
-
-Note: This is an automated message. Please do not reply to this email.
-                """
-            else:
-                subject = f"Verify Your Account - {self.site_name}"
-                message = f"""
-Dear Customer,
+            greeting = f"Dear {user_name}," if user_name else "Dear Customer,"
+            
+            subject = f"Verify Your Email - {self.site_name}"
+            message = f"""
+{greeting}
 
 Thank you for registering with {self.site_name}!
 
@@ -72,7 +53,7 @@ Best regards,
 {self.site_name} Team
 
 Note: This is an automated message. Please do not reply to this email.
-                """
+            """
             
             # Send email
             send_mail(

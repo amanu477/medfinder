@@ -284,25 +284,31 @@ def customer_register(request):
                     )
                     
                     # Generate and send verification code
-                    verification_code = email_verification_service.generate_verification_code()
+                    import random
+                    import string
+                    verification_code = ''.join(random.choices(string.digits, k=6))
                     
-                    # Save verification code to database
-                    EmailVerification.objects.create(
-                        email=user.email,
-                        verification_code=verification_code,
-                        user_type='customer'
-                    )
+                    # Save verification code to customer
+                    from django.utils import timezone
+                    customer.verification_code = verification_code
+                    customer.verification_code_expires_at = timezone.now() + timezone.timedelta(minutes=15)
+                    customer.save()
                     
                     # Send verification email
-                    email_sent = email_verification_service.send_verification_email(
-                        user.email, verification_code, 'customer'
-                    )
-                    
-                    if email_sent:
-                        messages.success(request, f'Registration successful! Please check your email for a verification code.')
-                        return redirect('email_verification', email=user.email)
-                    else:
-                        messages.error(request, 'Registration successful but email could not be sent. Please contact support.')
+                    try:
+                        email_sent = email_verification_service.send_verification_email(
+                            user.email, verification_code, customer.name
+                        )
+                        
+                        if email_sent:
+                            messages.success(request, f'Registration successful! Please check your email for a verification code.')
+                            login(request, user)  # Log in the user so they can verify
+                            return redirect('email_verification')
+                        else:
+                            messages.error(request, 'Registration successful but email could not be sent. Please contact support.')
+                            return redirect('customer_register')
+                    except Exception as e:
+                        messages.error(request, f'Registration successful but email could not be sent: {str(e)}')
                         return redirect('customer_register')
             except Exception as e:
                 messages.error(request, f'Registration failed: {str(e)}')

@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 # Import models from other apps
 from pharmacy.models import Pharmacy, Medicine
-from customer.models import Customer, Order, OrderItem, Prescription, IncidentReport, SecurityAlert, AdminNotification, VerificationRequest
+from customer.models import Customer, Order, OrderItem, Prescription, IncidentReport, AdminNotification
 from moh.models import MoHPharmacyRegistry
 from pharmacy.verification_service import MinistryOfHealthVerificationService
 from .forms import PlatformAdminLoginForm

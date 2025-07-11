@@ -1,6 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
+from . import views_verification
 from .views_ocr_summary import ocr_validation_summary
 
 urlpatterns = [
@@ -55,4 +56,11 @@ urlpatterns = [
     
     # QR Code generation
     path('qr-code/<int:order_id>/', views.generate_qr_code, name='generate_qr_code'),
+    
+    # Email verification
+    path('email-verification/', views_verification.email_verification_view, name='email_verification'),
+    path('resend-verification/', views_verification.resend_verification_view, name='resend_verification'),
+    path('check-verification-status/', views_verification.check_verification_status, name='check_verification_status'),
+    path('verification-success/', views_verification.verification_success_view, name='verification_success'),
+    path('verification-required/', views_verification.verification_required_view, name='verification_required'),
 ]

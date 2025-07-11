@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email Verified - Ethiopian Pharmacy Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        background: white;
+        text-align: center;
+    }
+    
+    .success-icon {
+        margin-bottom: 30px;
+    }
+    
+    .success-icon i {
+        font-size: 80px;
+        color: #28a745;
+    }
+    
+    .success-message {
+        margin-bottom: 30px;
+    }
+    
+    .success-message h2 {
+        color: #28a745;
+        margin-bottom: 15px;
+    }
+    
+    .success-message p {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+    
+    .actions {
+        margin-top: 30px;
+    }
+    
+    .btn-primary {
+        background: #007bff;
+        border-color: #007bff;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin: 0 10px;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        border-color: #6c757d;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin: 0 10px;
+    }
+    
+    .features {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 30px;
+        text-align: left;
+    }
+    
+    .features h5 {
+        color: #495057;
+        margin-bottom: 15px;
+    }
+    
+    .features ul {
+        margin-bottom: 0;
+        padding-left: 0;
+        list-style: none;
+    }
+    
+    .features li {
+        color: #6c757d;
+        margin-bottom: 10px;
+        padding-left: 25px;
+        position: relative;
+    }
+    
+    .features li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #28a745;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="success-container">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        
+        <div class="success-message">
+            <h2>Email Verified Successfully!</h2>
+            <p>Your email has been verified and your account is now fully activated.</p>
+        </div>
+        
+        <div class="features">
+            <h5>You can now:</h5>
+            <ul>
+                <li>Search for medicines and pharmacies</li>
+                <li>Upload prescriptions with OCR validation</li>
+                <li>Place orders and track deliveries</li>
+                <li>Make payments online or cash on delivery</li>
+                <li>Access your full customer dashboard</li>
+            </ul>
+        </div>
+        
+        <div class="actions">
+            <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-secondary">
+                <i class="fas fa-home"></i> Go to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email Verification - Ethiopian Pharmacy Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verification-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        background: white;
+    }
+    
+    .verification-icon {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .verification-icon i {
+        font-size: 60px;
+        color: #17a2b8;
+    }
+    
+    .verification-code-input {
+        font-size: 2rem;
+        letter-spacing: 0.5rem;
+        text-align: center;
+        font-weight: bold;
+        color: #333;
+        border: 2px solid #17a2b8;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .verification-code-input:focus {
+        border-color: #138496;
+        box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+    }
+    
+    .time-remaining {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+        border-left: 4px solid #17a2b8;
+    }
+    
+    .time-remaining.expired {
+        background: #f8d7da;
+        border-left-color: #dc3545;
+        color: #721c24;
+    }
+    
+    .verify-btn {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        background: #17a2b8;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        transition: background 0.3s;
+    }
+    
+    .verify-btn:hover {
+        background: #138496;
+    }
+    
+    .resend-link {
+        text-align: center;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .email-display {
+        background: #e9ecef;
+        padding: 10px;
+        border-radius: 6px;
+        font-family: monospace;
+        word-break: break-all;
+        margin-bottom: 20px;
+    }
+    
+    .instructions {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .instructions h6 {
+        color: #0c5460;
+        margin-bottom: 10px;
+    }
+    
+    .instructions ul {
+        margin-bottom: 0;
+        padding-left: 20px;
+    }
+    
+    .instructions li {
+        color: #0c5460;
+        margin-bottom: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="verification-container">
+        <div class="verification-icon">
+            <i class="fas fa-envelope-open"></i>
+        </div>
+        
+        <h2 class="text-center mb-4">Verify Your Email</h2>
+        
+        <div class="instructions">
+            <h6><i class="fas fa-info-circle"></i> Instructions:</h6>
+            <ul>
+                <li>Check your email inbox for a verification code</li>
+                <li>Enter the 6-digit code below</li>
+                <li>The code expires in 15 minutes</li>
+                <li>Check your spam folder if you don't see the email</li>
+            </ul>
+        </div>
+        
+        <p class="text-center">
+            <strong>Verification email sent to:</strong>
+        </p>
+        <div class="email-display text-center">
+            {{ verification_email }}
+        </div>
+        
+        {% if minutes_remaining > 0 %}
+        <div class="time-remaining">
+            <i class="fas fa-clock"></i>
+            <strong>Time remaining:</strong> {{ minutes_remaining }} minute{{ minutes_remaining|pluralize }}
+        </div>
+        {% else %}
+        <div class="time-remaining expired">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>Verification code has expired!</strong>
+        </div>
+        {% endif %}
+        
+        <form method="post" id="verification-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.verification_code.id_for_label }}" class="form-label">
+                    <strong>Enter Verification Code</strong>
+                </label>
+                {{ form.verification_code }}
+                {% if form.verification_code.errors %}
+                    <div class="alert alert-danger mt-2">
+                        {{ form.verification_code.errors.0 }}
+                    </div>
+                {% endif %}
+                <div class="form-text">
+                    {{ form.verification_code.help_text }}
+                </div>
+            </div>
+            
+            {% if minutes_remaining > 0 %}
+            <button type="submit" class="verify-btn">
+                <i class="fas fa-check-circle"></i> Verify Email
+            </button>
+            {% else %}
+            <button type="button" class="verify-btn" disabled>
+                <i class="fas fa-exclamation-triangle"></i> Code Expired
+            </button>
+            {% endif %}
+        </form>
+        
+        <div class="resend-link">
+            <p class="text-muted">Didn't receive the email?</p>
+            <a href="{% url 'resend_verification' %}" class="btn btn-outline-info">
+                <i class="fas fa-redo"></i> Resend Verification Code
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('verification-form');
+    const codeInput = document.getElementById('{{ form.verification_code.id_for_label }}');
+    
+    // Auto-focus on code input
+    codeInput.focus();
+    
+    // Only allow numbers
+    codeInput.addEventListener('input', function(e) {
+        this.value = this.value.replace(/[^0-9]/g, '');
+        
+        // Auto-submit when 6 digits are entered
+        if (this.value.length === 6) {
+            form.submit();
+        }
+    });
+    
+    // Prevent non-numeric characters
+    codeInput.addEventListener('keypress', function(e) {
+        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Enter'].includes(e.key)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

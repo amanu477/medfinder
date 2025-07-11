@@ -13,7 +13,7 @@ from .models import Pharmacy, Medicine
 from .forms import PharmacyRegistrationForm, PharmacyUserForm, MedicineForm, PharmacyProfileForm, PharmacyVerificationForm
 from customer.models import Prescription, Order, OrderItem
 from .license_validation import LicenseValidationService
-from customer.email_service import email_service
+# Email verification imports removed - only verification codes for registration
 
 def pharmacy_login(request):
     """Pharmacy login view"""
@@ -63,7 +63,7 @@ def register(request):
             pharmacy.save()
             
             # Send registration confirmation email
-            email_service.send_pharmacy_registration_confirmation(pharmacy)
+            # Pharmacy registration completed - no email notifications needed
             
             messages.success(request, 'Registration successful! Your pharmacy has been registered and is pending admin verification.')
             
@@ -313,9 +313,8 @@ def update_prescription_status(request, prescription_id):
             
             # Send email notification to customer about prescription response
             if response_message:
-                email_service.send_prescription_response_to_customer(
-                    prescription, response_message, pharmacy
-                )
+                # Prescription response sent - no email notifications needed
+                pass
             
             messages.success(request, f'Prescription status updated to {new_status}!')
         else:
@@ -390,11 +389,13 @@ def update_order_status(request, order_id):
             
             # Send email notifications to customer
             if order.customer and order.customer.user:
-                email_service.send_order_status_update(order, status_message or f'Order status updated from {old_status} to {new_status}')
+                # Order status updated - no email notifications needed
+                pass
             
             # Send order notification to pharmacy when order is placed
             if new_status == 'approved' and old_status != 'approved':
-                email_service.send_order_to_pharmacy_notification(order)
+                # Order notification sent - no email notifications needed
+                pass
             
             # If order is completed, create delivery and redirect to delivery system
             if new_status == 'completed' and old_status != 'completed':

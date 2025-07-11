@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Email Verification Required - Ethiopian Pharmacy Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    .verification-required-container {
+        max-width: 600px;
+        margin: 50px auto;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        background: white;
+        text-align: center;
+    }
+    
+    .warning-icon {
+        margin-bottom: 30px;
+    }
+    
+    .warning-icon i {
+        font-size: 80px;
+        color: #ffc107;
+    }
+    
+    .warning-message {
+        margin-bottom: 30px;
+    }
+    
+    .warning-message h2 {
+        color: #856404;
+        margin-bottom: 15px;
+    }
+    
+    .warning-message p {
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+    
+    .actions {
+        margin-top: 30px;
+    }
+    
+    .btn-warning {
+        background: #ffc107;
+        border-color: #ffc107;
+        color: #212529;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin: 0 10px;
+    }
+    
+    .btn-warning:hover {
+        background: #e0a800;
+        border-color: #d39e00;
+        color: #212529;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        border-color: #6c757d;
+        padding: 12px 30px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        margin: 0 10px;
+    }
+    
+    .restrictions {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 30px;
+        text-align: left;
+    }
+    
+    .restrictions h5 {
+        color: #856404;
+        margin-bottom: 15px;
+    }
+    
+    .restrictions ul {
+        margin-bottom: 0;
+        padding-left: 0;
+        list-style: none;
+    }
+    
+    .restrictions li {
+        color: #856404;
+        margin-bottom: 10px;
+        padding-left: 25px;
+        position: relative;
+    }
+    
+    .restrictions li:before {
+        content: "✗";
+        position: absolute;
+        left: 0;
+        color: #dc3545;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="verification-required-container">
+        <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <div class="warning-message">
+            <h2>Email Verification Required</h2>
+            <p>To protect your account and ensure secure communication, please verify your email address before using the platform.</p>
+        </div>
+        
+        <div class="restrictions">
+            <h5>Current Restrictions:</h5>
+            <ul>
+                <li>Cannot place orders</li>
+                <li>Cannot upload prescriptions</li>
+                <li>Cannot make payments</li>
+                <li>Limited access to platform features</li>
+            </ul>
+        </div>
+        
+        <div class="actions">
+            {% if user.is_authenticated %}
+                <a href="{% url 'email_verification' %}" class="btn btn-warning">
+                    <i class="fas fa-envelope-open"></i> Verify Email Now
+                </a>
+                <a href="{% url 'resend_verification' %}" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> Resend Code
+                </a>
+            {% else %}
+                <a href="{% url 'register' %}" class="btn btn-warning">
+                    <i class="fas fa-user-plus"></i> Register Account
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-secondary">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
