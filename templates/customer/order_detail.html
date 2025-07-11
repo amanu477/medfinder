@@ -59,7 +59,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    {% if delivery and delivery.status == 'in_transit' and order.payment %}
+    {% if delivery and (delivery.status == 'in_transit' or delivery.status == 'arrived') and order.payment %}
     // Generate QR code for customer payment verification
     const qrData = {
         type: '{% if order.payment.payment_type == "cash_on_delivery" %}cash_payment{% else %}online_payment{% endif %}',
