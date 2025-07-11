@@ -555,3 +555,65 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 </style>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Generate QR codes for payment verification
+    function generateQRCode(elementId, data) {
+        const element = document.getElementById(elementId);
+        if (element && typeof QRCode !== 'undefined') {
+            try {
+                // Clear existing QR code
+                element.innerHTML = '';
+                
+                // Generate new QR code
+                new QRCode(element, {
+                    text: data,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch (error) {
+                console.error('Error generating QR code:', error);
+                element.innerHTML = '<div class="alert alert-warning">QR code generation failed. Please refresh the page.</div>';
+            }
+        } else if (element) {
+            element.innerHTML = '<div class="alert alert-warning">QR code library not loaded. Please refresh the page.</div>';
+        }
+    }
+    
+    // Generate QR codes if delivery status is in_transit or arrived
+    {% if delivery and delivery.status == 'in_transit' or delivery.status == 'arrived' %}
+        {% if order.payment %}
+            const qrData = {
+                order_id: {{ order.id }},
+                amount: {{ order.payment.amount }},
+                currency: '{{ order.payment.currency }}',
+                payment_type: '{{ order.payment.payment_type }}',
+                payment_status: '{{ order.payment.status }}',
+                customer_name: '{{ order.customer.name }}',
+                customer_email: '{{ order.customer.email }}',
+                customer_phone: '{{ order.customer.phone }}',
+                pharmacy_name: '{{ order.pharmacy.name }}',
+                pharmacy_phone: '{{ order.pharmacy.phone }}',
+                delivery_tracking: '{{ delivery.tracking_number }}',
+                delivery_status: '{{ delivery.status }}',
+                order_status: '{{ order.status }}',
+                timestamp: '{{ order.created_at|date:"c" }}'
+            };
+            
+            const qrDataString = JSON.stringify(qrData);
+            
+            {% if order.payment.payment_type == 'cash_on_delivery' %}
+                generateQRCode('qr-code-customer-cash', qrDataString);
+            {% else %}
+                generateQRCode('qr-code-customer-online', qrDataString);
+            {% endif %}
+        {% endif %}
+    {% endif %}
+});
+</script>
+{% endblock %}

@@ -83,6 +83,8 @@ Preferred communication style: Simple, everyday language.
 - **Visual Design**: QR codes displayed in clean containers with payment type indicators
 - **Error Handling**: Robust error handling for QR code generation failures with fallback messages
 - **Test Data**: Order #19 configured with cash payment (205.00 ETB) and "in_transit" delivery status for testing
+- **JavaScript Fix**: Added proper QR code generation script with DOM ready event handling and error checking
+- **Test Credentials**: Test customer login available - Username: testcustomer, Password: testpass123
 
 ## System Architecture
 
