@@ -154,8 +154,8 @@
                                         {% if order.status == 'pending' %}
                                             <span class="badge bg-warning">Pending</span>
                                         {% elif order.status == 'approved' %}
-                                            {% with cash_payment=order.payment_set.first %}
-                                                {% if cash_payment.payment_type == 'cash_on_delivery' and cash_payment.status == 'cash_paid' %}
+                                            {% with cash_payment=order.payment %}
+                                                {% if cash_payment and cash_payment.payment_type == 'cash_on_delivery' and cash_payment.status == 'cash_paid' %}
                                                     <span class="badge bg-warning">Pay on Cash</span>
                                                     <br><small class="text-success">Cash Confirmed</small>
                                                 {% else %}
@@ -191,8 +191,8 @@
                                                 </form>
                                             </div>
                                         {% elif order.status == 'approved' %}
-                                            {% with cash_payment=order.payment_set.first %}
-                                                {% if cash_payment.payment_type == 'cash_on_delivery' and cash_payment.status == 'cash_paid' %}
+                                            {% with cash_payment=order.payment %}
+                                                {% if cash_payment and cash_payment.payment_type == 'cash_on_delivery' and cash_payment.status == 'cash_paid' %}
                                                     <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
                                                         {% csrf_token %}
                                                         <input type="hidden" name="status" value="completed">
