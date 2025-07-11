@@ -315,7 +315,7 @@ def update_prescription_status(request, prescription_id):
 def order_management(request):
     """View all orders for a pharmacy"""
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
-    orders = Order.objects.filter(pharmacy=pharmacy).select_related('customer').prefetch_related('orderitem_set__medicine').order_by('-created_at')
+    orders = Order.objects.filter(pharmacy=pharmacy).select_related('customer', 'payment').prefetch_related('orderitem_set__medicine').order_by('-created_at')
     
     # Calculate order statistics
     pending_orders = orders.filter(status='pending').count()
