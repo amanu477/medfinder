@@ -33,7 +33,10 @@ def test_pharmacy_name_validation():
         "St. Mary's Pharmacy",
         "24/7 Health Center",
         "Addis-Ababa Pharmacy",
-        "John's & Sons Pharmacy"
+        "John's & Sons Pharmacy",
+        "Pharmacy No. 1",
+        "ABC123 Pharmacy",
+        "Health Center 2024"
     ]
     
     for name in valid_names:
@@ -49,8 +52,9 @@ def test_pharmacy_name_validation():
         "AB",  # Too short
         "Pharmacy with @#$%",  # Invalid characters
         "A" * 101,  # Too long
-        "123456789",  # Only numbers
-        "Pharmacy with | pipe"  # Invalid character
+        "Pharmacy with | pipe",  # Invalid character
+        "Pharmacy with * star",  # Invalid character
+        "Pharmacy with % percent"  # Invalid character
     ]
     
     for name in invalid_names:

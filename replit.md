@@ -121,7 +121,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Comprehensive Form Validation Enhancement (July 11, 2025)
 - **Completed**: Enhanced all form validations across the entire platform with robust server-side and client-side validation
-- **Name Validation**: All name fields now accept only letters, spaces, dots, hyphens, apostrophes, and ampersands (for business names)
+- **Name Validation**: All name fields now accept only letters, numbers, spaces, dots, hyphens, apostrophes, ampersands, and forward slashes (for business names like "24/7 Health Center")
 - **Phone Validation**: Standardized Ethiopian phone format validation (+251XXXXXXXXX) with automatic formatting
 - **Price Validation**: Medicine prices limited to positive numbers with maximum 2 decimal places (0.01 to 10000.00 ETB)
 - **Address Validation**: Enhanced address validation allowing letters, numbers, spaces, and common punctuation

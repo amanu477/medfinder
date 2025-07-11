@@ -769,9 +769,9 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (value.length > 100) {
                 isValid = false;
                 errorMessage = 'Name cannot exceed 100 characters';
-            } else if (!/^[a-zA-Z\s\.\-\'&]+$/.test(value)) {
+            } else if (!/^[a-zA-Z0-9\s\.\-\'&\/]+$/.test(value)) {
                 isValid = false;
-                errorMessage = 'Name can only contain letters, spaces, dots (.), hyphens (-), apostrophes (\'), and ampersand (&)';
+                errorMessage = 'Name can only contain letters, numbers, spaces, dots (.), hyphens (-), apostrophes (\'), ampersand (&), and forward slash (/)';
             }
         }
 

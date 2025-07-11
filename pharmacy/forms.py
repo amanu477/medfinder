@@ -139,10 +139,10 @@ class PharmacyRegistrationForm(forms.ModelForm):
             if len(name) > 100:
                 raise forms.ValidationError("Pharmacy name cannot exceed 100 characters.")
             
-            # Character validation: allow letters, numbers, spaces, dots, hyphens, apostrophes
-            if not re.match(r'^[a-zA-Z0-9\s\.\-\'&]+$', name):
+            # Character validation: allow letters, numbers, spaces, dots, hyphens, apostrophes, forward slashes
+            if not re.match(r'^[a-zA-Z0-9\s\.\-\'&\/]+$', name):
                 raise forms.ValidationError(
-                    "Pharmacy name can only contain letters, numbers, spaces, dots (.), hyphens (-), apostrophes ('), and ampersand (&)."
+                    "Pharmacy name can only contain letters, numbers, spaces, dots (.), hyphens (-), apostrophes ('), ampersand (&), and forward slash (/)."
                 )
             
             # Check if name already exists
