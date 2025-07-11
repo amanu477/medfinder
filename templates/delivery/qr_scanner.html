@@ -15,7 +15,7 @@
                     <!-- Scanner Section -->
                     <div class="text-center mb-4">
                         <div id="qr-scanner-container">
-                            <video id="qr-scanner-video" width="300" height="300" autoplay muted></video>
+                            <video id="qr-scanner-video" width="300" height="300" autoplay muted playsinline></video>
                             <div id="qr-scanner-overlay">
                                 <div class="scanner-frame"></div>
                             </div>
@@ -28,14 +28,31 @@
                                 <i class="fas fa-stop"></i> Stop Scanner
                             </button>
                         </div>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i> 
+                                Allow camera access when prompted. Point camera at QR code to scan.
+                            </small>
+                        </div>
                     </div>
 
-                    <!-- Manual Input Section -->
+                    <!-- Alternative Input Methods -->
                     <div class="mt-4">
-                        <h6>Or enter QR code data manually:</h6>
-                        <div class="input-group">
-                            <textarea id="manual-qr-input" class="form-control" rows="3" placeholder="Paste QR code data here..."></textarea>
-                            <button id="process-manual" class="btn btn-outline-primary">Process</button>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Upload QR Code Image:</h6>
+                                <div class="input-group">
+                                    <input type="file" id="qr-file-input" class="form-control" accept="image/*">
+                                    <button id="process-file" class="btn btn-outline-primary">Process</button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Or enter QR code data manually:</h6>
+                                <div class="input-group">
+                                    <textarea id="manual-qr-input" class="form-control" rows="3" placeholder="Paste QR code data here..."></textarea>
+                                    <button id="process-manual" class="btn btn-outline-primary">Process</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -146,7 +163,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qr-scanner/1.4.2/qr-scanner.min.js"></script>
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const video = document.getElementById('qr-scanner-video');
@@ -154,47 +171,142 @@ document.addEventListener('DOMContentLoaded', function() {
     const stopBtn = document.getElementById('stop-scanner');
     const manualInput = document.getElementById('manual-qr-input');
     const processBtn = document.getElementById('process-manual');
+    const fileInput = document.getElementById('qr-file-input');
+    const processFileBtn = document.getElementById('process-file');
     const resultsDiv = document.getElementById('qr-results');
     const errorDiv = document.getElementById('qr-error');
     
     let qrScanner = null;
     let scannerActive = false;
 
-    // Initialize QR Scanner
-    function initScanner() {
-        qrScanner = new QrScanner(video, result => {
-            processQRCode(result.data);
-        }, {
-            returnDetailedScanResult: true,
-            highlightScanRegion: true,
-            highlightCodeOutline: true,
-        });
+    // Check if camera is available
+    async function checkCameraAvailability() {
+        try {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('Camera not supported');
+            }
+            
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            
+            if (videoDevices.length === 0) {
+                throw new Error('No camera found');
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Camera check error:', error);
+            return false;
+        }
+    }
+
+    // Initialize camera with simple getUserMedia
+    async function initScanner() {
+        try {
+            const cameraAvailable = await checkCameraAvailability();
+            if (!cameraAvailable) {
+                throw new Error('Camera not available');
+            }
+
+            // Use native camera access directly
+            await initNativeCamera();
+        } catch (error) {
+            console.error('Scanner init error:', error);
+            throw error;
+        }
+    }
+
+    // Fallback native camera implementation
+    async function initNativeCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 300 },
+                    height: { ideal: 300 }
+                }
+            });
+            
+            video.srcObject = stream;
+            video.play();
+            
+            // Start scanning loop
+            scannerActive = true;
+            scanFrame();
+        } catch (error) {
+            console.error('Native camera init error:', error);
+            throw error;
+        }
+    }
+
+    // Frame scanning for fallback method
+    function scanFrame() {
+        if (!scannerActive) return;
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        
+        if (code) {
+            processQRCode(code.data);
+        } else {
+            requestAnimationFrame(scanFrame);
+        }
     }
 
     // Start scanner
     startBtn.addEventListener('click', async () => {
         try {
-            if (!qrScanner) initScanner();
+            showError('Starting camera...');
             
-            await qrScanner.start();
-            scannerActive = true;
+            if (!video.srcObject) {
+                await initScanner();
+            }
+            
+            if (video.srcObject) {
+                scannerActive = true;
+                scanFrame();
+            }
+            
             startBtn.classList.add('d-none');
             stopBtn.classList.remove('d-none');
             hideError();
         } catch (error) {
             console.error('Scanner error:', error);
-            showError('Failed to start camera. Please check permissions.');
+            let errorMessage = 'Failed to start camera. ';
+            
+            if (error.name === 'NotAllowedError') {
+                errorMessage += 'Please allow camera access and try again.';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage += 'No camera found on this device.';
+            } else if (error.name === 'NotSupportedError') {
+                errorMessage += 'Camera not supported on this device.';
+            } else {
+                errorMessage += 'Please check camera permissions and try again.';
+            }
+            
+            showError(errorMessage);
         }
     });
 
     // Stop scanner
     stopBtn.addEventListener('click', () => {
-        if (qrScanner) {
-            qrScanner.stop();
-            scannerActive = false;
-            stopBtn.classList.add('d-none');
-            startBtn.classList.remove('d-none');
+        scannerActive = false;
+        
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+            video.srcObject = null;
         }
+        
+        stopBtn.classList.add('d-none');
+        startBtn.classList.remove('d-none');
     });
 
     // Process manual input
@@ -205,6 +317,39 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             showError('Please enter QR code data');
         }
+    });
+
+    // Process file upload
+    processFileBtn.addEventListener('click', () => {
+        const file = fileInput.files[0];
+        if (!file) {
+            showError('Please select a QR code image');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.width = img.width;
+                canvas.height = img.height;
+                context.drawImage(img, 0, 0);
+                
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (code) {
+                    processQRCode(code.data);
+                } else {
+                    showError('No QR code found in the image. Please try another image.');
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
     });
 
     // Process QR code data
@@ -301,8 +446,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cleanup on page unload
     window.addEventListener('beforeunload', () => {
-        if (qrScanner) {
-            qrScanner.stop();
+        scannerActive = false;
+        
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
         }
     });
 });

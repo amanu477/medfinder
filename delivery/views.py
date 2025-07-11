@@ -693,4 +693,4 @@ def qr_scanner(request, delivery_id):
         'payment': delivery.order.payment if hasattr(delivery.order, 'payment') else None,
     }
     
-    return render(request, 'delivery/qr_scanner.html', context)
+    return render(request, 'delivery/qr_scanner_simple.html', context)

@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+
+{% block title %}QR Code Scanner - Delivery{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-qrcode"></i> QR Code Scanner</h5>
+                    <p class="mb-0">Scan or enter the customer's QR code to verify payment details</p>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Manual QR Code Input -->
+                    <div class="mb-4">
+                        <h6>Enter QR Code Data:</h6>
+                        <div class="form-group">
+                            <textarea id="manual-qr-input" class="form-control" rows="4" placeholder="Paste the QR code data here..."></textarea>
+                        </div>
+                        <button id="process-manual" class="btn btn-primary mt-2">
+                            <i class="fas fa-search"></i> Process QR Code
+                        </button>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div class="mb-4">
+                        <h6>Or Upload QR Code Image:</h6>
+                        <div class="input-group">
+                            <input type="file" id="qr-file-input" class="form-control" accept="image/*">
+                            <button id="process-file" class="btn btn-outline-primary">
+                                <i class="fas fa-upload"></i> Process Image
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Test QR Code Data -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h6><i class="fas fa-info-circle"></i> For Testing:</h6>
+                            <p class="mb-2">Copy and paste this test QR code data:</p>
+                            <div class="bg-white p-2 border rounded">
+                                <small id="test-qr-data">{"order_id": 19, "delivery_id": 4, "tracking_number": "DEL20250711080313", "amount": "205.00", "currency": "ETB", "type": "cash_payment", "payment_status": "pending", "customer_name": "Test Customer", "customer_phone": "+251911111111", "pharmacy": "Addis Pharmacy", "timestamp": "2025-07-11T09:39:00Z"}</small>
+                            </div>
+                            <button id="use-test-data" class="btn btn-sm btn-outline-info mt-2">
+                                <i class="fas fa-copy"></i> Use Test Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="qr-results" class="mt-4 d-none">
+                        <div class="alert alert-success">
+                            <h6><i class="fas fa-check-circle"></i> QR Code Processed Successfully</h6>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>Payment Details</h6>
+                                        <div id="payment-details"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>Order Information</h6>
+                                        <div id="order-info"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>Customer Information</h6>
+                                        <div id="customer-info"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>Delivery Information</h6>
+                                        <div id="delivery-info"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-center">
+                            <div id="payment-actions">
+                                <!-- Payment action buttons will be added here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Section -->
+                    <div id="qr-error" class="mt-4 d-none">
+                        <div class="alert alert-danger">
+                            <h6><i class="fas fa-exclamation-triangle"></i> Error</h6>
+                            <div id="error-message"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-button {
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 8px;
+    margin: 0 10px;
+}
+
+#test-qr-data {
+    word-break: break-all;
+    font-family: monospace;
+}
+
+.card {
+    margin-bottom: 15px;
+}
+
+.alert {
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const manualInput = document.getElementById('manual-qr-input');
+    const processBtn = document.getElementById('process-manual');
+    const fileInput = document.getElementById('qr-file-input');
+    const processFileBtn = document.getElementById('process-file');
+    const useTestBtn = document.getElementById('use-test-data');
+    const resultsDiv = document.getElementById('qr-results');
+    const errorDiv = document.getElementById('qr-error');
+
+    // Process manual input
+    processBtn.addEventListener('click', () => {
+        const qrData = manualInput.value.trim();
+        if (qrData) {
+            processQRCode(qrData);
+        } else {
+            showError('Please enter QR code data');
+        }
+    });
+
+    // Use test data
+    useTestBtn.addEventListener('click', () => {
+        const testData = document.getElementById('test-qr-data').textContent;
+        manualInput.value = testData;
+        processQRCode(testData);
+    });
+
+    // Process file upload
+    processFileBtn.addEventListener('click', () => {
+        const file = fileInput.files[0];
+        if (!file) {
+            showError('Please select a QR code image');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.width = img.width;
+                canvas.height = img.height;
+                context.drawImage(img, 0, 0);
+                
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                
+                if (window.jsQR) {
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    
+                    if (code) {
+                        processQRCode(code.data);
+                    } else {
+                        showError('No QR code found in the image. Please try another image.');
+                    }
+                } else {
+                    showError('QR code processing library not loaded. Please try manual input.');
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Process QR code data
+    function processQRCode(qrData) {
+        try {
+            // Parse QR code data
+            const data = JSON.parse(qrData);
+            
+            // Validate required fields
+            if (!data.order_id || !data.amount || !data.type) {
+                throw new Error('Invalid QR code format - missing required fields');
+            }
+
+            displayResults(data);
+            hideError();
+        } catch (error) {
+            console.error('QR processing error:', error);
+            showError('Invalid QR code format. Please check the data and try again.');
+        }
+    }
+
+    // Display scan results
+    function displayResults(data) {
+        // Payment details
+        const paymentDetails = document.getElementById('payment-details');
+        paymentDetails.innerHTML = `
+            <p><strong>Payment Type:</strong> ${data.type === 'cash_payment' ? 'Cash on Delivery' : 'Online Payment'}</p>
+            <p><strong>Amount:</strong> ${data.amount} ${data.currency}</p>
+            <p><strong>Status:</strong> ${data.payment_status}</p>
+            ${data.transaction_ref ? `<p><strong>Transaction Ref:</strong> ${data.transaction_ref}</p>` : ''}
+        `;
+
+        // Order information
+        const orderInfo = document.getElementById('order-info');
+        orderInfo.innerHTML = `
+            <p><strong>Order ID:</strong> #${data.order_id}</p>
+            <p><strong>Pharmacy:</strong> ${data.pharmacy}</p>
+            <p><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString()}</p>
+        `;
+
+        // Customer information
+        const customerInfo = document.getElementById('customer-info');
+        customerInfo.innerHTML = `
+            <p><strong>Name:</strong> ${data.customer_name}</p>
+            <p><strong>Phone:</strong> ${data.customer_phone}</p>
+        `;
+
+        // Delivery information
+        const deliveryInfo = document.getElementById('delivery-info');
+        deliveryInfo.innerHTML = `
+            <p><strong>Delivery ID:</strong> ${data.delivery_id}</p>
+            <p><strong>Tracking Number:</strong> ${data.tracking_number}</p>
+        `;
+
+        // Payment actions
+        const paymentActions = document.getElementById('payment-actions');
+        if (data.type === 'cash_payment') {
+            paymentActions.innerHTML = `
+                <button class="btn btn-success payment-button" onclick="confirmCashPayment(${data.delivery_id}, ${data.amount})">
+                    <i class="fas fa-money-bill-wave"></i> Confirm Cash Payment Received
+                </button>
+                <button class="btn btn-outline-secondary payment-button" onclick="reportPaymentIssue(${data.delivery_id})">
+                    <i class="fas fa-exclamation-triangle"></i> Report Issue
+                </button>
+            `;
+        } else {
+            paymentActions.innerHTML = `
+                <button class="btn btn-primary payment-button" onclick="confirmOnlinePayment(${data.delivery_id})">
+                    <i class="fas fa-check-circle"></i> Confirm Online Payment
+                </button>
+                <button class="btn btn-outline-secondary payment-button" onclick="reportPaymentIssue(${data.delivery_id})">
+                    <i class="fas fa-exclamation-triangle"></i> Report Issue
+                </button>
+            `;
+        }
+
+        resultsDiv.classList.remove('d-none');
+    }
+
+    // Show error
+    function showError(message) {
+        const errorMessage = document.getElementById('error-message');
+        errorMessage.textContent = message;
+        errorDiv.classList.remove('d-none');
+        resultsDiv.classList.add('d-none');
+    }
+
+    // Hide error
+    function hideError() {
+        errorDiv.classList.add('d-none');
+    }
+});
+
+// Confirm cash payment
+function confirmCashPayment(deliveryId, amount) {
+    if (confirm(`Confirm that you received ${amount} ETB in cash from the customer?`)) {
+        // Redirect to delivery confirmation page
+        window.location.href = `/delivery/confirm-payment/${deliveryId}/?cash_received=true`;
+    }
+}
+
+// Confirm online payment
+function confirmOnlinePayment(deliveryId) {
+    if (confirm('Confirm that the online payment has been verified?')) {
+        // Redirect to delivery confirmation page
+        window.location.href = `/delivery/confirm-payment/${deliveryId}/?online_verified=true`;
+    }
+}
+
+// Report payment issue
+function reportPaymentIssue(deliveryId) {
+    const issue = prompt('Please describe the payment issue:');
+    if (issue) {
+        // Redirect with issue report
+        window.location.href = `/delivery/confirm-payment/${deliveryId}/?issue=${encodeURIComponent(issue)}`;
+    }
+}
+</script>
+{% endblock %}
