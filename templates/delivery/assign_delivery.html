@@ -41,12 +41,12 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for item in order.items.all %}
+                                    {% for item in order.orderitem_set.all %}
                                     <tr>
                                         <td>{{ item.medicine.name }}</td>
                                         <td>{{ item.quantity }}</td>
                                         <td>{{ item.price }} ETB</td>
-                                        <td>{{ item.subtotal }} ETB</td>
+                                        <td>{{ item.get_total_price }} ETB</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

@@ -171,6 +171,12 @@
                                         <strong>Order #{{ delivery.order.id }}</strong>
                                         <br><small class="text-muted">{{ delivery.order.total_amount }} ETB</small>
                                         <br><small class="text-muted">{{ delivery.order.get_total_items }} items</small>
+                                        <br>
+                                        <div class="small text-muted">
+                                            {% for item in delivery.order.orderitem_set.all %}
+                                                <div>{{ item.medicine.name }} x{{ item.quantity }} - {{ item.get_total_price }} ETB</div>
+                                            {% endfor %}
+                                        </div>
                                     </td>
                                     <td>
                                         <div>{{ delivery.order.customer.name }}</div>
