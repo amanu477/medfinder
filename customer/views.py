@@ -10,11 +10,10 @@ from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
-from .models import Customer, Prescription, Order, OrderItem, Cart, CartItem, IncidentReport, AdminNotification, Payment, EmailVerification
+from .models import Customer, Prescription, Order, OrderItem, Cart, CartItem, IncidentReport, AdminNotification, Payment
 from .chapa_service import ChapaService
 from .ocr_service import PrescriptionOCRService
 from .qr_utils import generate_qr_code_image, generate_payment_qr_data
-from .email_service import email_verification_service
 from pharmacy.models import Pharmacy, Medicine
 from moh.models import MoHOfficer
 from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm, QuickIncidentForm
@@ -281,36 +280,13 @@ def customer_register(request):
                         email=user.email,
                         phone=form.cleaned_data['phone'],
                         address=form.cleaned_data['address'],
-                        is_verified=False  # Start with unverified status
+                        is_verified=True  # No email verification needed
                     )
                     
-                    # Generate and send verification code
-                    verification_code = email_verification_service.generate_verification_code()
-                    
-                    # Create verification record
-                    from django.utils import timezone
-                    EmailVerification.objects.create(
-                        email=user.email,
-                        verification_code=verification_code,
-                        user_type='customer'
-                    )
-                    
-                    # Send verification email
-                    try:
-                        email_sent = email_verification_service.send_verification_email(
-                            user.email, verification_code, customer.name
-                        )
-                        
-                        if email_sent:
-                            messages.success(request, f'Registration successful! Please check your email for a verification code.')
-                            login(request, user)  # Log in the user so they can verify
-                            return redirect('email_verification')
-                        else:
-                            messages.error(request, 'Registration successful but email could not be sent. Please contact support.')
-                            return redirect('customer_register')
-                    except Exception as e:
-                        messages.error(request, f'Registration successful but email could not be sent: {str(e)}')
-                        return redirect('customer_register')
+                    # Log the user in immediately
+                    login(request, user)
+                    messages.success(request, f'Registration successful! Welcome to Ethiopian Pharmacy Connect, {customer.name}!')
+                    return redirect('customer_dashboard')
             except Exception as e:
                 messages.error(request, f'Registration failed: {str(e)}')
     else:
