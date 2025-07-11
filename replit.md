@@ -72,6 +72,17 @@ Preferred communication style: Simple, everyday language.
 - **Dashboard Integration**: Added QR scanner buttons to delivery dashboard and status update pages
 - **URL Structure**: Accessible at /delivery/delivery/{delivery_id}/qr-scanner/
 - **Error Handling**: Comprehensive error handling for invalid QR codes and camera permissions
+- **File Upload Removed**: Eliminated file upload option per user request, keeping only camera scanning and manual input
+
+### Customer Payment Verification QR Code System (July 11, 2025)
+- **Completed**: Fixed customer-side QR code generation for payment verification
+- **QR Code Display**: Customer order detail page shows QR code when delivery status is "in_transit" or "arrived"
+- **Payment Types**: Generates different QR codes for cash on delivery vs online payment verification
+- **QR Code Data**: Contains order ID, amount, currency, customer details, pharmacy info, delivery tracking, and payment status
+- **Library Integration**: Fixed QR code library loading issues by ensuring proper script loading order
+- **Visual Design**: QR codes displayed in clean containers with payment type indicators
+- **Error Handling**: Robust error handling for QR code generation failures with fallback messages
+- **Test Data**: Order #19 configured with cash payment (205.00 ETB) and "in_transit" delivery status for testing
 
 ## System Architecture
 
