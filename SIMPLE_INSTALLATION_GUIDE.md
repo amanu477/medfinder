@@ -53,16 +53,34 @@ DATABASE_URL=sqlite:///db.sqlite3
 
 ## Step 8: Set Up Database
 ```bash
+python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
 ```
 
-## Step 9: Start Server
+## Step 9: Create Media Folders
+```bash
+mkdir media
+mkdir media/prescriptions
+mkdir media/pharmacy_documents
+mkdir media/moh_documents
+mkdir media/cart_prescriptions
+mkdir media/order_prescriptions
+mkdir media/medicines
+```
+
+## Step 10: Load Sample Data (Optional)
+```bash
+python setup_all_logins.py
+python load_all_data.py
+```
+
+## Step 11: Start Server
 ```bash
 python manage.py runserver
 ```
 
-## Step 10: Open Browser
+## Step 12: Open Browser
 Go to: **http://localhost:8000**
 
 ---
