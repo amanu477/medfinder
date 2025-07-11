@@ -13,9 +13,28 @@
                 </div>
                 <div class="card-body">
                     
+                    <!-- Camera Scanner -->
+                    <div class="mb-4">
+                        <h6>Camera Scanner:</h6>
+                        <div class="text-center">
+                            <video id="qr-video" width="320" height="240" style="border: 2px solid #007bff; border-radius: 8px; background: #f8f9fa;" autoplay muted playsinline></video>
+                            <div class="mt-3">
+                                <button id="start-camera" class="btn btn-success">
+                                    <i class="fas fa-camera"></i> Start Camera
+                                </button>
+                                <button id="stop-camera" class="btn btn-danger d-none">
+                                    <i class="fas fa-stop"></i> Stop Camera
+                                </button>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">Point your camera at the QR code to scan it</small>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Manual QR Code Input -->
                     <div class="mb-4">
-                        <h6>Enter QR Code Data:</h6>
+                        <h6>Or Enter QR Code Data:</h6>
                         <div class="form-group">
                             <textarea id="manual-qr-input" class="form-control" rows="4" placeholder="Paste the QR code data here..."></textarea>
                         </div>
@@ -39,7 +58,11 @@
                     <div class="card bg-light mb-4">
                         <div class="card-body">
                             <h6><i class="fas fa-info-circle"></i> For Testing:</h6>
-                            <p class="mb-2">Copy and paste this test QR code data:</p>
+                            <p class="mb-2">You can test the scanner with this QR code image:</p>
+                            <div class="text-center mb-3">
+                                <img src="/static/test_qr_code.png" alt="Test QR Code" style="max-width: 200px;" class="border rounded">
+                            </div>
+                            <p class="mb-2">Or copy and paste this test QR code data:</p>
                             <div class="bg-white p-2 border rounded">
                                 <small id="test-qr-data">{"order_id": 19, "delivery_id": 4, "tracking_number": "DEL20250711080313", "amount": "205.00", "currency": "ETB", "type": "cash_payment", "payment_status": "pending", "customer_name": "Test Customer", "customer_phone": "+251911111111", "pharmacy": "Addis Pharmacy", "timestamp": "2025-07-11T09:39:00Z"}</small>
                             </div>
@@ -140,6 +163,9 @@
 <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('qr-video');
+    const startCameraBtn = document.getElementById('start-camera');
+    const stopCameraBtn = document.getElementById('stop-camera');
     const manualInput = document.getElementById('manual-qr-input');
     const processBtn = document.getElementById('process-manual');
     const fileInput = document.getElementById('qr-file-input');
@@ -147,6 +173,78 @@ document.addEventListener('DOMContentLoaded', function() {
     const useTestBtn = document.getElementById('use-test-data');
     const resultsDiv = document.getElementById('qr-results');
     const errorDiv = document.getElementById('qr-error');
+    
+    let scanning = false;
+    let stream = null;
+
+    // Start camera
+    startCameraBtn.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { 
+                    facingMode: 'environment',
+                    width: { ideal: 320 },
+                    height: { ideal: 240 }
+                }
+            });
+            
+            video.srcObject = stream;
+            video.play();
+            
+            scanning = true;
+            startCameraBtn.classList.add('d-none');
+            stopCameraBtn.classList.remove('d-none');
+            
+            // Start scanning
+            scanQRCode();
+            hideError();
+        } catch (error) {
+            console.error('Camera error:', error);
+            showError('Unable to access camera. Please ensure camera permissions are granted.');
+        }
+    });
+
+    // Stop camera
+    stopCameraBtn.addEventListener('click', () => {
+        stopScanning();
+    });
+
+    // Stop scanning function
+    function stopScanning() {
+        scanning = false;
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+        video.srcObject = null;
+        stopCameraBtn.classList.add('d-none');
+        startCameraBtn.classList.remove('d-none');
+    }
+
+    // Scan QR code from video
+    function scanQRCode() {
+        if (!scanning) return;
+        
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            
+            if (code) {
+                stopScanning();
+                processQRCode(code.data);
+                return;
+            }
+        }
+        
+        requestAnimationFrame(scanQRCode);
+    }
 
     // Process manual input
     processBtn.addEventListener('click', () => {
@@ -292,6 +390,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function hideError() {
         errorDiv.classList.add('d-none');
     }
+
+    // Clean up on page unload
+    window.addEventListener('beforeunload', () => {
+        stopScanning();
+    });
 });
 
 // Confirm cash payment
