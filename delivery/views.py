@@ -285,9 +285,8 @@ def update_delivery_status(request, delivery_id):
                 if delivery.status == 'picked_up' and not delivery.pickup_time:
                     delivery.pickup_time = timezone.now()
                 elif delivery.status == 'delivered' and not delivery.delivery_time:
-                    delivery.delivery_time = timezone.now()
-                    delivery_person.total_deliveries += 1
-                    delivery_person.save()
+                    # For delivered status, redirect to confirmation page instead of completing immediately
+                    return redirect('delivery_confirm_payment', delivery_id=delivery.id)
                 
                 delivery.save()
                 
@@ -311,6 +310,126 @@ def update_delivery_status(request, delivery_id):
         }
         
         return render(request, 'delivery/update_status.html', context)
+        
+    except DeliveryPerson.DoesNotExist:
+        messages.error(request, 'You are not registered as a delivery person.')
+        return redirect('home')
+
+
+@login_required
+def delivery_confirm_payment(request, delivery_id):
+    """Confirm payment and complete delivery"""
+    try:
+        delivery_person = request.user.deliveryperson
+        delivery = get_object_or_404(Delivery, id=delivery_id, delivery_person=delivery_person)
+        
+        # Check if delivery is ready for confirmation
+        if delivery.status != 'in_transit':
+            messages.error(request, 'Delivery must be in transit to confirm payment.')
+            return redirect('delivery_dashboard')
+        
+        order = delivery.order
+        payment = None
+        
+        # Get payment information
+        try:
+            payment = order.payment
+        except:
+            messages.error(request, 'No payment information found for this order.')
+            return redirect('delivery_dashboard')
+        
+        # Handle payment confirmation
+        if request.method == 'POST':
+            confirmation_type = request.POST.get('confirmation_type')
+            
+            if confirmation_type == 'cash_payment':
+                # Confirm cash payment received
+                if payment.payment_type == 'cash_on_delivery':
+                    payment.confirm_cash_payment(delivery_person.user)
+                    
+                    # Complete delivery
+                    delivery.status = 'delivered'
+                    delivery.delivery_time = timezone.now()
+                    delivery_person.total_deliveries += 1
+                    delivery_person.save()
+                    delivery.save()
+                    
+                    # Create tracking entry
+                    DeliveryTracking.objects.create(
+                        delivery=delivery,
+                        latitude=delivery_person.current_location_lat or 9.03,
+                        longitude=delivery_person.current_location_lon or 38.76,
+                        status='delivered',
+                        notes='Cash payment confirmed and delivery completed'
+                    )
+                    
+                    messages.success(request, 'Cash payment confirmed and delivery completed successfully.')
+                    return redirect('delivery_dashboard')
+                else:
+                    messages.error(request, 'This order is not set for cash on delivery.')
+                    
+            elif confirmation_type == 'online_payment':
+                # Confirm online payment (already paid)
+                if payment.status == 'success':
+                    # Complete delivery
+                    delivery.status = 'delivered'
+                    delivery.delivery_time = timezone.now()
+                    delivery_person.total_deliveries += 1
+                    delivery_person.save()
+                    delivery.save()
+                    
+                    # Create tracking entry
+                    DeliveryTracking.objects.create(
+                        delivery=delivery,
+                        latitude=delivery_person.current_location_lat or 9.03,
+                        longitude=delivery_person.current_location_lon or 38.76,
+                        status='delivered',
+                        notes='Online payment verified and delivery completed'
+                    )
+                    
+                    messages.success(request, 'Online payment verified and delivery completed successfully.')
+                    return redirect('delivery_dashboard')
+                else:
+                    messages.error(request, 'Online payment has not been confirmed.')
+        
+        # Generate QR code data
+        qr_data = None
+        if payment:
+            if payment.payment_type == 'cash_on_delivery':
+                qr_data = {
+                    'type': 'cash_payment',
+                    'order_id': order.id,
+                    'amount': str(payment.amount),
+                    'currency': payment.currency,
+                    'customer_name': order.customer.name,
+                    'customer_phone': order.customer.phone,
+                    'pharmacy': order.pharmacy.name,
+                    'delivery_id': delivery.id,
+                    'tracking_number': delivery.tracking_number,
+                    'payment_status': 'cash_on_delivery'
+                }
+            else:
+                qr_data = {
+                    'type': 'online_payment',
+                    'order_id': order.id,
+                    'amount': str(payment.amount),
+                    'currency': payment.currency,
+                    'customer_name': order.customer.name,
+                    'pharmacy': order.pharmacy.name,
+                    'delivery_id': delivery.id,
+                    'tracking_number': delivery.tracking_number,
+                    'payment_status': 'paid_online',
+                    'transaction_ref': payment.tx_ref
+                }
+        
+        context = {
+            'delivery': delivery,
+            'order': order,
+            'payment': payment,
+            'qr_data': json.dumps(qr_data) if qr_data else None,
+        }
+        
+        return render(request, 'delivery/confirm_payment.html', context)
         
     except DeliveryPerson.DoesNotExist:
         messages.error(request, 'You are not registered as a delivery person.')

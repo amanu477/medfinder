@@ -42,7 +42,85 @@
 .fs-6 {
     font-size: 1.1rem;
 }
+
+.qr-code-container {
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.qr-code-container canvas {
+    max-width: 100%;
+    height: auto;
+}
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if delivery and delivery.status == 'in_transit' and order.payment %}
+    // Generate QR code for customer payment verification
+    const qrData = {
+        type: '{% if order.payment.payment_type == "cash_on_delivery" %}cash_payment{% else %}online_payment{% endif %}',
+        order_id: {{ order.id }},
+        amount: '{{ order.payment.amount }}',
+        currency: '{{ order.payment.currency }}',
+        customer_name: '{{ order.customer.name }}',
+        customer_phone: '{{ order.customer.phone }}',
+        pharmacy: '{{ order.pharmacy.name }}',
+        delivery_id: {{ delivery.id }},
+        tracking_number: '{{ delivery.tracking_number }}',
+        payment_status: '{% if order.payment.payment_type == "cash_on_delivery" %}cash_on_delivery{% else %}paid_online{% endif %}',
+        {% if order.payment.payment_type != 'cash_on_delivery' %}
+        transaction_ref: '{{ order.payment.tx_ref }}'
+        {% endif %}
+    };
+    
+    const qrString = JSON.stringify(qrData);
+    
+    {% if order.payment.payment_type == 'cash_on_delivery' %}
+    // Generate QR code for cash payment
+    const qrCodeElement = document.getElementById('qr-code-customer-cash');
+    if (qrCodeElement) {
+        QRCode.toCanvas(qrCodeElement, qrString, {
+            width: 200,
+            height: 200,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#ffffff'
+            }
+        }, function (error) {
+            if (error) {
+                console.error('Error generating QR code:', error);
+                qrCodeElement.innerHTML = '<p class="text-danger">Error generating QR code</p>';
+            }
+        });
+    }
+    {% else %}
+    // Generate QR code for online payment
+    const qrCodeElement = document.getElementById('qr-code-customer-online');
+    if (qrCodeElement) {
+        QRCode.toCanvas(qrCodeElement, qrString, {
+            width: 200,
+            height: 200,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#ffffff'
+            }
+        }, function (error) {
+            if (error) {
+                console.error('Error generating QR code:', error);
+                qrCodeElement.innerHTML = '<p class="text-danger">Error generating QR code</p>';
+            }
+        });
+    }
+    {% endif %}
+    {% endif %}
+});
+</script>
 {% endblock %}
 
 {% block content %}
@@ -138,6 +216,27 @@
                                         <i class="fas fa-shipping-fast"></i> On the Way
                                     </span>
                                     <p class="text-warning mt-2">Your delivery person is on the way to your location!</p>
+                                    
+                                    <!-- QR Code for Payment Verification -->
+                                    <div class="mt-3">
+                                        <h6><i class="fas fa-qrcode"></i> Payment Verification QR Code</h6>
+                                        <p class="text-muted small">Show this QR code to the delivery person for payment verification</p>
+                                        <div class="qr-code-container bg-white p-3 border rounded text-center">
+                                            {% if order.payment.payment_type == 'cash_on_delivery' %}
+                                                <div class="alert alert-warning">
+                                                    <strong><i class="fas fa-money-bill-wave"></i> Cash on Delivery</strong>
+                                                    <br>Amount to pay: {{ order.payment.amount }} {{ order.payment.currency }}
+                                                </div>
+                                                <div id="qr-code-customer-cash"></div>
+                                            {% else %}
+                                                <div class="alert alert-success">
+                                                    <strong><i class="fas fa-check-circle"></i> Payment Completed Online</strong>
+                                                    <br>Amount paid: {{ order.payment.amount }} {{ order.payment.currency }}
+                                                </div>
+                                                <div id="qr-code-customer-online"></div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
                                 {% elif delivery.status == 'delivered' %}
                                     <span class="badge bg-success fs-6">
                                         <i class="fas fa-check-circle"></i> Delivered
