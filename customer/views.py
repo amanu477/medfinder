@@ -7,6 +7,9 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+import json
 from .models import Customer, Prescription, Order, OrderItem, Cart, CartItem, IncidentReport, AdminNotification, Payment
 from .chapa_service import ChapaService
 from .ocr_service import PrescriptionOCRService
@@ -871,6 +874,35 @@ def receipt_detail(request, receipt_id):
     }
     
     return render(request, 'customer/receipt_detail.html', context)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def update_customer_location(request):
+    """Update customer location from JavaScript"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'success': False, 'error': 'Not authenticated'})
+    
+    try:
+        customer = request.user.customer
+        data = json.loads(request.body)
+        
+        latitude = data.get('latitude')
+        longitude = data.get('longitude')
+        
+        if latitude and longitude:
+            customer.latitude = latitude
+            customer.longitude = longitude
+            customer.save()
+            
+            return JsonResponse({'success': True, 'message': 'Location updated successfully'})
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid coordinates'})
+    
+    except Customer.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Customer not found'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
 def payment_webhook(request):

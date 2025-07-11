@@ -38,6 +38,18 @@ Preferred communication style: Simple, everyday language.
 - **Payment Types**: Cash on delivery requires physical money collection, online payments require verification confirmation
 - **QR Code Data**: Contains order details, payment information, customer data, and delivery tracking for verification
 - **Test Setup**: Order #19 configured with cash payment (205.00 ETB) for testing the complete workflow
+- **QR Code Library**: Added QR code library to base.html template for proper QR code generation
+- **Error Handling**: Fixed QR code generation errors by loading library globally in base template
+
+### Customer Location-Based Delivery Address System (July 11, 2025)
+- **Completed**: Enhanced delivery system to use customer's current location as delivery address
+- **Location Tracking**: Automatic customer location updates when browsing customer pages
+- **Delivery Address**: Delivery addresses now show customer's current coordinates in user-friendly format
+- **Location API**: Added customer location update endpoint at /customer/update-location/
+- **JavaScript Integration**: Enhanced location.js to automatically update customer location on server
+- **Dynamic Updates**: Customer location is updated in real-time and used for delivery creation
+- **Address Format**: Delivery addresses display as "Customer Address: Lat X.XXXX, Lon Y.YYYY"
+- **Test Data**: Updated Order #19 delivery with customer location (9.0450, 38.7880)
 
 ## System Architecture
 

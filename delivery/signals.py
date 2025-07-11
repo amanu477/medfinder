@@ -15,12 +15,16 @@ def create_delivery_on_order_completion(sender, instance, created, **kwargs):
         # Check if delivery already exists
         if not hasattr(instance, 'delivery'):
             try:
-                # Create delivery record
+                # Use customer's current location or default to Addis Ababa
+                customer_lat = instance.customer.latitude or 9.0320
+                customer_lon = instance.customer.longitude or 38.7615
+                
+                # Create delivery record with customer's current location
                 delivery = Delivery.objects.create(
                     order=instance,
-                    customer_location_lat=instance.customer.latitude,
-                    customer_location_lon=instance.customer.longitude,
-                    customer_address=instance.customer.address or 'Address not provided',
+                    customer_location_lat=customer_lat,
+                    customer_location_lon=customer_lon,
+                    customer_address=f"Customer Address: Lat {customer_lat:.4f}, Lon {customer_lon:.4f}",
                     customer_phone=instance.customer.phone,
                     status='pending'
                 )
