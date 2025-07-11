@@ -472,10 +472,22 @@ def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id, customer=customer)
     order_items = OrderItem.objects.filter(order=order)
     
+    # Get delivery information if exists
+    delivery = None
+    delivery_tracking = None
+    try:
+        from delivery.models import Delivery, DeliveryTracking
+        delivery = Delivery.objects.get(order=order)
+        delivery_tracking = DeliveryTracking.objects.filter(delivery=delivery).order_by('-timestamp')
+    except Delivery.DoesNotExist:
+        pass
+    
     context = {
         'order': order,
         'order_items': order_items,
         'customer': customer,
+        'delivery': delivery,
+        'delivery_tracking': delivery_tracking,
     }
     
     return render(request, 'customer/order_detail.html', context)

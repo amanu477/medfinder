@@ -3,6 +3,48 @@
 
 {% block title %}Order Details - #{{ order.id }}{% endblock %}
 
+{% block extra_css %}
+<style>
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+
+.timeline-item {
+    position: relative;
+    padding: 20px 0 20px 40px;
+    border-left: 2px solid #e9ecef;
+}
+
+.timeline-item:last-child {
+    border-left: none;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -8px;
+    top: 25px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #007bff;
+}
+
+.timeline-content {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin-left: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.fs-6 {
+    font-size: 1.1rem;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
     <!-- Order Status Notifications -->
@@ -57,6 +99,138 @@
     <div class="alert alert-danger" role="alert">
         <h4 class="alert-heading"><i class="fas fa-times-circle"></i> Order Rejected</h4>
         <p>Unfortunately, your order has been rejected by the pharmacy. Please contact them for more information or try placing a new order.</p>
+    </div>
+    {% endif %}
+
+    <!-- Delivery Status Section -->
+    {% if delivery %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-primary">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-truck"></i> Delivery Status
+                        <span class="badge bg-light text-primary ms-2">{{ delivery.tracking_number }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Current Status</h6>
+                            <div class="mb-3">
+                                {% if delivery.status == 'pending' %}
+                                    <span class="badge bg-warning fs-6">
+                                        <i class="fas fa-clock"></i> Waiting for Assignment
+                                    </span>
+                                    <p class="text-muted mt-2">Your order is ready for delivery and will be assigned to a delivery person soon.</p>
+                                {% elif delivery.status == 'assigned' %}
+                                    <span class="badge bg-info fs-6">
+                                        <i class="fas fa-user-check"></i> Delivery Person Assigned
+                                    </span>
+                                    <p class="text-success mt-2">Great! A delivery person has been assigned to your order.</p>
+                                {% elif delivery.status == 'picked_up' %}
+                                    <span class="badge bg-primary fs-6">
+                                        <i class="fas fa-box"></i> Order Picked Up
+                                    </span>
+                                    <p class="text-primary mt-2">Your order has been picked up from the pharmacy.</p>
+                                {% elif delivery.status == 'in_transit' %}
+                                    <span class="badge bg-warning fs-6">
+                                        <i class="fas fa-shipping-fast"></i> On the Way
+                                    </span>
+                                    <p class="text-warning mt-2">Your delivery person is on the way to your location!</p>
+                                {% elif delivery.status == 'delivered' %}
+                                    <span class="badge bg-success fs-6">
+                                        <i class="fas fa-check-circle"></i> Delivered
+                                    </span>
+                                    <p class="text-success mt-2">Your order has been delivered successfully!</p>
+                                {% elif delivery.status == 'failed' %}
+                                    <span class="badge bg-danger fs-6">
+                                        <i class="fas fa-exclamation-triangle"></i> Delivery Failed
+                                    </span>
+                                    <p class="text-danger mt-2">There was an issue with the delivery. Please contact support.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {% if delivery.delivery_person %}
+                            <h6>Delivery Person</h6>
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-user-circle fa-2x text-primary me-2"></i>
+                                <div>
+                                    <strong>{{ delivery.delivery_person.user.get_full_name }}</strong><br>
+                                    <small class="text-muted">{{ delivery.delivery_person.phone }}</small><br>
+                                    <small class="text-muted">{{ delivery.delivery_person.get_vehicle_type_display }}</small>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if delivery.estimated_delivery_time %}
+                            <h6>Estimated Delivery</h6>
+                            <p class="text-muted">{{ delivery.estimated_delivery_time|date:"M d, Y H:i" }}</p>
+                            {% endif %}
+                            
+                            {% if delivery.delivery_fee %}
+                            <h6>Delivery Fee</h6>
+                            <p class="text-muted">{{ delivery.delivery_fee }} ETB</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Delivery Progress Timeline -->
+                    {% if delivery_tracking %}
+                    <div class="mt-4">
+                        <h6>Delivery Timeline</h6>
+                        <div class="timeline">
+                            {% for track in delivery_tracking %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-primary"></div>
+                                <div class="timeline-content">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>
+                                            {% if track.status == 'pending' %}
+                                                <i class="fas fa-clock text-warning"></i> Pending Assignment
+                                            {% elif track.status == 'assigned' %}
+                                                <i class="fas fa-user-check text-info"></i> Assigned to Delivery Person
+                                            {% elif track.status == 'picked_up' %}
+                                                <i class="fas fa-box text-primary"></i> Picked Up from Pharmacy
+                                            {% elif track.status == 'in_transit' %}
+                                                <i class="fas fa-shipping-fast text-warning"></i> On the Way
+                                            {% elif track.status == 'delivered' %}
+                                                <i class="fas fa-check-circle text-success"></i> Delivered
+                                            {% elif track.status == 'failed' %}
+                                                <i class="fas fa-exclamation-triangle text-danger"></i> Delivery Failed
+                                            {% endif %}
+                                        </strong>
+                                        <small class="text-muted">{{ track.timestamp|date:"M d, H:i" }}</small>
+                                    </div>
+                                    {% if track.notes %}
+                                    <p class="text-muted small mt-1">{{ track.notes }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Delivery Address -->
+                    <div class="mt-4">
+                        <h6>Delivery Address</h6>
+                        <p class="text-muted">{{ delivery.customer_address }}</p>
+                        <p class="text-muted">Contact: {{ delivery.customer_phone }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% elif order.status == 'completed' or order.status == 'paid' %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                <h6><i class="fas fa-info-circle"></i> Delivery Status</h6>
+                <p class="mb-0">Your order has been processed. Delivery assignment is pending.</p>
+            </div>
+        </div>
     </div>
     {% endif %}
 
