@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 import re
 from decimal import Decimal, InvalidOperation
-from .models import Prescription, Customer, Order, IncidentReport, SecurityAlert, AdminNotification
+from .models import Prescription, Customer, Order, IncidentReport, AdminNotification
 from pharmacy.models import Pharmacy
 
 class CustomerRegistrationForm(UserCreationForm):

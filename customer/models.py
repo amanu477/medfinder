@@ -1,17 +1,65 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-from pharmacy.models import Pharmacy
+from datetime import timedelta
 
 class Customer(models.Model):
-    """Model for storing customer information"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+    """Customer model for storing customer information"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    email = models.EmailField(max_length=100, unique=True)
+    email = models.EmailField()
     phone = models.CharField(max_length=20)
-    address = models.TextField(blank=True, null=True)
-    latitude = models.FloatField(null=True, blank=True)
-    longitude = models.FloatField(null=True, blank=True)
+    address = models.TextField()
+    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_verified = models.BooleanField(default=False)  # Email verification status
+
+    def __str__(self):
+        return f"{self.name} - {self.email}"
+
+class EmailVerification(models.Model):
+    """Model for storing email verification codes"""
+    email = models.EmailField()
+    verification_code = models.CharField(max_length=6)
+    user_type = models.CharField(max_length=20, choices=[
+        ('customer', 'Customer'),
+        ('pharmacy', 'Pharmacy')
+    ])
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Verification for {self.email} - {self.verification_code}"
+    
+    def is_expired(self):
+        """Check if verification code has expired (15 minutes)"""
+        return timezone.now() > self.created_at + timedelta(minutes=15)
+    
+    def is_valid(self):
+        """Check if verification code is valid"""
+        return not self.used and not self.is_expired()
+
+# Keep existing models
+class Prescription(models.Model):
+    """Model for storing prescription information"""
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
+    )
+    
+    customer_name = models.CharField(max_length=100)
+    customer_email = models.EmailField()
+    customer_phone = models.CharField(max_length=20)
+    prescription_image = models.ImageField(upload_to='prescriptions/')
+    pharmacy = models.ForeignKey('pharmacy.Pharmacy', on_delete=models.CASCADE, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -19,66 +67,23 @@ class Customer(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return self.name
-
-class Cart(models.Model):
-    """Model for storing customer shopping cart"""
-    customer = models.OneToOneField(Customer, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"Cart - {self.customer.name}"
-
-    def get_total_items(self):
-        """Get total number of items in the cart"""
-        return sum(item.quantity for item in self.cartitem_set.all())
-
-    def get_total_amount(self):
-        """Get total amount for all items in the cart"""
-        return sum(item.get_total_price() for item in self.cartitem_set.all())
-
-    def clear(self):
-        """Clear all items from the cart"""
-        self.cartitem_set.all().delete()
-
-class CartItem(models.Model):
-    """Model for storing individual items in a cart"""
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
-    medicine = models.ForeignKey('pharmacy.Medicine', on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField(default=1)
-    prescription_image = models.ImageField(upload_to='cart_prescriptions/', blank=True, null=True)
-    ocr_validation_data = models.JSONField(blank=True, null=True)
-    added_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ['cart', 'medicine']
-
-    def __str__(self):
-        return f"{self.medicine.name} x {self.quantity}"
-
-    def get_total_price(self):
-        """Get total price for this item"""
-        return self.quantity * self.medicine.price
+        return f"Prescription by {self.customer_name}"
 
 class Order(models.Model):
-    """Model for storing medicine orders"""
+    """Model for storing order information"""
     STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
         ('paid', 'Paid'),
         ('completed', 'Completed'),
-        ('ready_for_delivery', 'Ready for Delivery'),
-        ('out_for_delivery', 'Out for Delivery'),
-        ('on_the_way', 'On the Way'),
+        ('on_the_way', 'On The Way'),
         ('arrived', 'Arrived'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
     )
 
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE)
+    pharmacy = models.ForeignKey('pharmacy.Pharmacy', on_delete=models.CASCADE)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     notes = models.TextField(blank=True, null=True)
@@ -117,7 +122,6 @@ class OrderItem(models.Model):
         """Get total price for this item"""
         return self.quantity * self.price
 
-
 class Payment(models.Model):
     """Model for tracking payments (online and cash-on-delivery)"""
     STATUS_CHOICES = (
@@ -135,8 +139,8 @@ class Payment(models.Model):
     )
 
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='payment')
-    tx_ref = models.CharField(max_length=100, unique=True)  # Transaction reference
-    chapa_tx_ref = models.CharField(max_length=100, blank=True, null=True)  # Chapa's transaction reference
+    tx_ref = models.CharField(max_length=100, unique=True)
+    chapa_tx_ref = models.CharField(max_length=100, blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='ETB')
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, default='online')
@@ -153,7 +157,7 @@ class Payment(models.Model):
     checkout_url = models.URLField(blank=True, null=True)
     
     # Cash on delivery fields
-    qr_code_data = models.TextField(blank=True, null=True)  # QR code data for cash payment
+    qr_code_data = models.TextField(blank=True, null=True)
     cash_received_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='cash_payments_received')
     cash_received_at = models.DateTimeField(blank=True, null=True)
     cash_confirmation_notes = models.TextField(blank=True, null=True)
@@ -173,353 +177,156 @@ class Payment(models.Model):
         """Generate QR code data for cash payment"""
         import json
         qr_data = {
-            'payment_id': self.tx_ref,
             'order_id': self.order.id,
             'amount': str(self.amount),
             'currency': self.currency,
+            'payment_type': self.payment_type,
             'customer_name': f"{self.customer_first_name} {self.customer_last_name}",
             'customer_phone': self.customer_phone,
-            'pharmacy': self.order.pharmacy.name,
-            'created_at': self.created_at.isoformat(),
+            'pharmacy_name': self.order.pharmacy.name,
+            'tx_ref': self.tx_ref,
+            'delivery_tracking': True
         }
+        
         self.qr_code_data = json.dumps(qr_data)
         self.save()
         return qr_data
-    
-    def confirm_cash_payment(self, delivery_person):
-        """Confirm cash payment received by delivery person"""
-        if self.payment_type == 'cash_on_delivery':
-            self.status = 'cash_paid'
-            self.cash_received_by = delivery_person
-            self.cash_received_at = timezone.now()
-            self.paid_at = timezone.now()
-            self.save()
-            
-            # Update order status
-            self.order.status = 'paid'
-            self.order.save()
-            
-            return True
-        return False
-    
-    def is_cash_payment(self):
-        """Check if this is a cash on delivery payment"""
-        return self.payment_type == 'cash_on_delivery'
-    
-    def needs_cash_confirmation(self):
-        """Check if cash payment needs confirmation"""
-        return self.payment_type == 'cash_on_delivery' and self.status == 'cash_pending'
 
-class Prescription(models.Model):
-    """Model for storing prescription information"""
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('completed', 'Completed'),
-    )
+class Cart(models.Model):
+    """Shopping cart model"""
+    customer = models.OneToOneField(Customer, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, null=True, blank=True)
-    customer_name = models.CharField(max_length=100)
-    customer_email = models.EmailField(max_length=100)
-    customer_phone = models.CharField(max_length=20)
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, null=True, blank=True)
-    prescription_image = models.ImageField(upload_to='prescriptions/')
+    def __str__(self):
+        return f"Cart for {self.customer.name}"
+
+    def get_total_items(self):
+        """Get total number of items in cart"""
+        return sum(item.quantity for item in self.cartitem_set.all())
+
+    def get_total_amount(self):
+        """Get total amount of all items in cart"""
+        return sum(item.get_total_price() for item in self.cartitem_set.all())
+
+    def clear(self):
+        """Clear all items from cart"""
+        self.cartitem_set.all().delete()
+
+class CartItem(models.Model):
+    """Individual item in shopping cart"""
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    medicine = models.ForeignKey('pharmacy.Medicine', on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    prescription_image = models.ImageField(upload_to='cart_prescriptions/', blank=True, null=True)
+    validation_data = models.JSONField(blank=True, null=True)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['cart', 'medicine']
+
+    def __str__(self):
+        return f"{self.medicine.name} x {self.quantity}"
+
+    def get_total_price(self):
+        """Get total price for this cart item"""
+        return self.quantity * self.medicine.price
+
+class Receipt(models.Model):
+    """Model for storing receipt information"""
+    receipt_number = models.CharField(max_length=20, unique=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    pharmacy = models.ForeignKey('pharmacy.Pharmacy', on_delete=models.CASCADE)
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, null=True, blank=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    generated_at = models.DateTimeField(auto_now_add=True)
+    is_printed = models.BooleanField(default=False)
+    print_count = models.IntegerField(default=0)
+    last_viewed_by_customer = models.DateTimeField(null=True, blank=True)
+    last_viewed_by_pharmacy = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ['-generated_at']
 
     def __str__(self):
-        return f"Prescription #{self.id} - {self.customer_name}"
+        return f"Receipt {self.receipt_number}"
 
-class VerificationRequest(models.Model):
-    """Model for tracking verification requests sent to MoH"""
-    STATUS_CHOICES = (
-        ('pending', 'Pending MoH Response'),
-        ('approved', 'MoH Confirmed'),
-        ('rejected', 'MoH Denied'),
-        ('manual_review', 'Requires Manual Review'),
-    )
-    
-    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, related_name='customer_verification_requests')
-    requested_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='customer_verification_requests')
-    license_number = models.CharField(max_length=50)
-    pharmacy_name = models.CharField(max_length=200)
-    owner_name = models.CharField(max_length=100, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    moh_response = models.JSONField(blank=True, null=True)
-    moh_notes = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-    
-    def __str__(self):
-        return f"Verification Request: {self.pharmacy_name} ({self.license_number})"
+    def mark_viewed_by_customer(self):
+        """Mark receipt as viewed by customer"""
+        self.last_viewed_by_customer = timezone.now()
+        self.save()
 
+    def mark_viewed_by_pharmacy(self):
+        """Mark receipt as viewed by pharmacy"""
+        self.last_viewed_by_pharmacy = timezone.now()
+        self.save()
+
+    def mark_printed(self):
+        """Mark receipt as printed"""
+        self.is_printed = True
+        self.print_count += 1
+        self.save()
 
 class IncidentReport(models.Model):
-    """Model for tracking system incidents and issues"""
-    SEVERITY_CHOICES = [
+    """Model for storing incident reports"""
+    SEVERITY_CHOICES = (
         ('low', 'Low'),
         ('medium', 'Medium'),
         ('high', 'High'),
         ('critical', 'Critical'),
-    ]
+    )
     
-    CATEGORY_CHOICES = [
-        ('technical', 'Technical Issue'),
-        ('security', 'Security Concern'),
-        ('data', 'Data Integrity'),
-        ('performance', 'Performance Issue'),
-        ('user_report', 'User Report'),
-        ('pharmacy_report', 'Pharmacy Report'),
-        ('verification', 'Verification Issue'),
-        ('moh_sync', 'MoH Synchronization'),
-        ('other', 'Other'),
-    ]
-    
-    STATUS_CHOICES = [
+    STATUS_CHOICES = (
         ('open', 'Open'),
-        ('investigating', 'Under Investigation'),
+        ('investigating', 'Investigating'),
         ('resolved', 'Resolved'),
         ('closed', 'Closed'),
-        ('escalated', 'Escalated'),
-    ]
+    )
     
-    # Basic Information
     title = models.CharField(max_length=200)
     description = models.TextField()
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
-    severity = models.CharField(max_length=10, choices=SEVERITY_CHOICES)
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='open')
-    
-    # Reporter Information
-    reported_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    reporter_email = models.EmailField(blank=True, null=True)
-    reporter_phone = models.CharField(max_length=20, blank=True, null=True)
-    
-    # Related Objects
-    related_pharmacy = models.ForeignKey(Pharmacy, on_delete=models.SET_NULL, null=True, blank=True)
-    related_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='related_incidents')
-    
-    # Technical Details
-    error_message = models.TextField(blank=True, null=True)
-    stack_trace = models.TextField(blank=True, null=True)
-    user_agent = models.CharField(max_length=500, blank=True, null=True)
-    ip_address = models.GenericIPAddressField(blank=True, null=True)
-    url_path = models.CharField(max_length=500, blank=True, null=True)
-    
-    # Resolution
-    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_incidents')
-    resolution_notes = models.TextField(blank=True, null=True)
-    resolution_date = models.DateTimeField(blank=True, null=True)
-    
-    # File Attachments
-    screenshot = models.ImageField(upload_to='incident_reports/screenshots/', blank=True, null=True)
-    log_file = models.FileField(upload_to='incident_reports/logs/', blank=True, null=True)
-    additional_file = models.FileField(upload_to='incident_reports/files/', blank=True, null=True)
-    
-    # Timestamps
+    severity = models.CharField(max_length=20, choices=SEVERITY_CHOICES, default='medium')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='open')
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True)
+    order = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, blank=True)
+    pharmacy = models.ForeignKey('pharmacy.Pharmacy', on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+
     class Meta:
         ordering = ['-created_at']
-    
+
     def __str__(self):
-        return f"#{self.id} - {self.title} ({self.get_severity_display()})"
-
-
-class SecurityAlert(models.Model):
-    """Model for tracking security-related alerts and threats"""
-    ALERT_TYPE_CHOICES = [
-        ('login_attempt', 'Failed Login Attempts'),
-        ('data_breach', 'Potential Data Breach'),
-        ('unauthorized_access', 'Unauthorized Access'),
-        ('suspicious_activity', 'Suspicious Activity'),
-        ('malware', 'Malware Detection'),
-        ('ddos', 'DDoS Attack'),
-        ('injection', 'SQL/Code Injection Attempt'),
-        ('xss', 'Cross-Site Scripting'),
-        ('csrf', 'CSRF Attack'),
-        ('file_upload', 'Malicious File Upload'),
-        ('other', 'Other Security Concern'),
-    ]
-    
-    RISK_LEVEL_CHOICES = [
-        ('low', 'Low Risk'),
-        ('medium', 'Medium Risk'),
-        ('high', 'High Risk'),
-        ('critical', 'Critical Risk'),
-    ]
-    
-    # Alert Details
-    alert_type = models.CharField(max_length=20, choices=ALERT_TYPE_CHOICES)
-    risk_level = models.CharField(max_length=10, choices=RISK_LEVEL_CHOICES)
-    description = models.TextField()
-    
-    # Source Information
-    source_ip = models.GenericIPAddressField(blank=True, null=True)
-    user_agent = models.CharField(max_length=500, blank=True, null=True)
-    target_url = models.CharField(max_length=500, blank=True, null=True)
-    target_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    
-    # Detection Details
-    detection_method = models.CharField(max_length=100, blank=True, null=True)
-    detection_rules = models.TextField(blank=True, null=True)
-    raw_data = models.JSONField(blank=True, null=True)
-    
-    # Response
-    is_blocked = models.BooleanField(default=False)
-    response_action = models.CharField(max_length=200, blank=True, null=True)
-    investigated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='investigated_alerts')
-    
-    # Timestamps
-    detected_at = models.DateTimeField(auto_now_add=True)
-    investigated_at = models.DateTimeField(blank=True, null=True)
-    
-    class Meta:
-        ordering = ['-detected_at']
-    
-    def __str__(self):
-        return f"Security Alert #{self.id} - {self.get_alert_type_display()} ({self.get_risk_level_display()})"
-
+        return f"Incident: {self.title}"
 
 class AdminNotification(models.Model):
-    """Model for admin notifications and alerts"""
-    NOTIFICATION_TYPE_CHOICES = [
-        ('incident', 'New Incident Report'),
-        ('security', 'Security Alert'),
-        ('system', 'System Issue'),
-        ('pharmacy', 'Pharmacy Registration'),
-        ('verification', 'Verification Request'),
-        ('maintenance', 'Maintenance Required'),
-        ('update', 'System Update'),
-        ('backup', 'Backup Status'),
-    ]
+    """Model for storing admin notifications"""
+    NOTIFICATION_TYPES = (
+        ('pharmacy_registration', 'Pharmacy Registration'),
+        ('incident_report', 'Incident Report'),
+        ('payment_issue', 'Payment Issue'),
+        ('system_alert', 'System Alert'),
+    )
     
-    PRIORITY_CHOICES = [
-        ('low', 'Low'),
-        ('normal', 'Normal'),
-        ('high', 'High'),
-        ('urgent', 'Urgent'),
-    ]
-    
-    notification_type = models.CharField(max_length=15, choices=NOTIFICATION_TYPE_CHOICES)
-    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='normal')
     title = models.CharField(max_length=200)
     message = models.TextField()
-    
-    # Recipients
-    recipient = models.ForeignKey(User, on_delete=models.CASCADE)
+    notification_type = models.CharField(max_length=50, choices=NOTIFICATION_TYPES)
     is_read = models.BooleanField(default=False)
-    read_at = models.DateTimeField(blank=True, null=True)
-    
-    # Related Objects
-    related_incident = models.ForeignKey(IncidentReport, on_delete=models.CASCADE, blank=True, null=True)
-    related_security_alert = models.ForeignKey(SecurityAlert, on_delete=models.CASCADE, blank=True, null=True)
-    
-    # Action URL
-    action_url = models.CharField(max_length=500, blank=True, null=True)
-    
-    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         ordering = ['-created_at']
     
     def __str__(self):
-        return f"Notification for {self.recipient.username}: {self.title}"
-
-
-class Receipt(models.Model):
-    """Model for storing payment receipts"""
+        return f"{self.title} - {self.notification_type}"
     
-    # Core receipt information
-    receipt_number = models.CharField(max_length=20, unique=True)
-    payment = models.OneToOneField(Payment, on_delete=models.CASCADE, related_name='receipt')
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='receipts')
-    
-    # Customer and pharmacy information
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='receipts')
-    pharmacy = models.ForeignKey('pharmacy.Pharmacy', on_delete=models.CASCADE, related_name='receipts')
-    
-    # Receipt content (stored as JSON for flexibility)
-    receipt_data = models.JSONField(help_text="Complete receipt data including all items and totals")
-    
-    # Receipt metadata
-    generated_at = models.DateTimeField(auto_now_add=True)
-    is_printed = models.BooleanField(default=False)
-    print_count = models.PositiveIntegerField(default=0)
-    last_viewed_by_customer = models.DateTimeField(blank=True, null=True)
-    last_viewed_by_pharmacy = models.DateTimeField(blank=True, null=True)
-    
-    class Meta:
-        ordering = ['-generated_at']
-        indexes = [
-            models.Index(fields=['customer', '-generated_at']),
-            models.Index(fields=['pharmacy', '-generated_at']),
-            models.Index(fields=['receipt_number']),
-        ]
-    
-    def __str__(self):
-        return f"Receipt #{self.receipt_number} - Order #{self.order.id}"
-    
-    def generate_receipt_number(self):
-        """Generate unique receipt number"""
-        import uuid
-        from datetime import datetime
-        timestamp = datetime.now().strftime('%Y%m%d')
-        unique_id = str(uuid.uuid4())[:8].upper()
-        return f"RCP-{timestamp}-{unique_id}"
-    
-    def save(self, *args, **kwargs):
-        if not self.receipt_number:
-            self.receipt_number = self.generate_receipt_number()
-        super().save(*args, **kwargs)
-    
-    def mark_viewed_by_customer(self):
-        """Mark receipt as viewed by customer"""
-        from django.utils import timezone
-        self.last_viewed_by_customer = timezone.now()
-        self.save(update_fields=['last_viewed_by_customer'])
-    
-    def mark_viewed_by_pharmacy(self):
-        """Mark receipt as viewed by pharmacy"""
-        from django.utils import timezone
-        self.last_viewed_by_pharmacy = timezone.now()
-        self.save(update_fields=['last_viewed_by_pharmacy'])
-    
-    def increment_print_count(self):
-        """Increment print count"""
-        self.print_count += 1
-        self.is_printed = True
-        self.save(update_fields=['print_count', 'is_printed'])
-    
-    def get_receipt_data(self):
-        """Get formatted receipt data"""
-        return {
-            'receipt_number': self.receipt_number,
-            'order_id': self.order.id,
-            'customer_name': self.customer.name,
-            'customer_email': self.customer.email,
-            'pharmacy_name': self.pharmacy.name,
-            'pharmacy_address': self.pharmacy.address,
-            'payment_data': {
-                'tx_ref': self.payment.tx_ref,
-                'amount': str(self.payment.amount),
-                'currency': self.payment.currency,
-                'status': self.payment.get_status_display(),
-                'paid_at': self.payment.paid_at.isoformat() if self.payment.paid_at else None,
-                'chapa_tx_ref': self.payment.chapa_tx_ref,
-            },
-            'order_data': self.receipt_data,
-            'generated_at': self.generated_at.isoformat(),
-            'print_count': self.print_count,
-        }
+    def mark_as_read(self):
+        """Mark notification as read"""
+        self.is_read = True
+        self.read_at = timezone.now()
+        self.save()

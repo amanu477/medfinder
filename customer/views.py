@@ -10,11 +10,11 @@ from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
-from .models import Customer, Prescription, Order, OrderItem, Cart, CartItem, IncidentReport, AdminNotification, Payment
+from .models import Customer, Prescription, Order, OrderItem, Cart, CartItem, IncidentReport, AdminNotification, Payment, EmailVerification
 from .chapa_service import ChapaService
 from .ocr_service import PrescriptionOCRService
 from .qr_utils import generate_qr_code_image, generate_payment_qr_data
-from .email_service import email_service
+from .email_service import email_verification_service
 from pharmacy.models import Pharmacy, Medicine
 from moh.models import MoHOfficer
 from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm, QuickIncidentForm
@@ -156,12 +156,7 @@ def upload_prescription(request):
             prescription.status = 'pending'
             prescription.save()
             
-            # Send prescription upload confirmation email
-            email_service.send_prescription_upload_confirmation(prescription)
-            
-            # If prescription is sent to a pharmacy, notify the pharmacy
-            if prescription.pharmacy:
-                email_service.send_prescription_to_pharmacy_notification(prescription, prescription.pharmacy)
+            # Prescription uploaded successfully - no email notifications needed
             
             # Set session variable to show success message
             request.session['prescription_uploaded'] = True
@@ -288,12 +283,27 @@ def customer_register(request):
                         address=form.cleaned_data['address']
                     )
                     
-                    # Send welcome email
-                    email_service.send_customer_registration_welcome(user)
+                    # Generate and send verification code
+                    verification_code = email_verification_service.generate_verification_code()
                     
-                    login(request, user)
-                    messages.success(request, f'Welcome to Ethiopian Pharmacy Platform, {customer.name}!')
-                    return redirect('customer_dashboard')
+                    # Save verification code to database
+                    EmailVerification.objects.create(
+                        email=user.email,
+                        verification_code=verification_code,
+                        user_type='customer'
+                    )
+                    
+                    # Send verification email
+                    email_sent = email_verification_service.send_verification_email(
+                        user.email, verification_code, 'customer'
+                    )
+                    
+                    if email_sent:
+                        messages.success(request, f'Registration successful! Please check your email for a verification code.')
+                        return redirect('email_verification', email=user.email)
+                    else:
+                        messages.error(request, 'Registration successful but email could not be sent. Please contact support.')
+                        return redirect('customer_register')
             except Exception as e:
                 messages.error(request, f'Registration failed: {str(e)}')
     else:
@@ -433,9 +443,7 @@ def place_order(request, medicine_id):
                 prescription_image=prescription_image
             )
             
-            # Send email notifications
-            email_service.send_order_confirmation(order)
-            email_service.send_order_to_pharmacy_notification(order)
+            # Order created successfully - no email notifications needed
             
             # Create order item
             OrderItem.objects.create(
@@ -1096,9 +1104,7 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
                 notes=f'OCR Validation - Confidence: {ocr_result.get("confidence", 0):.1f}%'
             )
             
-            # Send email notifications
-            email_service.send_order_confirmation(order)
-            email_service.send_order_to_pharmacy_notification(order)
+            # Order created successfully - no email notifications needed
             
             # Create order item
             OrderItem.objects.create(
@@ -1441,9 +1447,7 @@ def checkout_cart(request):
                 
                 created_orders.append(order)
                 
-                # Send email notifications
-                email_service.send_order_confirmation(order)
-                email_service.send_order_to_pharmacy_notification(order)
+                # Order created successfully - no email notifications needed
             
             # Clear cart after successful order creation
             cart.clear()
