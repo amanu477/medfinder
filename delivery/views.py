@@ -297,6 +297,18 @@ def update_delivery_status(request, delivery_id):
                         notification_type='status_update'
                     )
                 
+                # Sync customer order status with delivery status
+                order = delivery.order
+                if delivery.status == 'in_transit':
+                    order.status = 'on_the_way'
+                    order.save()
+                elif delivery.status == 'arrived':
+                    order.status = 'arrived'
+                    order.save()
+                elif delivery.status == 'delivered':
+                    order.status = 'delivered'
+                    order.save()
+                
                 delivery.save()
                 
                 # Create notification for customer

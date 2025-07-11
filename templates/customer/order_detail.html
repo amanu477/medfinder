@@ -378,6 +378,9 @@
                                 {% endif %}
                             {% elif order.status == 'paid' %}bg-info
                             {% elif order.status == 'completed' %}bg-primary
+                            {% elif order.status == 'on_the_way' %}bg-warning
+                            {% elif order.status == 'arrived' %}bg-success
+                            {% elif order.status == 'delivered' %}bg-success
                             {% elif order.status == 'rejected' %}bg-danger
                             {% elif order.status == 'cancelled' %}bg-secondary
                             {% endif %}" style="font-size: 1rem; padding: 0.5rem 1rem;">
@@ -413,9 +416,30 @@
                         </div>
                         {% endif %}
 
-                        {% if order.status == 'completed' %}
+                        {% if order.status == 'completed' or order.status == 'on_the_way' or order.status == 'arrived' or order.status == 'delivered' %}
                         <div class="timeline-item active">
                             <strong>Order Completed</strong><br>
+                            <small>{{ order.updated_at|date:"M d, Y g:i A" }}</small>
+                        </div>
+                        {% endif %}
+
+                        {% if order.status == 'on_the_way' or order.status == 'arrived' or order.status == 'delivered' %}
+                        <div class="timeline-item active">
+                            <strong>On the Way</strong><br>
+                            <small>{{ order.updated_at|date:"M d, Y g:i A" }}</small>
+                        </div>
+                        {% endif %}
+
+                        {% if order.status == 'arrived' or order.status == 'delivered' %}
+                        <div class="timeline-item active">
+                            <strong>Arrived</strong><br>
+                            <small>{{ order.updated_at|date:"M d, Y g:i A" }}</small>
+                        </div>
+                        {% endif %}
+
+                        {% if order.status == 'delivered' %}
+                        <div class="timeline-item active">
+                            <strong>Delivered</strong><br>
                             <small>{{ order.updated_at|date:"M d, Y g:i A" }}</small>
                         </div>
                         {% endif %}

@@ -86,6 +86,15 @@ Preferred communication style: Simple, everyday language.
 - **JavaScript Fix**: Added proper QR code generation script with DOM ready event handling and error checking
 - **Test Credentials**: Test customer login available - Username: testcustomer, Password: testpass123
 
+### Delivery-Customer Status Synchronization (July 11, 2025)
+- **Completed**: Implemented automatic order status updates when delivery personnel update delivery status
+- **Status Mapping**: Delivery "in_transit" → Order "on_the_way", Delivery "arrived" → Order "arrived", Delivery "delivered" → Order "delivered"
+- **Model Updates**: Added new order status choices: "on_the_way", "arrived", "delivered"
+- **Database Migration**: Applied migration to support new order status values
+- **Template Updates**: Enhanced customer order detail page to display new status badges and timeline items
+- **Workflow Integration**: Status changes automatically propagate from delivery system to customer order view
+- **Real-time Updates**: Customers now see live status updates that match delivery personnel actions
+
 ## System Architecture
 
 ### Multi-User Architecture

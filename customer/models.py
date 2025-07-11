@@ -71,6 +71,8 @@ class Order(models.Model):
         ('completed', 'Completed'),
         ('ready_for_delivery', 'Ready for Delivery'),
         ('out_for_delivery', 'Out for Delivery'),
+        ('on_the_way', 'On the Way'),
+        ('arrived', 'Arrived'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
     )
