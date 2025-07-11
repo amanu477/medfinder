@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+import re
+from decimal import Decimal, InvalidOperation
 from .models import Prescription, Customer, Order, IncidentReport, SecurityAlert, AdminNotification
 from pharmacy.models import Pharmacy
 
@@ -69,36 +71,76 @@ class CustomerRegistrationForm(UserCreationForm):
         """Validate first name"""
         first_name = self.cleaned_data.get('first_name')
         if first_name:
-            import re
-            if not re.match(r'^[a-zA-Z\s]{2,30}$', first_name.strip()):
-                raise forms.ValidationError("First name must be 2-30 characters, letters and spaces only.")
-        return first_name.strip() if first_name else first_name
+            first_name = first_name.strip()
+            
+            # Length validation
+            if len(first_name) < 2:
+                raise forms.ValidationError("First name must be at least 2 characters long.")
+            if len(first_name) > 30:
+                raise forms.ValidationError("First name cannot exceed 30 characters.")
+            
+            # Character validation: allow letters, spaces, dots, hyphens, apostrophes
+            if not re.match(r'^[a-zA-Z\s\.\-\']+$', first_name):
+                raise forms.ValidationError(
+                    "First name can only contain letters, spaces, dots (.), hyphens (-), and apostrophes (')."
+                )
+        return first_name
 
     def clean_last_name(self):
         """Validate last name"""
         last_name = self.cleaned_data.get('last_name')
         if last_name:
-            import re
-            if not re.match(r'^[a-zA-Z\s]{2,30}$', last_name.strip()):
-                raise forms.ValidationError("Last name must be 2-30 characters, letters and spaces only.")
-        return last_name.strip() if last_name else last_name
+            last_name = last_name.strip()
+            
+            # Length validation
+            if len(last_name) < 2:
+                raise forms.ValidationError("Last name must be at least 2 characters long.")
+            if len(last_name) > 30:
+                raise forms.ValidationError("Last name cannot exceed 30 characters.")
+            
+            # Character validation: allow letters, spaces, dots, hyphens, apostrophes
+            if not re.match(r'^[a-zA-Z\s\.\-\']+$', last_name):
+                raise forms.ValidationError(
+                    "Last name can only contain letters, spaces, dots (.), hyphens (-), and apostrophes (')."
+                )
+        return last_name
 
     def clean_phone(self):
         """Validate phone number"""
         phone = self.cleaned_data.get('phone')
         if phone:
-            import re
+            # Remove spaces, dashes, parentheses
             cleaned_phone = re.sub(r'[\s\-\(\)]', '', phone)
-            if not re.match(r'^[+]?[\d]{10,15}$', cleaned_phone):
-                raise forms.ValidationError("Please enter a valid phone number (10-15 digits).")
+            
+            # Add + if not present
+            if not cleaned_phone.startswith('+'):
+                cleaned_phone = '+' + cleaned_phone
+            
+            # Ethiopian phone number validation
+            if not re.match(r'^\+251[79]\d{8}$', cleaned_phone):
+                raise forms.ValidationError(
+                    "Phone number must be valid Ethiopian format: +251XXXXXXXXX (e.g., +251911123456)"
+                )
         return phone
 
     def clean_address(self):
         """Validate address"""
         address = self.cleaned_data.get('address')
-        if address and len(address.strip()) < 10:
-            raise forms.ValidationError("Please provide a detailed address (at least 10 characters).")
-        return address.strip() if address else address
+        if address:
+            address = address.strip()
+            
+            # Length validation
+            if len(address) < 10:
+                raise forms.ValidationError("Please provide a detailed address (at least 10 characters).")
+            if len(address) > 500:
+                raise forms.ValidationError("Address cannot exceed 500 characters.")
+            
+            # Character validation: allow letters, numbers, spaces, common punctuation
+            if not re.match(r'^[a-zA-Z0-9\s\.\,\-\'\/\#]+$', address):
+                raise forms.ValidationError(
+                    "Address can only contain letters, numbers, spaces, and common punctuation (. , - ' / #)."
+                )
+        return address
 
     def clean_password1(self):
         """Validate password strength"""
@@ -126,10 +168,66 @@ class CustomerProfileForm(forms.ModelForm):
         model = Customer
         fields = ['name', 'phone', 'address']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'phone': forms.TextInput(attrs={'class': 'form-control'}),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Full name'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+251911123456'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Complete address'}),
         }
+    
+    def clean_name(self):
+        """Validate customer name"""
+        name = self.cleaned_data.get('name')
+        if name:
+            name = name.strip()
+            
+            # Length validation
+            if len(name) < 2:
+                raise forms.ValidationError("Name must be at least 2 characters long.")
+            if len(name) > 100:
+                raise forms.ValidationError("Name cannot exceed 100 characters.")
+            
+            # Character validation: allow letters, spaces, dots, hyphens, apostrophes
+            if not re.match(r'^[a-zA-Z\s\.\-\']+$', name):
+                raise forms.ValidationError(
+                    "Name can only contain letters, spaces, dots (.), hyphens (-), and apostrophes (')."
+                )
+        return name
+    
+    def clean_phone(self):
+        """Validate phone number"""
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            # Remove spaces, dashes, parentheses
+            cleaned_phone = re.sub(r'[\s\-\(\)]', '', phone)
+            
+            # Add + if not present
+            if not cleaned_phone.startswith('+'):
+                cleaned_phone = '+' + cleaned_phone
+            
+            # Ethiopian phone number validation
+            if not re.match(r'^\+251[79]\d{8}$', cleaned_phone):
+                raise forms.ValidationError(
+                    "Phone number must be valid Ethiopian format: +251XXXXXXXXX (e.g., +251911123456)"
+                )
+        return phone
+    
+    def clean_address(self):
+        """Validate address"""
+        address = self.cleaned_data.get('address')
+        if address:
+            address = address.strip()
+            
+            # Length validation
+            if len(address) < 10:
+                raise forms.ValidationError("Please provide a detailed address (at least 10 characters).")
+            if len(address) > 500:
+                raise forms.ValidationError("Address cannot exceed 500 characters.")
+            
+            # Character validation: allow letters, numbers, spaces, common punctuation
+            if not re.match(r'^[a-zA-Z0-9\s\.\,\-\'\/\#]+$', address):
+                raise forms.ValidationError(
+                    "Address can only contain letters, numbers, spaces, and common punctuation (. , - ' / #)."
+                )
+        return address
 
 
 class OrderForm(forms.ModelForm):
@@ -150,6 +248,37 @@ class OrderForm(forms.ModelForm):
         widgets = {
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Additional notes for your order (optional)'}),
         }
+    
+    def clean_notes(self):
+        """Validate order notes"""
+        notes = self.cleaned_data.get('notes')
+        if notes:
+            notes = notes.strip()
+            
+            # Length validation
+            if len(notes) > 1000:
+                raise forms.ValidationError("Notes cannot exceed 1000 characters.")
+            
+            # Character validation: allow letters, numbers, spaces, common punctuation
+            if not re.match(r'^[a-zA-Z0-9\s\.\,\-\'\!\?\(\)\/\#]+$', notes):
+                raise forms.ValidationError(
+                    "Notes can only contain letters, numbers, spaces, and common punctuation."
+                )
+        return notes
+    
+    def clean_prescription_image(self):
+        """Validate prescription image"""
+        image = self.cleaned_data.get('prescription_image')
+        if image:
+            # File size validation (5MB limit)
+            if image.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Prescription image file size cannot exceed 5MB.")
+            
+            # File type validation
+            valid_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+            if not any(image.name.lower().endswith(ext) for ext in valid_extensions):
+                raise forms.ValidationError("Prescription image must be in JPG, JPEG, PNG, GIF, or WebP format.")
+        return image
     
     def clean_prescription_image(self):
         """Validate prescription image"""

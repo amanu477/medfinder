@@ -696,10 +696,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // Phone validation
         else if (fieldName === 'phone' && value) {
-            const phoneRegex = /^[+]?[\d\s\-\(\)]{10,15}$/;
-            if (!phoneRegex.test(value)) {
+            const cleanedPhone = value.replace(/[\s\-\(\)]/g, '');
+            const phoneWithCountryCode = cleanedPhone.startsWith('+') ? cleanedPhone : '+' + cleanedPhone;
+            
+            if (!/^\+251[79]\d{8}$/.test(phoneWithCountryCode)) {
                 isValid = false;
-                errorMessage = 'Please enter a valid phone number (10-15 digits)';
+                errorMessage = 'Phone number must be valid Ethiopian format: +251XXXXXXXXX (e.g., +251911123456)';
             }
         }
         // License number validation
@@ -751,14 +753,25 @@ document.addEventListener('DOMContentLoaded', function() {
             if (value.length < 10) {
                 isValid = false;
                 errorMessage = 'Please provide a detailed address (at least 10 characters)';
+            } else if (value.length > 500) {
+                isValid = false;
+                errorMessage = 'Address cannot exceed 500 characters';
+            } else if (!/^[a-zA-Z0-9\s\.\,\-\'\/\#]+$/.test(value)) {
+                isValid = false;
+                errorMessage = 'Address can only contain letters, numbers, spaces, and common punctuation (. , - \' / #)';
             }
         }
         // Name validation
         else if ((fieldName === 'name' || fieldName === 'first_name' || fieldName === 'last_name') && value) {
-            const nameRegex = /^[a-zA-Z\s]{2,50}$/;
-            if (!nameRegex.test(value)) {
+            if (value.length < 2) {
                 isValid = false;
-                errorMessage = 'Name must be 2-50 characters, letters and spaces only';
+                errorMessage = 'Name must be at least 2 characters long';
+            } else if (value.length > 100) {
+                isValid = false;
+                errorMessage = 'Name cannot exceed 100 characters';
+            } else if (!/^[a-zA-Z\s\.\-\'&]+$/.test(value)) {
+                isValid = false;
+                errorMessage = 'Name can only contain letters, spaces, dots (.), hyphens (-), apostrophes (\'), and ampersand (&)';
             }
         }
 

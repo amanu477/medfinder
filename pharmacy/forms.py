@@ -3,6 +3,8 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from datetime import time
+import re
+from decimal import Decimal, InvalidOperation
 from .models import Pharmacy, Medicine, MoHPharmacyRecord
 from .license_validation import LicenseValidationService
 
@@ -87,11 +89,18 @@ class PharmacyRegistrationForm(forms.ModelForm):
         """Validate phone number"""
         phone = self.cleaned_data.get('phone')
         if phone:
-            import re
             # Remove spaces, dashes, parentheses
             cleaned_phone = re.sub(r'[\s\-\(\)]', '', phone)
-            if not re.match(r'^[+]?[\d]{10,15}$', cleaned_phone):
-                raise forms.ValidationError("Please enter a valid phone number (10-15 digits).")
+            
+            # Add + if not present
+            if not cleaned_phone.startswith('+'):
+                cleaned_phone = '+' + cleaned_phone
+            
+            # Ethiopian phone number validation
+            if not re.match(r'^\+251[79]\d{8}$', cleaned_phone):
+                raise forms.ValidationError(
+                    "Phone number must be valid Ethiopian format: +251XXXXXXXXX (e.g., +251911123456)"
+                )
         return phone
 
     def clean_license_number(self):
@@ -122,21 +131,44 @@ class PharmacyRegistrationForm(forms.ModelForm):
         """Validate pharmacy name"""
         name = self.cleaned_data.get('name')
         if name:
-            if len(name.strip()) < 3:
+            name = name.strip()
+            
+            # Length validation
+            if len(name) < 3:
                 raise forms.ValidationError("Pharmacy name must be at least 3 characters long.")
+            if len(name) > 100:
+                raise forms.ValidationError("Pharmacy name cannot exceed 100 characters.")
+            
+            # Character validation: allow letters, numbers, spaces, dots, hyphens, apostrophes
+            if not re.match(r'^[a-zA-Z0-9\s\.\-\'&]+$', name):
+                raise forms.ValidationError(
+                    "Pharmacy name can only contain letters, numbers, spaces, dots (.), hyphens (-), apostrophes ('), and ampersand (&)."
+                )
             
             # Check if name already exists
             from .models import Pharmacy
-            if Pharmacy.objects.filter(name__iexact=name.strip()).exists():
+            if Pharmacy.objects.filter(name__iexact=name).exists():
                 raise forms.ValidationError("A pharmacy with this name already exists.")
-        return name.strip()
+        return name
 
     def clean_address(self):
         """Validate address"""
         address = self.cleaned_data.get('address')
-        if address and len(address.strip()) < 10:
-            raise forms.ValidationError("Please provide a detailed address (at least 10 characters).")
-        return address.strip() if address else address
+        if address:
+            address = address.strip()
+            
+            # Length validation
+            if len(address) < 10:
+                raise forms.ValidationError("Please provide a detailed address (at least 10 characters).")
+            if len(address) > 500:
+                raise forms.ValidationError("Address cannot exceed 500 characters.")
+            
+            # Character validation: allow letters, numbers, spaces, common punctuation
+            if not re.match(r'^[a-zA-Z0-9\s\.\,\-\'\/\#]+$', address):
+                raise forms.ValidationError(
+                    "Address can only contain letters, numbers, spaces, and common punctuation (. , - ' / #)."
+                )
+        return address
 
     def clean(self):
         """Cross-field validation"""
@@ -276,15 +308,121 @@ class MedicineForm(forms.ModelForm):
         model = Medicine
         fields = ['name', 'description', 'price', 'stock_quantity', 'medicine_image', 'expiry_date', 'is_available', 'prescription_required']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'stock_quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
-            'medicine_image': forms.FileInput(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Paracetamol 500mg'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Brief description of the medicine'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01', 'placeholder': '0.00'}),
+            'stock_quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'placeholder': '0'}),
+            'medicine_image': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
             'expiry_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'is_available': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'prescription_required': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+    
+    def clean_name(self):
+        """Validate medicine name"""
+        name = self.cleaned_data.get('name')
+        if name:
+            name = name.strip()
+            
+            # Length validation
+            if len(name) < 2:
+                raise forms.ValidationError("Medicine name must be at least 2 characters long.")
+            if len(name) > 200:
+                raise forms.ValidationError("Medicine name cannot exceed 200 characters.")
+            
+            # Character validation: allow letters, numbers, spaces, dots, hyphens, parentheses
+            if not re.match(r'^[a-zA-Z0-9\s\.\-\(\)%/mg]+$', name):
+                raise forms.ValidationError(
+                    "Medicine name can only contain letters, numbers, spaces, dots (.), hyphens (-), parentheses (), percentage (%), slash (/), and 'mg'."
+                )
+        return name
+    
+    def clean_description(self):
+        """Validate medicine description"""
+        description = self.cleaned_data.get('description')
+        if description:
+            description = description.strip()
+            
+            # Length validation
+            if len(description) < 5:
+                raise forms.ValidationError("Description must be at least 5 characters long.")
+            if len(description) > 1000:
+                raise forms.ValidationError("Description cannot exceed 1000 characters.")
+            
+            # Character validation: allow letters, numbers, spaces, common punctuation
+            if not re.match(r'^[a-zA-Z0-9\s\.\,\-\'\(\)%/]+$', description):
+                raise forms.ValidationError(
+                    "Description can only contain letters, numbers, spaces, and common punctuation."
+                )
+        return description
+    
+    def clean_price(self):
+        """Validate medicine price"""
+        price = self.cleaned_data.get('price')
+        if price is not None:
+            # Convert to Decimal for precise validation
+            try:
+                price_decimal = Decimal(str(price))
+                
+                # Must be positive
+                if price_decimal <= 0:
+                    raise forms.ValidationError("Price must be a positive number greater than 0.")
+                
+                # Maximum price limit
+                if price_decimal > 10000:
+                    raise forms.ValidationError("Price cannot exceed 10,000 ETB.")
+                
+                # Check decimal places (maximum 2)
+                if price_decimal.as_tuple().exponent < -2:
+                    raise forms.ValidationError("Price cannot have more than 2 decimal places.")
+                
+            except (InvalidOperation, ValueError):
+                raise forms.ValidationError("Please enter a valid price.")
+        return price
+    
+    def clean_stock_quantity(self):
+        """Validate stock quantity"""
+        stock_quantity = self.cleaned_data.get('stock_quantity')
+        if stock_quantity is not None:
+            # Must be non-negative integer
+            if stock_quantity < 0:
+                raise forms.ValidationError("Stock quantity cannot be negative.")
+            
+            # Maximum stock limit
+            if stock_quantity > 100000:
+                raise forms.ValidationError("Stock quantity cannot exceed 100,000 units.")
+        return stock_quantity
+    
+    def clean_medicine_image(self):
+        """Validate medicine image"""
+        image = self.cleaned_data.get('medicine_image')
+        if image:
+            # File size validation (5MB limit)
+            if image.size > 5 * 1024 * 1024:
+                raise forms.ValidationError("Image file size cannot exceed 5MB.")
+            
+            # File type validation
+            valid_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+            if not any(image.name.lower().endswith(ext) for ext in valid_extensions):
+                raise forms.ValidationError("Image must be in JPG, JPEG, PNG, GIF, or WebP format.")
+        return image
+    
+    def clean_expiry_date(self):
+        """Validate expiry date"""
+        expiry_date = self.cleaned_data.get('expiry_date')
+        if expiry_date:
+            from datetime import date
+            
+            # Must be future date
+            if expiry_date <= date.today():
+                raise forms.ValidationError("Expiry date must be in the future.")
+            
+            # Cannot be more than 10 years in the future
+            from datetime import timedelta
+            max_date = date.today() + timedelta(days=3650)  # 10 years
+            if expiry_date > max_date:
+                raise forms.ValidationError("Expiry date cannot be more than 10 years in the future.")
+        return expiry_date
 
 class PharmacyVerificationForm(forms.ModelForm):
     """Form for pharmacy verification document upload"""

@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate
+import re
 from .models import MoHOfficer, MoHPharmacyRegistry
 from pharmacy.models import Pharmacy
 
@@ -101,15 +102,41 @@ class MoHOfficerProfileForm(forms.ModelForm):
         return email
     
     def clean_phone(self):
+        """Validate phone number"""
         phone = self.cleaned_data.get('phone')
         if phone:
-            # Remove spaces and dashes
-            phone = phone.replace(' ', '').replace('-', '')
-            if not phone.startswith('+251') and not phone.startswith('09'):
+            # Remove spaces, dashes, parentheses
+            cleaned_phone = re.sub(r'[\s\-\(\)]', '', phone)
+            
+            # Add + if not present
+            if not cleaned_phone.startswith('+'):
+                cleaned_phone = '+' + cleaned_phone
+            
+            # Ethiopian phone number validation
+            if not re.match(r'^\+251[79]\d{8}$', cleaned_phone):
                 raise forms.ValidationError(
-                    "Please enter a valid Ethiopian phone number"
+                    "Phone number must be valid Ethiopian format: +251XXXXXXXXX (e.g., +251911123456)"
                 )
         return phone
+    
+    def clean_position(self):
+        """Validate position/title"""
+        position = self.cleaned_data.get('position')
+        if position:
+            position = position.strip()
+            
+            # Length validation
+            if len(position) < 3:
+                raise forms.ValidationError("Position must be at least 3 characters long.")
+            if len(position) > 100:
+                raise forms.ValidationError("Position cannot exceed 100 characters.")
+            
+            # Character validation: allow letters, spaces, dots, hyphens
+            if not re.match(r'^[a-zA-Z\s\.\-]+$', position):
+                raise forms.ValidationError(
+                    "Position can only contain letters, spaces, dots (.), and hyphens (-)."
+                )
+        return position
 
 
 class MoHPharmacyRegistrationForm(forms.Form):

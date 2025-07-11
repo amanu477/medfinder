@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth import authenticate
+import re
 
 class PlatformAdminLoginForm(forms.Form):
     """Custom login form for platform admin"""
@@ -22,6 +23,25 @@ class PlatformAdminLoginForm(forms.Form):
         self.request = request
         self.user_cache = None
         super().__init__(*args, **kwargs)
+    
+    def clean_username(self):
+        """Validate username"""
+        username = self.cleaned_data.get('username')
+        if username:
+            username = username.strip()
+            
+            # Length validation
+            if len(username) < 3:
+                raise forms.ValidationError("Username must be at least 3 characters long.")
+            if len(username) > 150:
+                raise forms.ValidationError("Username cannot exceed 150 characters.")
+            
+            # Character validation: allow letters, numbers, underscore, hyphen
+            if not re.match(r'^[a-zA-Z0-9_\-]+$', username):
+                raise forms.ValidationError(
+                    "Username can only contain letters, numbers, underscore (_), and hyphen (-)."
+                )
+        return username
     
     def clean(self):
         username = self.cleaned_data.get('username')
