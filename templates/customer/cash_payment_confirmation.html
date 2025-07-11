@@ -36,7 +36,7 @@
                                 <div class="col-md-6">
                                     <p><strong>Payment Method:</strong> Cash on Delivery</p>
                                     <p><strong>Status:</strong> 
-                                        <span class="badge bg-success">{{ order.get_status_display }}</span>
+                                        <span class="badge bg-warning text-dark">Payment on Cash</span>
                                     </p>
                                     <p><strong>Order Date:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
                                 </div>
@@ -59,7 +59,7 @@
                                     <p><strong>Payment ID:</strong> {{ payment.tx_ref }}</p>
                                     <p><strong>Amount to Pay:</strong> {{ payment.amount }} {{ payment.currency }}</p>
                                     <p><strong>Payment Status:</strong> 
-                                        <span class="badge bg-warning">{{ payment.get_status_display }}</span>
+                                        <span class="badge bg-success">Cash Payment Confirmed</span>
                                     </p>
                                 </div>
                                 <div class="col-md-6">

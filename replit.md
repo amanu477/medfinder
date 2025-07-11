@@ -10,6 +10,16 @@ This is a comprehensive digital pharmacy ecosystem for Ethiopian users that revo
 Preferred communication style: Simple, everyday language.
 ```
 
+## Recent Changes
+
+### Cash Payment Workflow Enhancement (July 11, 2025)
+- **Completed**: Fixed cash payment workflow to prevent duplicate payment creation
+- **Status Display**: Customer order detail now shows "Payment on Cash" instead of "Approved" when cash payment is selected
+- **Pharmacy Interface**: Pharmacy management shows "Pay on Cash" status with "Complete" button for cash payments
+- **Workflow**: Customer selects "Pay on Cash" → Status shows "Payment on Cash" → Pharmacy sees cash status → Complete button activates delivery system
+- **Error Handling**: Fixed OneToOne relationship constraint errors by checking existing payments before creation
+- **Test Orders**: Order #16 and #19 available for testing the complete workflow
+
 ## System Architecture
 
 ### Multi-User Architecture

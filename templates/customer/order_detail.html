@@ -139,13 +139,20 @@
                     <div class="text-center mb-3">
                         <span class="badge 
                             {% if order.status == 'pending' %}bg-warning text-dark
-                            {% elif order.status == 'approved' %}bg-success
+                            {% elif order.status == 'approved' %}
+                                {% if order.payment and order.payment.payment_type == 'cash_on_delivery' and order.payment.status == 'cash_paid' %}bg-warning text-dark
+                                {% else %}bg-success
+                                {% endif %}
                             {% elif order.status == 'paid' %}bg-info
                             {% elif order.status == 'completed' %}bg-primary
                             {% elif order.status == 'rejected' %}bg-danger
                             {% elif order.status == 'cancelled' %}bg-secondary
                             {% endif %}" style="font-size: 1rem; padding: 0.5rem 1rem;">
-                            {{ order.get_status_display }}
+                            {% if order.status == 'approved' and order.payment and order.payment.payment_type == 'cash_on_delivery' and order.payment.status == 'cash_paid' %}
+                                Payment on Cash
+                            {% else %}
+                                {{ order.get_status_display }}
+                            {% endif %}
                         </span>
                     </div>
 

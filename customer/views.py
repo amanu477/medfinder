@@ -1641,46 +1641,59 @@ def cash_payment_choice(request, order_id):
         payment_type = request.POST.get('payment_type')
         
         if payment_type == 'cash_on_delivery':
-            # Create cash payment record
+            # Check if payment already exists
             try:
-                with transaction.atomic():
-                    # Generate transaction reference
-                    import uuid
-                    tx_ref = f"CASH_{uuid.uuid4().hex[:8].upper()}"
-                    
-                    # Create payment record
-                    payment = Payment.objects.create(
-                        order=order,
-                        tx_ref=tx_ref,
-                        amount=order.total_amount,
-                        currency='ETB',
-                        payment_type='cash_on_delivery',
-                        status='cash_pending',
-                        customer_email=customer.email,
-                        customer_first_name=customer.name.split()[0] if customer.name else '',
-                        customer_last_name=' '.join(customer.name.split()[1:]) if len(customer.name.split()) > 1 else '',
-                        customer_phone=customer.phone,
-                    )
-                    
-                    # Generate QR code data
-                    payment.generate_qr_code_data()
-                    
-                    # Update order status
-                    order.status = 'approved'  # Approved for processing
-                    order.save()
-                    
-                    messages.success(request, 'Cash payment option selected successfully. You will pay when the delivery person arrives.')
+                payment = order.payment
+                if payment.payment_type == 'cash_on_delivery':
+                    # Payment already exists, just update status
+                    payment.status = 'cash_paid'
+                    payment.save()
+                    messages.success(request, 'Cash payment confirmed successfully. Waiting for pharmacy to complete your order.')
                     return render(request, 'customer/cash_payment_confirmation.html', {
                         'order': order,
                         'payment': payment
                     })
-                    
-            except Exception as e:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Error creating cash payment: {str(e)}")
-                messages.error(request, 'Error setting up cash payment. Please try again.')
-                return redirect('payment_choice', order_id=order.id)
+            except Payment.DoesNotExist:
+                # Create new cash payment record
+                try:
+                    with transaction.atomic():
+                        # Generate transaction reference
+                        import uuid
+                        tx_ref = f"CASH_{uuid.uuid4().hex[:8].upper()}"
+                        
+                        # Create payment record
+                        payment = Payment.objects.create(
+                            order=order,
+                            tx_ref=tx_ref,
+                            amount=order.total_amount,
+                            currency='ETB',
+                            payment_type='cash_on_delivery',
+                            status='cash_paid',  # Set as paid immediately for cash
+                            customer_email=customer.email,
+                            customer_first_name=customer.name.split()[0] if customer.name else '',
+                            customer_last_name=' '.join(customer.name.split()[1:]) if len(customer.name.split()) > 1 else '',
+                            customer_phone=customer.phone,
+                        )
+                        
+                        # Generate QR code data
+                        payment.generate_qr_code_data()
+                        
+                        # Update order status to show payment on cash
+                        order.status = 'approved'  # Keep approved but with cash payment
+                        order.save()
+                        
+                        messages.success(request, 'Cash payment option selected successfully. You will pay when the delivery person arrives.')
+                        return render(request, 'customer/cash_payment_confirmation.html', {
+                            'order': order,
+                            'payment': payment
+                        })
+                        
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Error creating cash payment: {str(e)}")
+                    messages.error(request, 'Error setting up cash payment. Please try again.')
+                    return redirect('payment_choice', order_id=order.id)
     
     # If not POST or invalid payment type, redirect back
     return redirect('payment_choice', order_id=order.id)
