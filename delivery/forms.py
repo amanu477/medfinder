@@ -72,6 +72,45 @@ class DeliveryStatusUpdateForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-control'}),
             'delivery_notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Restrict status choices for delivery personnel
+        if self.instance and self.instance.status == 'assigned':
+            # From assigned, can only go to picked_up or on_the_way
+            self.fields['status'].choices = [
+                ('assigned', 'Assigned'),
+                ('picked_up', 'Picked Up'),
+                ('in_transit', 'On The Way'),
+            ]
+        elif self.instance and self.instance.status == 'picked_up':
+            # From picked_up, can only go to in_transit
+            self.fields['status'].choices = [
+                ('picked_up', 'Picked Up'),
+                ('in_transit', 'On The Way'),
+            ]
+        elif self.instance and self.instance.status == 'in_transit':
+            # From in_transit, can only go to arrived or delivered
+            self.fields['status'].choices = [
+                ('in_transit', 'On The Way'),
+                ('arrived', 'Arrived'),
+                ('delivered', 'Complete'),
+            ]
+        elif self.instance and self.instance.status == 'arrived':
+            # From arrived, can only go to delivered
+            self.fields['status'].choices = [
+                ('arrived', 'Arrived'),
+                ('delivered', 'Complete'),
+            ]
+        else:
+            # Default choices (should not happen for delivery personnel)
+            self.fields['status'].choices = [
+                ('assigned', 'Assigned'),
+                ('picked_up', 'Picked Up'),
+                ('in_transit', 'On The Way'),
+                ('arrived', 'Arrived'),
+                ('delivered', 'Complete'),
+            ]
 
 
 class DeliveryTrackingForm(forms.ModelForm):

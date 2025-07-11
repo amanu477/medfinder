@@ -46,7 +46,7 @@ class DeliveryPerson(models.Model):
     
     def has_active_deliveries(self):
         """Check if delivery person has any active deliveries"""
-        active_statuses = ['assigned', 'picked_up', 'in_transit']
+        active_statuses = ['assigned', 'picked_up', 'in_transit', 'arrived']
         return self.delivery_set.filter(status__in=active_statuses).exists()
     
     def update_availability_status(self):
@@ -59,12 +59,12 @@ class DeliveryPerson(models.Model):
     
     def get_active_deliveries_count(self):
         """Get count of active deliveries"""
-        active_statuses = ['assigned', 'picked_up', 'in_transit']
+        active_statuses = ['assigned', 'picked_up', 'in_transit', 'arrived']
         return self.delivery_set.filter(status__in=active_statuses).count()
     
     def get_active_deliveries(self):
         """Get all active deliveries"""
-        active_statuses = ['assigned', 'picked_up', 'in_transit']
+        active_statuses = ['assigned', 'picked_up', 'in_transit', 'arrived']
         return self.delivery_set.filter(status__in=active_statuses)
 
 
@@ -75,6 +75,7 @@ class Delivery(models.Model):
         ('assigned', 'Assigned to Delivery Person'),
         ('picked_up', 'Picked up from Pharmacy'),
         ('in_transit', 'In Transit'),
+        ('arrived', 'Arrived at Destination'),
         ('delivered', 'Delivered'),
         ('failed', 'Delivery Failed'),
         ('cancelled', 'Cancelled'),

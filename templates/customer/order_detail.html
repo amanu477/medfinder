@@ -216,6 +216,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <i class="fas fa-shipping-fast"></i> On the Way
                                     </span>
                                     <p class="text-warning mt-2">Your delivery person is on the way to your location!</p>
+                                {% elif delivery.status == 'arrived' %}
+                                    <span class="badge bg-success fs-6">
+                                        <i class="fas fa-map-marker-alt"></i> Arrived at Your Location
+                                    </span>
+                                    <p class="text-success mt-2">Your delivery person has arrived! Please get ready to receive your order.</p>
                                     
                                     <!-- QR Code for Payment Verification -->
                                     <div class="mt-3">
@@ -294,6 +299,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                                 <i class="fas fa-box text-primary"></i> Picked Up from Pharmacy
                                             {% elif track.status == 'in_transit' %}
                                                 <i class="fas fa-shipping-fast text-warning"></i> On the Way
+                                            {% elif track.status == 'arrived' %}
+                                                <i class="fas fa-map-marker-alt text-success"></i> Arrived at Destination
                                             {% elif track.status == 'delivered' %}
                                                 <i class="fas fa-check-circle text-success"></i> Delivered
                                             {% elif track.status == 'failed' %}

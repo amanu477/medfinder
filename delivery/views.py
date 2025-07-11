@@ -36,7 +36,7 @@ def delivery_dashboard(request):
     # Get current deliveries
     current_deliveries = Delivery.objects.filter(
         delivery_person=delivery_person,
-        status__in=['assigned', 'picked_up', 'in_transit']
+        status__in=['assigned', 'picked_up', 'in_transit', 'arrived']
     ).select_related('order', 'order__customer')
     
     # Get completed deliveries (last 10)
@@ -287,6 +287,15 @@ def update_delivery_status(request, delivery_id):
                 elif delivery.status == 'delivered' and not delivery.delivery_time:
                     # For delivered status, redirect to confirmation page instead of completing immediately
                     return redirect('delivery_confirm_payment', delivery_id=delivery.id)
+                elif delivery.status == 'arrived':
+                    # Create notification for customer that delivery person has arrived
+                    DeliveryNotification.objects.create(
+                        delivery=delivery,
+                        recipient_type='customer',
+                        recipient_id=delivery.order.customer.user.id,
+                        message=f"Your delivery person has arrived! Please check your order page for payment verification.",
+                        notification_type='status_update'
+                    )
                 
                 delivery.save()
                 

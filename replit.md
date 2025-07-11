@@ -51,6 +51,16 @@ Preferred communication style: Simple, everyday language.
 - **Address Format**: Delivery addresses display as "Customer Address: Lat X.XXXX, Lon Y.YYYY"
 - **Test Data**: Updated Order #19 delivery with customer location (9.0450, 38.7880)
 
+### Delivery Status Workflow Enhancement (July 11, 2025)
+- **Completed**: Implemented restricted delivery status updates for delivery personnel
+- **Status Progression**: Delivery personnel can only update to specific statuses after pharmacy assignment
+- **Workflow Control**: From "assigned" → "picked_up" or "in_transit" → "arrived" → "delivered"
+- **New Status**: Added "arrived" status to indicate delivery person has reached customer location
+- **QR Code Trigger**: QR code payment verification now shows when delivery status is "arrived"
+- **Form Restrictions**: DeliveryStatusUpdateForm now dynamically restricts available status choices
+- **Customer Notification**: Automatic notification sent to customer when delivery person arrives
+- **Database Migration**: Applied migration to add "arrived" status to delivery model
+
 ## System Architecture
 
 ### Multi-User Architecture
