@@ -1,0 +1,69 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}Order #{{ order_id }} Status Update{% endblock %}
+
+{% block content %}
+<h2>Order Status Update</h2>
+
+<p>Dear {{ customer_name }},</p>
+
+<p>We have an update on your order from {{ pharmacy_name }}. Please see the details below.</p>
+
+<div class="info-box">
+    <h3>Order Details:</h3>
+    <p><strong>Order ID:</strong> #{{ order_id }}</p>
+    <p><strong>Pharmacy:</strong> {{ pharmacy_name }}</p>
+    <p><strong>Current Status:</strong> {{ status }}</p>
+    <p><strong>Update Date:</strong> {{ "now"|date:"F d, Y at g:i A" }}</p>
+</div>
+
+{% if status_message %}
+<div class="info-box">
+    <h3>Status Update:</h3>
+    <p>{{ status_message }}</p>
+</div>
+{% endif %}
+
+<p><strong>Status Explanation:</strong></p>
+{% if status == "approved" %}
+<ul>
+    <li>✅ Your order has been approved by the pharmacy</li>
+    <li>💳 You can now proceed with payment</li>
+    <li>📦 Medicines will be prepared after payment confirmation</li>
+</ul>
+{% elif status == "on_the_way" %}
+<ul>
+    <li>🚚 Your order is on the way for delivery</li>
+    <li>📱 You'll receive delivery person contact information</li>
+    <li>🏠 Please be available to receive your medicines</li>
+</ul>
+{% elif status == "delivered" %}
+<ul>
+    <li>✅ Your order has been successfully delivered</li>
+    <li>💊 Please check all medicines for accuracy</li>
+    <li>⭐ We'd appreciate your feedback on the service</li>
+</ul>
+{% elif status == "cancelled" %}
+<ul>
+    <li>❌ Your order has been cancelled</li>
+    <li>💰 Any payments will be refunded within 3-5 business days</li>
+    <li>📞 Contact support if you have questions</li>
+</ul>
+{% endif %}
+
+<p>You can view complete order details and track progress by clicking the button below:</p>
+
+<a href="{{ order_url }}" class="button">View Order Details</a>
+
+<p><strong>Need Help?</strong></p>
+<ul>
+    <li>📞 Contact pharmacy: {{ pharmacy_name }}</li>
+    <li>📧 Email our support team</li>
+    <li>💬 Use our live chat feature</li>
+</ul>
+
+<p>Thank you for using {{ site_name }} for your healthcare needs!</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}

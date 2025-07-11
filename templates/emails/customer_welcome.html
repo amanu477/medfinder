@@ -1,0 +1,36 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}Welcome to {{ site_name }}{% endblock %}
+
+{% block content %}
+<h2>Welcome to {{ site_name }}, {{ customer_name }}!</h2>
+
+<p>We're excited to have you join our community of health-conscious individuals who trust us for their pharmaceutical needs.</p>
+
+<div class="info-box">
+    <h3>Your Account Details:</h3>
+    <p><strong>Username:</strong> {{ username }}</p>
+    <p><strong>Registration Date:</strong> {{ "now"|date:"F d, Y" }}</p>
+</div>
+
+<p>With your new account, you can:</p>
+<ul>
+    <li>🔍 Search for medicines from verified pharmacies</li>
+    <li>📋 Upload prescriptions with automatic validation</li>
+    <li>🛒 Add medicines to your cart and place orders</li>
+    <li>📱 Track your orders in real-time</li>
+    <li>💳 Pay securely online or choose cash on delivery</li>
+    <li>🚚 Get medicines delivered to your location</li>
+</ul>
+
+<p>Ready to get started? Click the button below to access your account:</p>
+
+<a href="{{ login_url }}" class="button">Login to Your Account</a>
+
+<p>Need help? Our support team is available 24/7 to assist you with any questions or concerns.</p>
+
+<p>Thank you for choosing {{ site_name }} for your healthcare needs!</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}

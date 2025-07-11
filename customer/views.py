@@ -14,6 +14,7 @@ from .models import Customer, Prescription, Order, OrderItem, Cart, CartItem, In
 from .chapa_service import ChapaService
 from .ocr_service import PrescriptionOCRService
 from .qr_utils import generate_qr_code_image, generate_payment_qr_data
+from .email_service import email_service
 from pharmacy.models import Pharmacy, Medicine
 from moh.models import MoHOfficer
 from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm, QuickIncidentForm
@@ -155,6 +156,13 @@ def upload_prescription(request):
             prescription.status = 'pending'
             prescription.save()
             
+            # Send prescription upload confirmation email
+            email_service.send_prescription_upload_confirmation(prescription)
+            
+            # If prescription is sent to a pharmacy, notify the pharmacy
+            if prescription.pharmacy:
+                email_service.send_prescription_to_pharmacy_notification(prescription, prescription.pharmacy)
+            
             # Set session variable to show success message
             request.session['prescription_uploaded'] = True
             request.session['prescription_id'] = prescription.id
@@ -279,6 +287,9 @@ def customer_register(request):
                         phone=form.cleaned_data['phone'],
                         address=form.cleaned_data['address']
                     )
+                    
+                    # Send welcome email
+                    email_service.send_customer_registration_welcome(user)
                     
                     login(request, user)
                     messages.success(request, f'Welcome to Ethiopian Pharmacy Platform, {customer.name}!')
@@ -421,6 +432,10 @@ def place_order(request, medicine_id):
                 notes=form.cleaned_data.get('notes', ''),
                 prescription_image=prescription_image
             )
+            
+            # Send email notifications
+            email_service.send_order_confirmation(order)
+            email_service.send_order_to_pharmacy_notification(order)
             
             # Create order item
             OrderItem.objects.create(
@@ -1081,6 +1096,10 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
                 notes=f'OCR Validation - Confidence: {ocr_result.get("confidence", 0):.1f}%'
             )
             
+            # Send email notifications
+            email_service.send_order_confirmation(order)
+            email_service.send_order_to_pharmacy_notification(order)
+            
             # Create order item
             OrderItem.objects.create(
                 order=order,
@@ -1421,6 +1440,10 @@ def checkout_cart(request):
                     cart_item.medicine.save()
                 
                 created_orders.append(order)
+                
+                # Send email notifications
+                email_service.send_order_confirmation(order)
+                email_service.send_order_to_pharmacy_notification(order)
             
             # Clear cart after successful order creation
             cart.clear()

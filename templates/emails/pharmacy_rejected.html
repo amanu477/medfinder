@@ -1,0 +1,51 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}Pharmacy Registration Update Required{% endblock %}
+
+{% block content %}
+<h2>Additional Information Required for Pharmacy Registration</h2>
+
+<p>Dear {{ pharmacy_name }} team,</p>
+
+<p>Thank you for your interest in joining {{ site_name }}. After reviewing your pharmacy registration, we need some additional information to complete the verification process.</p>
+
+<div class="info-box">
+    <h3>Registration Details:</h3>
+    <p><strong>Pharmacy Name:</strong> {{ pharmacy_name }}</p>
+    <p><strong>License Number:</strong> {{ license_number }}</p>
+    <p><strong>Review Date:</strong> {{ "now"|date:"F d, Y at g:i A" }}</p>
+    <p><strong>Status:</strong> ⚠️ Additional Information Required</p>
+</div>
+
+{% if rejection_reason %}
+<div class="info-box" style="border-left-color: #e74c3c; background-color: #fdf2f2;">
+    <h3>Required Updates:</h3>
+    <p>{{ rejection_reason }}</p>
+</div>
+{% endif %}
+
+<p><strong>Next Steps:</strong></p>
+<ul>
+    <li>📋 Please review the requirements listed above</li>
+    <li>📎 Prepare the necessary documents or information</li>
+    <li>📧 Reply to this email with the updated information</li>
+    <li>📞 Contact our support team if you need clarification</li>
+</ul>
+
+<p>Once you provide the requested information, we'll review your application again within 1-2 business days.</p>
+
+<p>Common reasons for additional information requests include:</p>
+<ul>
+    <li>Unclear or expired license documents</li>
+    <li>Missing contact information verification</li>
+    <li>Incomplete pharmacy location details</li>
+    <li>Need for additional regulatory compliance documentation</li>
+</ul>
+
+<p>We appreciate your patience and look forward to welcoming you to the {{ site_name }} community once the verification process is complete.</p>
+
+<p>If you have any questions or need assistance with the requirements, please don't hesitate to contact our support team.</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Verification Team</p>
+{% endblock %}

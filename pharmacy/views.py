@@ -13,6 +13,7 @@ from .models import Pharmacy, Medicine
 from .forms import PharmacyRegistrationForm, PharmacyUserForm, MedicineForm, PharmacyProfileForm, PharmacyVerificationForm
 from customer.models import Prescription, Order, OrderItem
 from .license_validation import LicenseValidationService
+from customer.email_service import email_service
 
 def pharmacy_login(request):
     """Pharmacy login view"""
@@ -60,6 +61,9 @@ def register(request):
             # No MoH validation during registration - admin will verify later
             pharmacy.verification_status = 'pending'
             pharmacy.save()
+            
+            # Send registration confirmation email
+            email_service.send_pharmacy_registration_confirmation(pharmacy)
             
             messages.success(request, 'Registration successful! Your pharmacy has been registered and is pending admin verification.')
             
@@ -301,9 +305,18 @@ def update_prescription_status(request, prescription_id):
     
     if request.method == 'POST':
         new_status = request.POST.get('status')
+        response_message = request.POST.get('response_message', '')
+        
         if new_status in [s[0] for s in Prescription.STATUS_CHOICES]:
             prescription.status = new_status
             prescription.save()
+            
+            # Send email notification to customer about prescription response
+            if response_message:
+                email_service.send_prescription_response_to_customer(
+                    prescription, response_message, pharmacy
+                )
+            
             messages.success(request, f'Prescription status updated to {new_status}!')
         else:
             messages.error(request, 'Invalid status value!')
@@ -368,10 +381,20 @@ def update_order_status(request, order_id):
     
     if request.method == 'POST':
         new_status = request.POST.get('status')
+        status_message = request.POST.get('status_message', '')
+        
         if new_status in [s[0] for s in Order.STATUS_CHOICES]:
             old_status = order.status
             order.status = new_status
             order.save()
+            
+            # Send email notifications to customer
+            if order.customer and order.customer.user:
+                email_service.send_order_status_update(order, status_message or f'Order status updated from {old_status} to {new_status}')
+            
+            # Send order notification to pharmacy when order is placed
+            if new_status == 'approved' and old_status != 'approved':
+                email_service.send_order_to_pharmacy_notification(order)
             
             # If order is completed, create delivery and redirect to delivery system
             if new_status == 'completed' and old_status != 'completed':

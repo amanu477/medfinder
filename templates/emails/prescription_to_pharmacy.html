@@ -1,0 +1,55 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}New Prescription Received{% endblock %}
+
+{% block content %}
+<h2>New Prescription Received for Processing</h2>
+
+<p>Dear {{ pharmacy_name }} team,</p>
+
+<p>You have received a new prescription from a customer that requires your attention and response.</p>
+
+<div class="info-box">
+    <h3>Prescription Details:</h3>
+    <p><strong>Prescription ID:</strong> #{{ prescription_id }}</p>
+    <p><strong>Customer Name:</strong> {{ customer_name }}</p>
+    <p><strong>Customer Phone:</strong> {{ customer_phone }}</p>
+    <p><strong>Upload Date:</strong> {{ upload_date|date:"F d, Y at g:i A" }}</p>
+    <p><strong>Status:</strong> ⏳ Awaiting Pharmacy Response</p>
+</div>
+
+<p><strong>Action Required:</strong></p>
+<ul>
+    <li>📋 Review the prescription image and details</li>
+    <li>💊 Verify medicine availability in your inventory</li>
+    <li>💰 Provide pricing information for requested medicines</li>
+    <li>📝 Send response back to the customer</li>
+</ul>
+
+<p>To process this prescription, please:</p>
+<ol>
+    <li>Log into your pharmacy dashboard</li>
+    <li>Navigate to the "Prescriptions" section</li>
+    <li>Review the prescription details and image</li>
+    <li>Respond with medicine availability and pricing</li>
+</ol>
+
+<p>Click the button below to access your pharmacy dashboard:</p>
+
+<a href="{{ pharmacy_dashboard_url }}" class="button">Access Pharmacy Dashboard</a>
+
+<p><strong>Important Notes:</strong></p>
+<ul>
+    <li>⏰ Please respond within 24 hours for better customer service</li>
+    <li>📱 The customer will be notified when you send your response</li>
+    <li>🔍 Carefully verify all medicine names and dosages</li>
+    <li>💬 Use professional language in your response</li>
+</ul>
+
+<p>If you have any questions about processing this prescription or need technical support, please contact our support team.</p>
+
+<p>Thank you for being a valued partner in providing healthcare services!</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}

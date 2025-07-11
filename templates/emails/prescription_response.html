@@ -1,0 +1,61 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}Response to Your Prescription{% endblock %}
+
+{% block content %}
+<h2>Response to Your Prescription</h2>
+
+<p>Dear {{ customer_name }},</p>
+
+<p>We have received a response from {{ pharmacy_name }} regarding your prescription. Please review the details below.</p>
+
+<div class="info-box">
+    <h3>Prescription Details:</h3>
+    <p><strong>Prescription ID:</strong> #{{ prescription_id }}</p>
+    <p><strong>Pharmacy:</strong> {{ pharmacy_name }}</p>
+    <p><strong>Response Date:</strong> {{ "now"|date:"F d, Y at g:i A" }}</p>
+    <p><strong>Status:</strong> ✅ Pharmacy Response Received</p>
+</div>
+
+<div class="info-box">
+    <h3>Pharmacy Response:</h3>
+    <p>{{ response_message }}</p>
+</div>
+
+<p><strong>Pharmacy Contact Information:</strong></p>
+<ul>
+    <li>📞 <strong>Phone:</strong> {{ pharmacy_phone }}</li>
+    <li>📍 <strong>Address:</strong> {{ pharmacy_address }}</li>
+</ul>
+
+<p><strong>Next Steps:</strong></p>
+<ul>
+    <li>📋 Review the pharmacy's response carefully</li>
+    <li>💊 If medicines are available, you can proceed to place an order</li>
+    <li>📞 Contact the pharmacy directly if you have questions</li>
+    <li>🔍 You can also search for alternative pharmacies if needed</li>
+</ul>
+
+<p>If the pharmacy has confirmed medicine availability, you can now:</p>
+<ul>
+    <li>🛒 Add the medicines to your cart</li>
+    <li>✅ Place your order with confidence</li>
+    <li>💳 Choose your preferred payment method</li>
+    <li>🚚 Get medicines delivered to your location</li>
+</ul>
+
+<p><strong>Important Reminders:</strong></p>
+<ul>
+    <li>Always verify medicine names and dosages before ordering</li>
+    <li>Keep your prescription image safe for future reference</li>
+    <li>Follow the prescribed dosage instructions from your doctor</li>
+    <li>Contact the pharmacy if you need clarification on any medicines</li>
+</ul>
+
+<p>If you need to contact the pharmacy or have any questions about your prescription, don't hesitate to reach out to them or our support team.</p>
+
+<p>Thank you for using {{ site_name }} for your healthcare needs!</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}

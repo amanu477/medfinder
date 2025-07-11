@@ -1,0 +1,48 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}Pharmacy Registration Approved!{% endblock %}
+
+{% block content %}
+<h2>🎉 Congratulations! Your Pharmacy Registration is Approved</h2>
+
+<p>Dear {{ pharmacy_name }} team,</p>
+
+<p>We're pleased to inform you that your pharmacy registration has been successfully approved! You can now start serving customers through our platform.</p>
+
+<div class="info-box">
+    <h3>Approved Registration Details:</h3>
+    <p><strong>Pharmacy Name:</strong> {{ pharmacy_name }}</p>
+    <p><strong>License Number:</strong> {{ license_number }}</p>
+    <p><strong>Approval Date:</strong> {{ "now"|date:"F d, Y at g:i A" }}</p>
+    <p><strong>Status:</strong> ✅ Verified & Active</p>
+</div>
+
+<p>You can now access your pharmacy dashboard and start:</p>
+<ul>
+    <li>📦 Managing your medicine inventory</li>
+    <li>📋 Processing customer prescriptions</li>
+    <li>🛒 Receiving and fulfilling orders</li>
+    <li>💰 Managing payments and transactions</li>
+    <li>📊 Viewing sales reports and analytics</li>
+    <li>👥 Communicating with customers</li>
+</ul>
+
+<p>Ready to start serving customers? Click the button below to access your pharmacy dashboard:</p>
+
+<a href="{{ pharmacy_login_url }}" class="button">Access Pharmacy Dashboard</a>
+
+<p><strong>Quick Start Tips:</strong></p>
+<ul>
+    <li>Add your medicine inventory to start receiving orders</li>
+    <li>Set your pharmacy operating hours for accurate customer information</li>
+    <li>Upload a pharmacy profile picture to build customer trust</li>
+    <li>Review and respond to customer prescriptions promptly</li>
+</ul>
+
+<p>Our support team is available to help you get started and answer any questions you may have about using the platform.</p>
+
+<p>Welcome to the {{ site_name }} community!</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}

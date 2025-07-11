@@ -1,0 +1,63 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}Order Confirmation #{{ order_id }}{% endblock %}
+
+{% block content %}
+<h2>Order Confirmation</h2>
+
+<p>Dear {{ customer_name }},</p>
+
+<p>Thank you for your order! We've received your order and it's being processed by {{ pharmacy_name }}.</p>
+
+<div class="info-box">
+    <h3>Order Details:</h3>
+    <p><strong>Order ID:</strong> #{{ order_id }}</p>
+    <p><strong>Order Date:</strong> {{ order_date|date:"F d, Y at g:i A" }}</p>
+    <p><strong>Pharmacy:</strong> {{ pharmacy_name }}</p>
+    <p><strong>Total Amount:</strong> {{ total_amount }} ETB</p>
+    <p><strong>Status:</strong> ⏳ Processing</p>
+</div>
+
+<div class="info-box">
+    <h3>Ordered Items:</h3>
+    {% for item in order_items %}
+    <p><strong>{{ item.medicine.name }}</strong> - Quantity: {{ item.quantity }} - Price: {{ item.price }} ETB</p>
+    {% endfor %}
+</div>
+
+<p><strong>What happens next?</strong></p>
+<ul>
+    <li>📋 The pharmacy will review and confirm your order</li>
+    <li>💳 You'll receive payment instructions once approved</li>
+    <li>📦 Your medicines will be prepared for delivery</li>
+    <li>🚚 You'll receive tracking information for delivery</li>
+    <li>📧 We'll keep you updated via email and SMS</li>
+</ul>
+
+<p>You can track your order status anytime by clicking the button below:</p>
+
+<a href="{{ order_url }}" class="button">Track Your Order</a>
+
+<p><strong>Order Processing Timeline:</strong></p>
+<ul>
+    <li>⏰ Order Review: 1-2 hours</li>
+    <li>💳 Payment Processing: Immediate after approval</li>
+    <li>📦 Preparation: 2-4 hours</li>
+    <li>🚚 Delivery: Same day or next day</li>
+</ul>
+
+<p><strong>Important Notes:</strong></p>
+<ul>
+    <li>Keep this email for your records</li>
+    <li>Have your order ID ready when contacting support</li>
+    <li>Ensure someone is available to receive the delivery</li>
+    <li>Check medicines upon delivery for accuracy</li>
+</ul>
+
+<p>If you have any questions about your order or need to make changes, please contact us immediately.</p>
+
+<p>Thank you for choosing {{ site_name }} for your healthcare needs!</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}

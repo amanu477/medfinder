@@ -1,0 +1,71 @@
+{% extends 'emails/base_email.html' %}
+
+{% block title %}New Order Received #{{ order_id }}{% endblock %}
+
+{% block content %}
+<h2>New Order Received</h2>
+
+<p>Dear {{ pharmacy_name }} team,</p>
+
+<p>You have received a new order from a customer. Please review and process the order promptly.</p>
+
+<div class="info-box">
+    <h3>Order Details:</h3>
+    <p><strong>Order ID:</strong> #{{ order_id }}</p>
+    <p><strong>Customer:</strong> {{ customer_name }}</p>
+    <p><strong>Customer Phone:</strong> {{ customer_phone }}</p>
+    <p><strong>Order Date:</strong> {{ order_date|date:"F d, Y at g:i A" }}</p>
+    <p><strong>Total Amount:</strong> {{ total_amount }} ETB</p>
+</div>
+
+<div class="info-box">
+    <h3>Ordered Items:</h3>
+    {% for item in order_items %}
+    <p><strong>{{ item.medicine.name }}</strong> - Quantity: {{ item.quantity }} - Price: {{ item.price }} ETB</p>
+    {% endfor %}
+</div>
+
+<p><strong>Action Required:</strong></p>
+<ul>
+    <li>📋 Review the order and verify medicine availability</li>
+    <li>✅ Approve the order if all items are available</li>
+    <li>💰 Confirm pricing and total amount</li>
+    <li>📦 Prepare medicines for delivery after payment</li>
+    <li>📞 Contact customer if clarification is needed</li>
+</ul>
+
+<p>To process this order, please:</p>
+<ol>
+    <li>Log into your pharmacy dashboard</li>
+    <li>Navigate to the "Orders" section</li>
+    <li>Review the order details</li>
+    <li>Approve or request changes as needed</li>
+</ol>
+
+<p>Click the button below to access your pharmacy dashboard:</p>
+
+<a href="{{ pharmacy_dashboard_url }}" class="button">Process Order</a>
+
+<p><strong>Order Processing Guidelines:</strong></p>
+<ul>
+    <li>⏰ Process orders within 2 hours for better customer service</li>
+    <li>📱 Contact customer if any medicines are unavailable</li>
+    <li>✅ Verify all medicine names and quantities carefully</li>
+    <li>💳 Wait for payment confirmation before preparation</li>
+</ul>
+
+<p><strong>Customer Service Tips:</strong></p>
+<ul>
+    <li>Be professional and courteous in all communications</li>
+    <li>Provide clear information about medicine availability</li>
+    <li>Suggest alternatives if specific medicines are unavailable</li>
+    <li>Keep the customer informed about order status</li>
+</ul>
+
+<p>If you have any questions about processing this order or need technical support, please contact our support team.</p>
+
+<p>Thank you for being a valued partner in providing healthcare services!</p>
+
+<p>Best regards,<br>
+The {{ site_name }} Team</p>
+{% endblock %}
