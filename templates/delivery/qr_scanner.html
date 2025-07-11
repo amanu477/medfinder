@@ -29,10 +29,15 @@
                             </button>
                         </div>
                         <div class="mt-2">
-                            <small class="text-muted">
-                                <i class="fas fa-info-circle"></i> 
-                                Allow camera access when prompted. Point camera at QR code to scan.
-                            </small>
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle"></i> How to Scan QR Codes:</h6>
+                                <ol class="mb-0">
+                                    <li><strong>Allow camera access</strong> when prompted by your browser</li>
+                                    <li><strong>Point camera directly at the QR code</strong> on customer's screen</li>
+                                    <li><strong>Hold steady</strong> - the scanner will automatically detect the code</li>
+                                    <li><strong>Alternative:</strong> Use manual input below if camera doesn't work</li>
+                                </ol>
+                            </div>
                         </div>
                     </div>
 
@@ -180,67 +185,110 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultsDiv = document.getElementById('qr-results');
     const errorDiv = document.getElementById('qr-error');
     
-    let qrScanner = null;
+    let stream = null;
     let scannerActive = false;
+    let scanningInterval = null;
 
-    // Check if camera is available
-    async function checkCameraAvailability() {
-        try {
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                throw new Error('Camera not supported');
-            }
-            
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            const videoDevices = devices.filter(device => device.kind === 'videoinput');
-            
-            if (videoDevices.length === 0) {
-                throw new Error('No camera found');
-            }
-            
-            return true;
-        } catch (error) {
-            console.error('Camera check error:', error);
-            return false;
-        }
+    // Show error message
+    function showError(message) {
+        errorDiv.classList.remove('d-none');
+        document.getElementById('error-message').innerHTML = message;
+        resultsDiv.classList.add('d-none');
     }
 
-    // Initialize camera with simple getUserMedia
+    // Hide error message
+    function hideError() {
+        errorDiv.classList.add('d-none');
+    }
+
+    // Initialize camera with better error handling
     async function initScanner() {
         try {
-            const cameraAvailable = await checkCameraAvailability();
-            if (!cameraAvailable) {
-                throw new Error('Camera not available');
+            hideError();
+            startBtn.disabled = true;
+            startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Starting...';
+            
+            // Check if browser supports camera
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('Camera not supported by this browser. Please use manual input instead.');
             }
-
-            // Use native camera access directly
-            await initNativeCamera();
-        } catch (error) {
-            console.error('Scanner init error:', error);
-            throw error;
-        }
-    }
-
-    // Fallback native camera implementation
-    async function initNativeCamera() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
+            
+            // Request camera permission
+            const constraints = {
                 video: { 
-                    facingMode: 'environment',
+                    facingMode: { ideal: 'environment' },
                     width: { ideal: 300 },
                     height: { ideal: 300 }
                 }
+            };
+            
+            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            video.srcObject = stream;
+            
+            // Wait for video to load
+            await new Promise((resolve) => {
+                video.onloadedmetadata = resolve;
             });
             
-            video.srcObject = stream;
-            video.play();
+            await video.play();
             
-            // Start scanning loop
+            // Start scanning
             scannerActive = true;
-            scanFrame();
+            startScanningLoop();
+            
+            // Update UI
+            startBtn.classList.add('d-none');
+            stopBtn.classList.remove('d-none');
+            
+            console.log('Scanner initialized successfully');
+            
         } catch (error) {
-            console.error('Native camera init error:', error);
-            throw error;
+            console.error('Scanner init error:', error);
+            
+            let errorMessage = 'Camera access failed. ';
+            
+            if (error.name === 'NotAllowedError') {
+                errorMessage += 'Please allow camera access and try again.';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage += 'No camera found on this device.';
+            } else if (error.name === 'NotSupportedError') {
+                errorMessage += 'Camera not supported by this browser.';
+            } else {
+                errorMessage += error.message || 'Please try manual input instead.';
+            }
+            
+            showError(errorMessage + '<br><br><strong>Alternative:</strong> Use the manual input field below to paste QR code data directly.');
+            
+            // Reset button
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="fas fa-camera"></i> Start Scanner';
         }
+    }
+
+    // Start scanning loop
+    function startScanningLoop() {
+        if (!scannerActive) return;
+        
+        scanningInterval = setInterval(() => {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+                
+                if (qrCode) {
+                    console.log('QR code detected:', qrCode.data);
+                    processQRCode(qrCode.data);
+                    stopScanner();
+                }
+            }
+        }, 100);
     }
 
     // Frame scanning for fallback method
@@ -301,8 +349,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Stop scanner
-    stopBtn.addEventListener('click', () => {
+    function stopScanner() {
         scannerActive = false;
+        
+        if (scanningInterval) {
+            clearInterval(scanningInterval);
+            scanningInterval = null;
+        }
+        
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
         
         if (video.srcObject) {
             video.srcObject.getTracks().forEach(track => track.stop());
@@ -310,6 +368,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         stopBtn.classList.add('d-none');
+        startBtn.classList.remove('d-none');
+        startBtn.disabled = false;
+        startBtn.innerHTML = '<i class="fas fa-camera"></i> Start Scanner';
+    }
+
+    // Stop scanner button click
+    stopBtn.addEventListener('click', () => {
+        stopScanner();
         startBtn.classList.remove('d-none');
     });
 
