@@ -109,6 +109,16 @@ Preferred communication style: Simple, everyday language.
 - **QR Code Fix**: Fixed template logic for QR code display when delivery status is "in_transit" or "arrived"
 - **Test Credentials**: Order #21 - Username: amanu, Password: testpass123 (50.00 ETB cash payment, arrived status)
 
+### Pharmacy Opening/Closing Hours Display (July 11, 2025)
+- **Completed**: Implemented pharmacy status display showing "Open Now" or "Closed" for customers
+- **Model Methods**: Added `is_open_now()`, `get_status_display()`, and `get_next_opening_time()` to Pharmacy model
+- **Search Results**: Medicine search results now show pharmacy status badges with opening hours
+- **Order Placement**: Added prominent warnings when customers try to order from closed pharmacies
+- **Shopping Cart**: Cart displays pharmacy status and next opening time for each pharmacy group
+- **Smart Status**: Handles overnight hours (e.g., 6:00 PM to 6:00 AM) and 24/7 pharmacies correctly
+- **Test Setup**: Created diverse pharmacy schedules - early bird (6AM-8PM), night owl (6PM-6AM), regular hours (8AM-10PM), 24/7
+- **Customer Experience**: Clear visual indicators prevent confusion about pharmacy availability during order placement
+
 ## System Architecture
 
 ### Multi-User Architecture

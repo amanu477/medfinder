@@ -123,6 +123,46 @@ class Pharmacy(models.Model):
     verification_documents = models.FileField(upload_to='pharmacy_documents/', null=True, blank=True)
     business_license = models.FileField(upload_to='pharmacy_documents/', null=True, blank=True)
     pharmacist_certificate = models.FileField(upload_to='pharmacy_documents/', null=True, blank=True)
+    
+    def is_open_now(self):
+        """Check if pharmacy is currently open"""
+        from datetime import datetime
+        current_time = datetime.now().time()
+        
+        # Handle case where pharmacy operates past midnight
+        if self.opening_time <= self.closing_time:
+            # Normal hours (e.g., 8:00 AM to 10:00 PM)
+            return self.opening_time <= current_time <= self.closing_time
+        else:
+            # Overnight hours (e.g., 6:00 PM to 6:00 AM)
+            return current_time >= self.opening_time or current_time <= self.closing_time
+    
+    def get_status_display(self):
+        """Get human-readable status"""
+        if not self.is_active:
+            return "Temporarily Closed"
+        elif self.verification_status != 'verified':
+            return "Pending Verification"
+        elif self.is_open_now():
+            return "Open Now"
+        else:
+            return "Closed"
+    
+    def get_next_opening_time(self):
+        """Get the next time pharmacy will be open"""
+        from datetime import datetime, timedelta
+        
+        if self.is_open_now():
+            return None
+        
+        current_time = datetime.now().time()
+        
+        # If today's opening time hasn't passed yet
+        if current_time < self.opening_time:
+            return f"Opens at {self.opening_time.strftime('%I:%M %p')}"
+        else:
+            # Opens tomorrow at opening time
+            return f"Opens tomorrow at {self.opening_time.strftime('%I:%M %p')}"
     rejection_reason = models.TextField(blank=True, null=True)
     verified_at = models.DateTimeField(null=True, blank=True)
     
