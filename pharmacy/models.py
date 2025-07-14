@@ -131,16 +131,17 @@ class Pharmacy(models.Model):
         if self.is_24_hour:
             return True
             
-        from datetime import datetime
-        current_time = datetime.now().time()
+        from django.utils import timezone
+        # Use timezone-aware current time (Ethiopia time)
+        current_time = timezone.now().time()
         
         # Handle case where pharmacy operates past midnight
         if self.opening_time <= self.closing_time:
             # Normal hours (e.g., 8:00 AM to 10:00 PM)
-            return self.opening_time <= current_time <= self.closing_time
+            return self.opening_time <= current_time < self.closing_time
         else:
             # Overnight hours (e.g., 6:00 PM to 6:00 AM)
-            return current_time >= self.opening_time or current_time <= self.closing_time
+            return current_time >= self.opening_time or current_time < self.closing_time
     
     def get_status_display(self):
         """Get human-readable status"""
@@ -159,19 +160,32 @@ class Pharmacy(models.Model):
         if self.is_24_hour:
             return None
             
-        from datetime import datetime, timedelta
+        from django.utils import timezone
         
         if self.is_open_now():
             return None
         
-        current_time = datetime.now().time()
+        current_time = timezone.now().time()
         
-        # If today's opening time hasn't passed yet
-        if current_time < self.opening_time:
-            return f"Opens at {self.opening_time.strftime('%I:%M %p')}"
+        # Handle normal hours (opening_time <= closing_time)
+        if self.opening_time <= self.closing_time:
+            # If today's opening time hasn't passed yet
+            if current_time < self.opening_time:
+                return f"Opens at {self.opening_time.strftime('%I:%M %p')}"
+            else:
+                # Opens tomorrow at opening time
+                return f"Opens tomorrow at {self.opening_time.strftime('%I:%M %p')}"
         else:
-            # Opens tomorrow at opening time
-            return f"Opens tomorrow at {self.opening_time.strftime('%I:%M %p')}"
+            # Handle overnight hours (opening_time > closing_time)
+            # If we're before closing time, we're still in yesterday's open period
+            if current_time < self.closing_time:
+                return None  # Actually still open from yesterday
+            # If we're after closing time but before opening time
+            elif current_time < self.opening_time:
+                return f"Opens at {self.opening_time.strftime('%I:%M %p')}"
+            else:
+                # Opens tomorrow at opening time
+                return f"Opens tomorrow at {self.opening_time.strftime('%I:%M %p')}"
     rejection_reason = models.TextField(blank=True, null=True)
     verified_at = models.DateTimeField(null=True, blank=True)
     
