@@ -73,6 +73,7 @@ class Order(models.Model):
     """Model for storing order information"""
     STATUS_CHOICES = (
         ('pending', 'Pending'),
+        ('scheduled', 'Scheduled'),
         ('approved', 'Approved'),
         ('paid', 'Paid'),
         ('completed', 'Completed'),
@@ -80,6 +81,7 @@ class Order(models.Model):
         ('arrived', 'Arrived'),
         ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled'),
+        ('rejected', 'Rejected'),
     )
 
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
@@ -88,6 +90,13 @@ class Order(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     notes = models.TextField(blank=True, null=True)
     prescription_image = models.ImageField(upload_to='order_prescriptions/', blank=True, null=True)
+    
+    # Scheduling fields
+    is_scheduled = models.BooleanField(default=False)
+    scheduled_for = models.DateTimeField(null=True, blank=True, help_text="When this order should be processed")
+    scheduled_message = models.TextField(blank=True, null=True, help_text="Customer message for scheduled order")
+    pharmacy_response = models.TextField(blank=True, null=True, help_text="Pharmacy response to scheduled order")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -107,6 +116,25 @@ class Order(models.Model):
         self.total_amount = total
         self.save()
         return total
+    
+    def can_be_scheduled(self):
+        """Check if this order can be scheduled (pharmacy is closed)"""
+        return not self.pharmacy.is_open_now()
+    
+    def get_next_opening_time(self):
+        """Get the next opening time for the pharmacy"""
+        return self.pharmacy.get_next_opening_time()
+    
+    def schedule_for_opening(self, message=""):
+        """Schedule this order for when the pharmacy opens"""
+        if self.can_be_scheduled():
+            self.is_scheduled = True
+            self.status = 'scheduled'
+            self.scheduled_for = self.get_next_opening_time()
+            self.scheduled_message = message
+            self.save()
+            return True
+        return False
 
 class OrderItem(models.Model):
     """Model for storing individual items in an order"""

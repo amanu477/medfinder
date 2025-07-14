@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Approve Scheduled Order #{{ order.id }} - {{ pharmacy.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-check-circle"></i> Approve Scheduled Order #{{ order.id }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <!-- Order Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6><strong>Customer Information:</strong></h6>
+                            <p class="mb-1"><strong>Name:</strong> {{ order.customer.name }}</p>
+                            <p class="mb-1"><strong>Email:</strong> {{ order.customer.email }}</p>
+                            <p class="mb-1"><strong>Phone:</strong> {{ order.customer.phone }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><strong>Order Information:</strong></h6>
+                            <p class="mb-1"><strong>Scheduled For:</strong> {{ order.scheduled_for|date:"M d, Y g:i A" }}</p>
+                            <p class="mb-1"><strong>Items:</strong> {{ order.get_total_items }} item{{ order.get_total_items|pluralize }}</p>
+                            <p class="mb-1"><strong>Total:</strong> {{ order.total_amount }} ETB</p>
+                        </div>
+                    </div>
+
+                    <!-- Customer Message -->
+                    {% if order.scheduled_message %}
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-comment"></i> Customer Message:</h6>
+                        <p class="mb-0">{{ order.scheduled_message }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Order Items -->
+                    <h6><strong>Order Items:</strong></h6>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Medicine</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.orderitem_set.all %}
+                                <tr>
+                                    <td>{{ item.medicine.name }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>{{ item.price }} ETB</td>
+                                    <td>{{ item.get_total_price }} ETB</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Prescription Image -->
+                    {% if order.prescription_image %}
+                    <div class="mb-4">
+                        <h6><strong>Prescription Image:</strong></h6>
+                        <img src="{{ order.prescription_image.url }}" alt="Prescription" class="img-fluid" style="max-width: 300px;">
+                    </div>
+                    {% endif %}
+
+                    <!-- Approval Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="pharmacy_response"><strong>Response Message (Optional):</strong></label>
+                            <textarea class="form-control" id="pharmacy_response" name="pharmacy_response" rows="3" 
+                                      placeholder="Add any message for the customer about their approved order..."></textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'scheduled_orders' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Scheduled Orders
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Approve Order
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

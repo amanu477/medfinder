@@ -1401,15 +1401,31 @@ def checkout_cart(request):
                         prescription_image = item.prescription_image
                         break
                 
-                # Create order with prescription image
-                order = Order.objects.create(
-                    customer=customer,
-                    pharmacy=pharmacy,
-                    total_amount=total_amount,
-                    status='pending',  # Wait for pharmacy approval
-                    prescription_image=prescription_image,
-                    notes=f'Order created from cart - {len(items)} items{"" if not prescription_image else " (with prescription)"}'
-                )
+                # Check if pharmacy is closed and create appropriate order
+                if not pharmacy.is_open_now():
+                    # Create scheduled order
+                    next_opening = pharmacy.get_next_opening_time()
+                    order = Order.objects.create(
+                        customer=customer,
+                        pharmacy=pharmacy,
+                        total_amount=total_amount,
+                        status='scheduled',
+                        prescription_image=prescription_image,
+                        is_scheduled=True,
+                        scheduled_for=next_opening,
+                        scheduled_message=f'Order scheduled for when {pharmacy.name} opens at {next_opening.strftime("%I:%M %p on %B %d, %Y")}',
+                        notes=f'Scheduled order from cart - {len(items)} items{"" if not prescription_image else " (with prescription)"}'
+                    )
+                else:
+                    # Create regular order
+                    order = Order.objects.create(
+                        customer=customer,
+                        pharmacy=pharmacy,
+                        total_amount=total_amount,
+                        status='pending',  # Wait for pharmacy approval
+                        prescription_image=prescription_image,
+                        notes=f'Order created from cart - {len(items)} items{"" if not prescription_image else " (with prescription)"}'
+                    )
                 
                 # Create order items
                 for cart_item in items:
@@ -1436,10 +1452,18 @@ def checkout_cart(request):
             cart.clear()
         
         if len(created_orders) == 1:
-            messages.success(request, f'Order #{created_orders[0].id} created successfully! Waiting for pharmacy approval.')
-            return redirect('order_detail', order_id=created_orders[0].id)
+            order = created_orders[0]
+            if order.is_scheduled:
+                messages.success(request, f'Order #{order.id} scheduled successfully! It will be processed when {order.pharmacy.name} opens at {order.scheduled_for.strftime("%I:%M %p on %B %d, %Y")}.')
+            else:
+                messages.success(request, f'Order #{order.id} created successfully! Waiting for pharmacy approval.')
+            return redirect('order_detail', order_id=order.id)
         else:
-            messages.success(request, f'Created {len(created_orders)} orders successfully! Waiting for pharmacy approval.')
+            scheduled_count = sum(1 for order in created_orders if order.is_scheduled)
+            if scheduled_count > 0:
+                messages.success(request, f'Created {len(created_orders)} orders successfully! {scheduled_count} orders scheduled for when pharmacies open, others waiting for approval.')
+            else:
+                messages.success(request, f'Created {len(created_orders)} orders successfully! Waiting for pharmacy approval.')
             return redirect('order_history')
             
     except Customer.DoesNotExist:

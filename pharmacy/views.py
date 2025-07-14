@@ -157,6 +157,13 @@ def dashboard(request):
     pending_orders_count = orders.filter(status='pending').count()
     recent_orders = orders[:5]
     
+    # Get scheduled orders count
+    scheduled_orders_count = Order.objects.filter(
+        pharmacy=pharmacy,
+        is_scheduled=True,
+        status='scheduled'
+    ).count()
+    
     # Calculate totals
     total_medicines = medicines.count()
     total_orders = orders.count()
@@ -171,6 +178,7 @@ def dashboard(request):
         'recent_prescriptions': prescriptions[:5],
         'orders': recent_orders,
         'pending_orders_count': pending_orders_count,
+        'scheduled_orders_count': scheduled_orders_count,
         'total_orders': total_orders,
     })
 
@@ -514,6 +522,89 @@ def track_order(request, order_id):
     
     return render(request, 'pharmacy/track_order.html', context)
 
+
+@login_required
+def scheduled_orders(request):
+    """View and manage scheduled orders for pharmacy"""
+    try:
+        pharmacy = request.user.pharmacy
+    except Pharmacy.DoesNotExist:
+        messages.error(request, 'Pharmacy profile not found.')
+        return redirect('pharmacy_login')
+    
+    # Get all scheduled orders for this pharmacy
+    scheduled_orders = Order.objects.filter(
+        pharmacy=pharmacy,
+        is_scheduled=True,
+        status='scheduled'
+    ).order_by('scheduled_for')
+    
+    context = {
+        'scheduled_orders': scheduled_orders,
+        'pharmacy': pharmacy,
+    }
+    
+    return render(request, 'pharmacy/scheduled_orders.html', context)
+
+@login_required
+def approve_scheduled_order(request, order_id):
+    """Approve a scheduled order"""
+    try:
+        pharmacy = request.user.pharmacy
+    except Pharmacy.DoesNotExist:
+        messages.error(request, 'Pharmacy profile not found.')
+        return redirect('pharmacy_login')
+    
+    order = get_object_or_404(Order, id=order_id, pharmacy=pharmacy, is_scheduled=True)
+    
+    if request.method == 'POST':
+        # Get pharmacy response message
+        pharmacy_response = request.POST.get('pharmacy_response', '')
+        
+        # Update order status
+        order.status = 'approved'
+        order.pharmacy_response = pharmacy_response
+        order.save()
+        
+        messages.success(request, f'Scheduled order #{order.id} has been approved successfully!')
+        return redirect('scheduled_orders')
+    
+    context = {
+        'order': order,
+        'pharmacy': pharmacy,
+    }
+    
+    return render(request, 'pharmacy/approve_scheduled_order.html', context)
+
+@login_required
+def reject_scheduled_order(request, order_id):
+    """Reject a scheduled order"""
+    try:
+        pharmacy = request.user.pharmacy
+    except Pharmacy.DoesNotExist:
+        messages.error(request, 'Pharmacy profile not found.')
+        return redirect('pharmacy_login')
+    
+    order = get_object_or_404(Order, id=order_id, pharmacy=pharmacy, is_scheduled=True)
+    
+    if request.method == 'POST':
+        # Get rejection reason
+        rejection_reason = request.POST.get('rejection_reason', '')
+        
+        # Update order status
+        order.status = 'rejected'
+        order.pharmacy_response = rejection_reason
+        order.save()
+        
+        messages.success(request, f'Scheduled order #{order.id} has been rejected.')
+        return redirect('scheduled_orders')
+    
+    context = {
+        'order': order,
+        'pharmacy': pharmacy,
+    }
+    
+    return render(request, 'pharmacy/reject_scheduled_order.html', context)
 
 def pharmacy_logout(request):
     """Custom logout view for pharmacy"""

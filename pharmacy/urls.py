@@ -32,6 +32,11 @@ urlpatterns = [
     path('orders/<int:order_id>/update/', views.update_order_status, name='update_order_status'),
     path('orders/<int:order_id>/track/', views.track_order, name='pharmacy_track_order'),
     
+    # Scheduled Orders
+    path('scheduled-orders/', views.scheduled_orders, name='scheduled_orders'),
+    path('scheduled-orders/<int:order_id>/approve/', views.approve_scheduled_order, name='approve_scheduled_order'),
+    path('scheduled-orders/<int:order_id>/reject/', views.reject_scheduled_order, name='reject_scheduled_order'),
+    
     # Receipts
     path('receipts/', views.pharmacy_receipts, name='pharmacy_receipts'),
     path('receipts/<int:receipt_id>/', views.pharmacy_receipt_detail, name='pharmacy_receipt_detail'),
