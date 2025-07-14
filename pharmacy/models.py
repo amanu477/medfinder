@@ -132,8 +132,12 @@ class Pharmacy(models.Model):
             return True
             
         from django.utils import timezone
-        # Use timezone-aware current time (Ethiopia time)
-        current_time = timezone.now().time()
+        from datetime import datetime, timedelta
+        
+        # Get current UTC time and convert to Ethiopian time (UTC+3)
+        utc_now = timezone.now()
+        ethiopian_time = utc_now + timedelta(hours=3)
+        current_time = ethiopian_time.time()
         
         # Handle case where pharmacy operates past midnight
         if self.opening_time <= self.closing_time:
@@ -161,11 +165,15 @@ class Pharmacy(models.Model):
             return None
             
         from django.utils import timezone
+        from datetime import timedelta
         
         if self.is_open_now():
             return None
         
-        current_time = timezone.now().time()
+        # Get current Ethiopian time
+        utc_now = timezone.now()
+        ethiopian_time = utc_now + timedelta(hours=3)
+        current_time = ethiopian_time.time()
         
         # Handle normal hours (opening_time <= closing_time)
         if self.opening_time <= self.closing_time:

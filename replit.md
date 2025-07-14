@@ -129,6 +129,16 @@ Preferred communication style: Simple, everyday language.
 - **Login Flow**: Users are automatically logged in after successful registration
 - **Success Messages**: Enhanced welcome messages for new users upon registration completion
 
+### Ethiopian Timezone Implementation (July 14, 2025)
+- **Completed**: Fixed pharmacy opening/closing hours to use proper Ethiopian time (EAT - UTC+3)
+- **Timezone Fix**: Updated Django settings to use Africa/Addis_Ababa timezone instead of UTC
+- **Time Calculation**: Modified pharmacy is_open_now() method to convert UTC to Ethiopian time (+3 hours)
+- **Accurate Status**: Pharmacy status now correctly shows "Open Now" or "Closed" based on Ethiopian business hours
+- **All Pharmacies**: Verified all pharmacy types work correctly - normal hours, overnight hours, and 24/7 operations
+- **Scheduled Orders**: Fixed scheduled order system to use Ethiopian time for proper pharmacy closure detection
+- **Test Coverage**: Created comprehensive test scripts to verify Ethiopian time accuracy across all pharmacies
+- **Real-time Updates**: Pharmacy status updates immediately when Ethiopian business hours change
+
 ### Comprehensive Form Validation Enhancement (July 11, 2025)
 - **Completed**: Enhanced all form validations across the entire platform with robust server-side and client-side validation
 - **Name Validation**: All name fields now accept only letters, numbers, spaces, dots, hyphens, apostrophes, ampersands, and forward slashes (for business names like "24/7 Health Center")
