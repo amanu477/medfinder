@@ -1173,7 +1173,7 @@ def add_to_cart(request, medicine_id):
                     defaults={
                         'quantity': quantity,
                         'prescription_image': prescription_image,
-                        'ocr_validation_data': ocr_result
+                        'validation_data': ocr_result
                     }
                 )
                 
@@ -1181,7 +1181,7 @@ def add_to_cart(request, medicine_id):
                     # Update existing cart item
                     cart_item.quantity += quantity
                     cart_item.prescription_image = prescription_image
-                    cart_item.ocr_validation_data = ocr_result
+                    cart_item.validation_data = ocr_result
                     cart_item.save()
                     messages.success(request, f'Updated {medicine.name} quantity in cart.')
                 else:
@@ -1200,7 +1200,7 @@ def add_to_cart(request, medicine_id):
                 defaults={
                     'quantity': quantity,
                     'prescription_image': None,
-                    'ocr_validation_data': None
+                    'validation_data': None
                 }
             )
             
@@ -1245,7 +1245,7 @@ def add_to_cart(request, medicine_id):
                     defaults={
                         'quantity': quantity,
                         'prescription_image': prescription_image,
-                        'ocr_validation_data': ocr_result
+                        'validation_data': ocr_result
                     }
                 )
                 
@@ -1253,7 +1253,7 @@ def add_to_cart(request, medicine_id):
                     # Update existing cart item
                     cart_item.quantity += quantity
                     cart_item.prescription_image = prescription_image
-                    cart_item.ocr_validation_data = ocr_result
+                    cart_item.validation_data = ocr_result
                     cart_item.save()
                     messages.success(request, f'Updated {medicine.name} quantity in cart.')
                 else:
@@ -1554,7 +1554,7 @@ def bulk_ocr_verification(request):
                         
                         # Update cart item with OCR result
                         cart_item.prescription_image = prescription_image
-                        cart_item.ocr_validation_data = ocr_result
+                        cart_item.validation_data = ocr_result
                         cart_item.save()
                         
                         # Store the prescription image path for later use in order creation

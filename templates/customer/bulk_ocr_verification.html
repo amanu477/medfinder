@@ -39,14 +39,14 @@
                                                 <p class="text-success mb-0">{{ item.get_total_price }} ETB</p>
                                                 
                                                 <!-- OCR Status -->
-                                                {% if item.ocr_validation_data %}
-                                                    {% if item.ocr_validation_data.is_valid %}
+                                                {% if item.validation_data %}
+                                                    {% if item.validation_data.is_valid %}
                                                         <span class="badge bg-success">
-                                                            <i class="fas fa-check"></i> Validated ({{ item.ocr_validation_data.confidence }}%)
+                                                            <i class="fas fa-check"></i> Validated ({{ item.validation_data.confidence }}%)
                                                         </span>
                                                     {% else %}
                                                         <span class="badge bg-warning">
-                                                            <i class="fas fa-exclamation-triangle"></i> Low Confidence ({{ item.ocr_validation_data.confidence }}%)
+                                                            <i class="fas fa-exclamation-triangle"></i> Low Confidence ({{ item.validation_data.confidence }}%)
                                                         </span>
                                                     {% endif %}
                                                 {% else %}

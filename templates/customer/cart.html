@@ -107,15 +107,15 @@
                                                 </div>
                                                 
                                                 <!-- OCR Validation Status -->
-                                                {% if item.ocr_validation_data %}
+                                                {% if item.validation_data %}
                                                     <div class="mt-2">
-                                                        {% if item.ocr_validation_data.is_valid %}
+                                                        {% if item.validation_data.is_valid %}
                                                             <span class="badge bg-success">
-                                                                <i class="fas fa-check-circle"></i> Prescription Validated ({{ item.ocr_validation_data.confidence }}%)
+                                                                <i class="fas fa-check-circle"></i> Prescription Validated ({{ item.validation_data.confidence }}%)
                                                             </span>
                                                         {% else %}
                                                             <span class="badge bg-warning">
-                                                                <i class="fas fa-exclamation-triangle"></i> Prescription Warning ({{ item.ocr_validation_data.confidence }}%)
+                                                                <i class="fas fa-exclamation-triangle"></i> Prescription Warning ({{ item.validation_data.confidence }}%)
                                                             </span>
                                                         {% endif %}
                                                     </div>
@@ -139,15 +139,15 @@
                                                         <p>No prescription image available.</p>
                                                     {% endif %}
                                                     
-                                                    {% if item.ocr_validation_data %}
+                                                    {% if item.validation_data %}
                                                         <div class="mt-3">
                                                             <h6>OCR Validation Results:</h6>
-                                                            <p><strong>Confidence:</strong> {{ item.ocr_validation_data.confidence }}%</p>
-                                                            <p><strong>Valid:</strong> {{ item.ocr_validation_data.is_valid|yesno:"Yes,No" }}</p>
-                                                            {% if item.ocr_validation_data.extracted_text %}
+                                                            <p><strong>Confidence:</strong> {{ item.validation_data.confidence }}%</p>
+                                                            <p><strong>Valid:</strong> {{ item.validation_data.is_valid|yesno:"Yes,No" }}</p>
+                                                            {% if item.validation_data.extracted_text %}
                                                                 <p><strong>Extracted Text:</strong></p>
                                                                 <div class="bg-light p-2 rounded">
-                                                                    <small>{{ item.ocr_validation_data.extracted_text }}</small>
+                                                                    <small>{{ item.validation_data.extracted_text }}</small>
                                                                 </div>
                                                             {% endif %}
                                                         </div>

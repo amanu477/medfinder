@@ -38,13 +38,13 @@ def ocr_validation_summary(request):
             
             pharmacy_results[pharmacy]['total_medicines'] += 1
             
-            if item.ocr_validation_data:
+            if item.validation_data:
                 medicine_data = {
                     'name': item.medicine.name,
-                    'confidence': item.ocr_validation_data.get('confidence', 0)
+                    'confidence': item.validation_data.get('confidence', 0)
                 }
                 
-                if item.ocr_validation_data.get('is_valid', False):
+                if item.validation_data.get('is_valid', False):
                     pharmacy_results[pharmacy]['validated_medicines'].append(medicine_data)
                     validated_count += 1
                 else:
