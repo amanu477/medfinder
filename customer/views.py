@@ -1404,7 +1404,22 @@ def checkout_cart(request):
                 # Check if pharmacy is closed and create appropriate order
                 if not pharmacy.is_open_now():
                     # Create scheduled order
-                    next_opening = pharmacy.get_next_opening_time()
+                    next_opening_text = pharmacy.get_next_opening_time()
+                    
+                    # Calculate actual next opening datetime for scheduled_for field
+                    from django.utils import timezone
+                    from datetime import datetime, timedelta
+                    
+                    utc_now = timezone.now()
+                    ethiopian_time = utc_now + timedelta(hours=3)
+                    
+                    # For scheduled_for, we'll use tomorrow's opening time
+                    tomorrow = ethiopian_time.date() + timedelta(days=1)
+                    scheduled_datetime = datetime.combine(tomorrow, pharmacy.opening_time)
+                    
+                    # Convert back to UTC for storage
+                    scheduled_datetime_utc = scheduled_datetime - timedelta(hours=3)
+                    
                     order = Order.objects.create(
                         customer=customer,
                         pharmacy=pharmacy,
@@ -1412,8 +1427,8 @@ def checkout_cart(request):
                         status='scheduled',
                         prescription_image=prescription_image,
                         is_scheduled=True,
-                        scheduled_for=next_opening,
-                        scheduled_message=f'Order scheduled for when {pharmacy.name} opens at {next_opening.strftime("%I:%M %p on %B %d, %Y")}',
+                        scheduled_for=scheduled_datetime_utc,
+                        scheduled_message=f'Order scheduled for when {pharmacy.name} {next_opening_text}',
                         notes=f'Scheduled order from cart - {len(items)} items{"" if not prescription_image else " (with prescription)"}'
                     )
                 else:
