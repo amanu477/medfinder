@@ -48,25 +48,97 @@ def check_python():
         print("   ✗ Python not found")
         return False
 
-def choose_database():
-    """Let user choose database type"""
-    print_step("2", "Choose Database Type")
-    print("   1. SQLite (Recommended for beginners)")
-    print("      - No setup required")
-    print("      - Single file database")
-    print("      - Perfect for development")
-    print()
-    print("   2. PostgreSQL (Recommended for production)")
-    print("      - Requires PostgreSQL installation")
-    print("      - Better performance")
-    print("      - Production ready")
-    print()
+def install_postgresql():
+    """Install PostgreSQL automatically"""
+    print_step("2", "Installing PostgreSQL")
     
-    while True:
-        choice = input("   Choose database (1 or 2): ").strip()
-        if choice in ['1', '2']:
-            return choice
-        print("   Please enter 1 or 2")
+    system = platform.system().lower()
+    
+    if system == "darwin":  # macOS
+        print("   → Installing PostgreSQL on macOS...")
+        if not run_command("brew --version", "Checking Homebrew", check=False):
+            print("   → Installing Homebrew first...")
+            homebrew_install = '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
+            if not run_command(homebrew_install, "Installing Homebrew"):
+                return False
+        
+        if not run_command("brew install postgresql@14", "Installing PostgreSQL"):
+            return False
+        if not run_command("brew services start postgresql@14", "Starting PostgreSQL service"):
+            return False
+            
+    elif system == "linux":  # Linux
+        print("   → Installing PostgreSQL on Linux...")
+        if not run_command("sudo apt update", "Updating package list"):
+            return False
+        if not run_command("sudo apt install -y postgresql postgresql-contrib", "Installing PostgreSQL"):
+            return False
+        if not run_command("sudo systemctl start postgresql", "Starting PostgreSQL service"):
+            return False
+        if not run_command("sudo systemctl enable postgresql", "Enabling PostgreSQL service"):
+            return False
+            
+    elif system == "windows":  # Windows
+        print("   → Windows detected")
+        print("   → Please install PostgreSQL manually:")
+        print("      1. Download from: https://www.postgresql.org/download/windows/")
+        print("      2. Install with default settings")
+        print("      3. Remember the postgres user password")
+        print("      4. Add PostgreSQL bin directory to PATH")
+        input("   → Press Enter when PostgreSQL is installed...")
+        
+    else:
+        print(f"   ✗ Unsupported operating system: {system}")
+        return False
+    
+    return True
+
+def setup_postgresql_database():
+    """Set up PostgreSQL database and user"""
+    print_step("3", "Setting up PostgreSQL database")
+    
+    db_name = "pharmacy_platform_db"
+    db_user = "pharmacy_user"
+    db_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(16))
+    
+    system = platform.system().lower()
+    
+    if system == "darwin":  # macOS
+        commands = [
+            f'createdb {db_name}',
+            f'psql postgres -c "CREATE USER {db_user} WITH PASSWORD \'{db_password}\';"',
+            f'psql postgres -c "GRANT ALL PRIVILEGES ON DATABASE {db_name} TO {db_user};"',
+            f'psql postgres -c "ALTER USER {db_user} CREATEDB;"'
+        ]
+        
+        for cmd in commands:
+            run_command(cmd, f"Executing database setup", check=False)
+    
+    elif system == "linux":  # Linux
+        commands = [
+            f'sudo -u postgres createdb {db_name}',
+            f'sudo -u postgres psql -c "CREATE USER {db_user} WITH PASSWORD \'{db_password}\';"',
+            f'sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE {db_name} TO {db_user};"',
+            f'sudo -u postgres psql -c "ALTER USER {db_user} CREATEDB;"'
+        ]
+        
+        for cmd in commands:
+            run_command(cmd, f"Executing database setup", check=False)
+    
+    elif system == "windows":  # Windows
+        print("   → Setting up database on Windows...")
+        print("   → Please run these commands in Command Prompt:")
+        print(f'      psql -U postgres -c "CREATE DATABASE {db_name};"')
+        print(f'      psql -U postgres -c "CREATE USER {db_user} WITH PASSWORD \'{db_password}\';"')
+        print(f'      psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE {db_name} TO {db_user};"')
+        input("   → Press Enter when database setup is complete...")
+    
+    print("   ✓ Database setup completed")
+    print(f"   → Database: {db_name}")
+    print(f"   → User: {db_user}")
+    print(f"   → Password: {db_password}")
+    
+    return db_name, db_user, db_password
 
 def setup_virtual_environment():
     """Create virtual environment"""
@@ -120,30 +192,29 @@ def install_dependencies(pip_cmd):
     
     return True
 
-def create_env_file(db_choice):
-    """Create environment configuration file"""
+def create_env_file(db_name, db_user, db_password):
+    """Create environment configuration file with PostgreSQL"""
     print_step("5", "Creating environment configuration")
     
     secret_key = ''.join(secrets.choice(string.ascii_letters + string.digits + '!@#$%^&*(-_=+)') for _ in range(50))
-    
-    if db_choice == "1":  # SQLite
-        database_url = "sqlite:///db.sqlite3"
-        print("   ✓ Configured for SQLite database")
-    else:  # PostgreSQL
-        database_url = "postgresql://pharmacy_user:secure_password@localhost:5432/pharmacy_db"
-        print("   ✓ Configured for PostgreSQL database")
-        print("   ⚠ You need to set up PostgreSQL database manually")
+    database_url = f"postgresql://{db_user}:{db_password}@localhost:5432/{db_name}"
     
     env_content = f"""DEBUG=True
 SECRET_KEY={secret_key}
 DATABASE_URL={database_url}
 ALLOWED_HOSTS=localhost,127.0.0.1
+POSTGRES_DB={db_name}
+POSTGRES_USER={db_user}
+POSTGRES_PASSWORD={db_password}
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
 """
     
     with open('.env', 'w') as f:
         f.write(env_content)
     
     print("   ✓ Environment file created (.env)")
+    print("   ✓ Configured for PostgreSQL database")
     return database_url
 
 def create_directories():
@@ -164,11 +235,11 @@ def create_directories():
     
     print("   ✓ Media directories created")
 
-def setup_database(python_cmd, db_choice):
-    """Set up database"""
-    print_step("7", "Setting up database")
+def setup_database(python_cmd):
+    """Set up Django database with PostgreSQL"""
+    print_step("7", "Setting up Django database")
     
-    # Clean start
+    # Clean start - remove SQLite if exists
     if os.path.exists('db.sqlite3'):
         os.remove('db.sqlite3')
         print("   ✓ Removed existing SQLite database")
@@ -195,9 +266,35 @@ def setup_database(python_cmd, db_choice):
     
     return True
 
+def test_database_connection(python_cmd):
+    """Test PostgreSQL database connection"""
+    print_step("8", "Testing database connection")
+    
+    test_script = '''
+import os
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'pharmacy_finder.settings')
+django.setup()
+
+from django.db import connection
+
+try:
+    cursor = connection.cursor()
+    cursor.execute("SELECT 1")
+    print("Database connection successful")
+except Exception as e:
+    print(f"Database connection failed: {e}")
+'''
+    
+    with open('test_db_temp.py', 'w') as f:
+        f.write(test_script)
+    
+    run_command(f"{python_cmd} test_db_temp.py", "Testing PostgreSQL connection")
+    os.remove('test_db_temp.py')
+
 def create_admin_user(python_cmd):
     """Create admin user"""
-    print_step("8", "Creating admin user")
+    print_step("9", "Creating admin user")
     
     admin_script = '''
 import os
@@ -224,7 +321,7 @@ else:
 
 def load_sample_data(python_cmd):
     """Load sample data"""
-    print_step("9", "Loading sample data")
+    print_step("10", "Loading sample data")
     
     if os.path.exists('load_all_data.py'):
         run_command(f"{python_cmd} load_all_data.py", "Loading comprehensive sample data", check=False)
@@ -233,15 +330,20 @@ def load_sample_data(python_cmd):
     else:
         print("   ℹ Sample data scripts not found, skipping")
 
-def show_instructions(python_cmd, database_url, db_choice):
+def show_instructions(python_cmd, database_url, db_name, db_user, db_password):
     """Show final instructions"""
     print_header("Installation Complete!")
     
-    print("\n🎉 Ethiopian Pharmacy Platform is ready!")
+    print("\n🎉 Ethiopian Pharmacy Platform with PostgreSQL is ready!")
     print("\n📋 Next Steps:")
-    print("   1. Start the server:")
+    print("   1. Activate virtual environment:")
+    if platform.system() == "Windows":
+        print("      pharmacy_env\\Scripts\\activate")
+    else:
+        print("      source pharmacy_env/bin/activate")
+    print("   2. Start the server:")
     print(f"      {python_cmd} manage.py runserver")
-    print("\n   2. Open your browser:")
+    print("\n   3. Open your browser:")
     print("      http://localhost:8000")
     
     print("\n🔑 Login Accounts:")
@@ -252,15 +354,18 @@ def show_instructions(python_cmd, database_url, db_choice):
     print("   • MoH Portal: http://localhost:8000/moh/login/")
     print("   • Delivery Portal: http://localhost:8000/delivery/login/")
     
-    print("\n💾 Database Information:")
-    if db_choice == "1":
-        print("   • Type: SQLite")
-        print("   • Location: db.sqlite3")
-        print("   • Backup: Copy db.sqlite3 file")
-    else:
-        print("   • Type: PostgreSQL")
-        print("   • URL: postgresql://pharmacy_user:secure_password@localhost:5432/pharmacy_db")
-        print("   • Setup Required: Create database manually")
+    print("\n💾 PostgreSQL Database Information:")
+    print(f"   • Database: {db_name}")
+    print(f"   • User: {db_user}")
+    print(f"   • Password: {db_password}")
+    print(f"   • Host: localhost")
+    print(f"   • Port: 5432")
+    print(f"   • Full URL: {database_url}")
+    
+    print("\n🔧 Database Management:")
+    print(f"   • Connect: psql -h localhost -U {db_user} -d {db_name}")
+    print(f"   • Backup: pg_dump -h localhost -U {db_user} {db_name} > backup.sql")
+    print(f"   • Restore: psql -h localhost -U {db_user} {db_name} < backup.sql")
     
     print("\n🔧 Optional: Install Tesseract OCR for prescription scanning")
     print("   • Windows: https://github.com/UB-Mannheim/tesseract/wiki")
@@ -269,9 +374,9 @@ def show_instructions(python_cmd, database_url, db_choice):
     
     print("\n📁 Project Structure:")
     print("   • Virtual Environment: pharmacy_env/")
-    print("   • Database: db.sqlite3 (if SQLite)")
+    print("   • PostgreSQL Database: (server-based)")
     print("   • Media Files: media/")
-    print("   • Configuration: .env")
+    print("   • Configuration: .env (contains database credentials)")
     
     print("\n✨ Platform Features:")
     print("   • Medicine search and ordering")
@@ -281,21 +386,28 @@ def show_instructions(python_cmd, database_url, db_choice):
     print("   • Delivery tracking with QR codes")
     print("   • Multi-user management system")
     print("   • Ethiopian timezone support")
+    print("   • Production-ready PostgreSQL database")
     
     print("\n🚀 The platform is ready for use!")
+    print("   Keep the .env file secure - it contains database credentials")
 
 def main():
     """Main installation function"""
-    print_header("Ethiopian Pharmacy Platform - Complete Setup")
-    print("Welcome! This script will install everything automatically.")
+    print_header("Ethiopian Pharmacy Platform - PostgreSQL Setup")
+    print("Welcome! This script will install everything with PostgreSQL database.")
     
     # Check Python
     if not check_python():
         print("❌ Please install Python 3.8+ first")
         return False
     
-    # Choose database
-    db_choice = choose_database()
+    # Install PostgreSQL
+    if not install_postgresql():
+        print("❌ PostgreSQL installation failed")
+        return False
+    
+    # Setup PostgreSQL database
+    db_name, db_user, db_password = setup_postgresql_database()
     
     # Setup virtual environment
     result = setup_virtual_environment()
@@ -308,14 +420,17 @@ def main():
         return False
     
     # Create environment file
-    database_url = create_env_file(db_choice)
+    database_url = create_env_file(db_name, db_user, db_password)
     
     # Create directories
     create_directories()
     
-    # Setup database
-    if not setup_database(python_cmd, db_choice):
+    # Setup Django database
+    if not setup_database(python_cmd):
         return False
+    
+    # Test database connection
+    test_database_connection(python_cmd)
     
     # Create admin user
     create_admin_user(python_cmd)
@@ -324,7 +439,7 @@ def main():
     load_sample_data(python_cmd)
     
     # Show instructions
-    show_instructions(python_cmd, database_url, db_choice)
+    show_instructions(python_cmd, database_url, db_name, db_user, db_password)
     
     return True
 
