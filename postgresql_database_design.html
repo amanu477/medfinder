@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ethiopian Pharmacy Platform - PostgreSQL Database Design</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 24px;
+        }
+        .database-diagram {
+            width: 100%;
+            height: 1000px;
+            background: white;
+            border: 2px solid #34495e;
+            border-radius: 10px;
+            position: relative;
+            overflow: visible;
+        }
+        .table {
+            position: absolute;
+            background: #fff;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            min-width: 200px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .table-header {
+            background: #3498db;
+            color: white;
+            padding: 8px 12px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 6px 6px 0 0;
+        }
+        .table-body {
+            padding: 8px 12px;
+        }
+        .field {
+            margin: 4px 0;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .field-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .field-type {
+            color: #7f8c8d;
+            font-size: 11px;
+        }
+        .primary-key {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .foreign-key {
+            color: #9b59b6;
+            font-style: italic;
+        }
+        .connection-line {
+            position: absolute;
+            height: 2px;
+            background: #e74c3c;
+            z-index: 1;
+        }
+        .connection-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #e74c3c;
+            border-radius: 50%;
+            z-index: 2;
+        }
+        .legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #ecf0f1;
+            border-radius: 8px;
+        }
+        .legend-item {
+            display: inline-block;
+            margin: 5px 15px;
+            font-size: 12px;
+        }
+        .legend-color {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ethiopian Pharmacy Platform - PostgreSQL Database Design</h1>
+        
+        <div class="database-diagram">
+            <!-- User Table (Django Auth) -->
+            <div class="table" style="top: 20px; left: 50px;">
+                <div class="table-header">auth_user</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">username</span>
+                        <span class="field-type">VARCHAR(150)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">email</span>
+                        <span class="field-type">VARCHAR(254)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">password</span>
+                        <span class="field-type">VARCHAR(128)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">first_name</span>
+                        <span class="field-type">VARCHAR(150)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">last_name</span>
+                        <span class="field-type">VARCHAR(150)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">is_active</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">date_joined</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Table -->
+            <div class="table" style="top: 20px; left: 320px;">
+                <div class="table-header">customer_customer</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">user_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">name</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">email</span>
+                        <span class="field-type">VARCHAR(254)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">phone</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">address</span>
+                        <span class="field-type">TEXT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">latitude</span>
+                        <span class="field-type">DECIMAL(10,8)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">longitude</span>
+                        <span class="field-type">DECIMAL(11,8)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">is_verified</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">created_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pharmacy Table -->
+            <div class="table" style="top: 20px; left: 580px;">
+                <div class="table-header">pharmacy_pharmacy</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">user_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">name</span>
+                        <span class="field-type">VARCHAR(200)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">license_number</span>
+                        <span class="field-type">VARCHAR(50)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">owner_name</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">address</span>
+                        <span class="field-type">TEXT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">phone</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">latitude</span>
+                        <span class="field-type">DECIMAL(10,8)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">longitude</span>
+                        <span class="field-type">DECIMAL(11,8)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">is_verified</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">opening_time</span>
+                        <span class="field-type">TIME</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">closing_time</span>
+                        <span class="field-type">TIME</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Medicine Table -->
+            <div class="table" style="top: 340px; left: 580px;">
+                <div class="table-header">pharmacy_medicine</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">pharmacy_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">name</span>
+                        <span class="field-type">VARCHAR(200)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">generic_name</span>
+                        <span class="field-type">VARCHAR(200)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">dosage</span>
+                        <span class="field-type">VARCHAR(50)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">price</span>
+                        <span class="field-type">DECIMAL(10,2)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">stock_quantity</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">is_prescription_required</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">is_available</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Table -->
+            <div class="table" style="top: 340px; left: 320px;">
+                <div class="table-header">customer_order</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">customer_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">pharmacy_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">order_number</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">status</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">total_amount</span>
+                        <span class="field-type">DECIMAL(10,2)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">delivery_address</span>
+                        <span class="field-type">TEXT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">is_scheduled</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">scheduled_time</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">created_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OrderItem Table -->
+            <div class="table" style="top: 340px; left: 50px;">
+                <div class="table-header">customer_orderitem</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">order_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">medicine_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">quantity</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">price</span>
+                        <span class="field-type">DECIMAL(10,2)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">subtotal</span>
+                        <span class="field-type">DECIMAL(10,2)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cart Table -->
+            <div class="table" style="top: 520px; left: 320px;">
+                <div class="table-header">customer_cart</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">customer_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">prescription_image</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">created_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">updated_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CartItem Table -->
+            <div class="table" style="top: 520px; left: 50px;">
+                <div class="table-header">customer_cartitem</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">cart_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">medicine_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">quantity</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">validation_data</span>
+                        <span class="field-type">TEXT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">created_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Table -->
+            <div class="table" style="top: 680px; left: 320px;">
+                <div class="table-header">customer_payment</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">order_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">payment_method</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">payment_status</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">amount</span>
+                        <span class="field-type">DECIMAL(10,2)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">transaction_id</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">created_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Person Table -->
+            <div class="table" style="top: 20px; left: 850px;">
+                <div class="table-header">delivery_deliveryperson</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">user_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">pharmacy_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">employee_id</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">phone</span>
+                        <span class="field-type">VARCHAR(15)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">vehicle_type</span>
+                        <span class="field-type">VARCHAR(50)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">is_available</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">rating</span>
+                        <span class="field-type">DECIMAL(3,2)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">total_deliveries</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Delivery Table -->
+            <div class="table" style="top: 340px; left: 850px;">
+                <div class="table-header">delivery_delivery</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">order_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">delivery_person_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">status</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">delivery_address</span>
+                        <span class="field-type">TEXT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">estimated_delivery_time</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">actual_delivery_time</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">notes</span>
+                        <span class="field-type">TEXT</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">created_at</span>
+                        <span class="field-type">TIMESTAMP</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MoH Registry Table -->
+            <div class="table" style="top: 20px; left: 1120px;">
+                <div class="table-header">moh_mohpharmacyregistry</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">pharmacy_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">pharmacy_name</span>
+                        <span class="field-type">VARCHAR(200)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">license_number</span>
+                        <span class="field-type">VARCHAR(50)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">owner_name</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">pharmacist_name</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">region</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">license_status</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">compliance_score</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">verified_by</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MoH Officer Table -->
+            <div class="table" style="top: 380px; left: 1120px;">
+                <div class="table-header">moh_mohofficer</div>
+                <div class="table-body">
+                    <div class="field">
+                        <span class="field-name primary-key">id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name foreign-key">user_id</span>
+                        <span class="field-type">INTEGER</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">officer_id</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">name</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">department</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">position</span>
+                        <span class="field-type">VARCHAR(100)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">region</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">phone</span>
+                        <span class="field-type">VARCHAR(20)</span>
+                    </div>
+                    <div class="field">
+                        <span class="field-name">is_active</span>
+                        <span class="field-type">BOOLEAN</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection lines (simplified representation) -->
+            <div class="connection-line" style="top: 60px; left: 250px; width: 70px;"></div>
+            <div class="connection-line" style="top: 60px; left: 540px; width: 40px;"></div>
+            <div class="connection-line" style="top: 60px; left: 800px; width: 50px;"></div>
+            <div class="connection-line" style="top: 60px; left: 1070px; width: 50px;"></div>
+            
+            <div class="connection-dot" style="top: 56px; left: 246px;"></div>
+            <div class="connection-dot" style="top: 56px; left: 576px;"></div>
+            <div class="connection-dot" style="top: 56px; left: 846px;"></div>
+            <div class="connection-dot" style="top: 56px; left: 1116px;"></div>
+            
+        </div>
+
+        <div class="legend">
+            <h3>Database Schema Legend</h3>
+            <div class="legend-item">
+                <span class="legend-color primary-key" style="background: #e74c3c;"></span>
+                <strong>Primary Key</strong>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color foreign-key" style="background: #9b59b6;"></span>
+                <strong>Foreign Key</strong>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #3498db;"></span>
+                <strong>Table Header</strong>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color" style="background: #e74c3c;"></span>
+                <strong>Relationship Line</strong>
+            </div>
+            <br><br>
+            <div style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">
+                <strong>Database:</strong> pharmacy_platform_db | 
+                <strong>User:</strong> pharmacy_user | 
+                <strong>Host:</strong> localhost:5432 | 
+                <strong>Engine:</strong> PostgreSQL 14+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to capture the diagram as PNG
+        function captureDiagram() {
+            const diagram = document.querySelector('.database-diagram');
+            
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = 1400;
+            canvas.height = 1000;
+            
+            // Fill white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // This would require html2canvas library for full implementation
+            // For now, the HTML version serves as the visual representation
+            
+            return canvas.toDataURL('image/png');
+        }
+        
+        // Auto-capture after page loads
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                console.log('Database diagram ready for capture');
+                // The diagram is now ready to be saved as PNG
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
