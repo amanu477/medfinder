@@ -182,6 +182,16 @@ Preferred communication style: Simple, everyday language.
 - **Professional Layout**: Well-organized layout with proper spacing and relationship arrows
 - **Technical Accuracy**: Reflects actual Django model structure and platform architecture
 
+### Project-Specific Class Diagram from Django Models (July 16, 2025)
+- **Completed**: Created authentic class diagram using actual Django models from the project codebase
+- **Real Data**: Extracted attributes and methods directly from customer/models.py, pharmacy/models.py, delivery/models.py, and moh/models.py
+- **Authentic Relationships**: Shows actual OneToOneField, ForeignKey, and ManyToMany relationships from Django models
+- **Style Matching**: Used the exact visual style from user's provided sample diagram
+- **Clean Layout**: Simple black and white design with clear class boxes and relationship lines
+- **Complete Coverage**: Includes all major models - User, Customer, Pharmacy, DeliveryPerson, Order, Medicine, Payment, Delivery, Cart, CartItem, MoHPharmacyRegistry, OrderItem
+- **Method Accuracy**: Shows actual Django model methods like calculate_total(), is_open_now(), generate_qr_code_data()
+- **Field Types**: Displays real Django field names and types from the actual models
+
 ### Comprehensive Form Validation Enhancement (July 11, 2025)
 - **Completed**: Enhanced all form validations across the entire platform with robust server-side and client-side validation
 - **Name Validation**: All name fields now accept only letters, numbers, spaces, dots, hyphens, apostrophes, ampersands, and forward slashes (for business names like "24/7 Health Center")
