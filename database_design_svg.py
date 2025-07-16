@@ -9,7 +9,7 @@ def generate_database_svg():
     
     # SVG header
     svg_content = '''<?xml version="1.0" encoding="UTF-8"?>
-<svg width="1400" height="1000" xmlns="http://www.w3.org/2000/svg">
+<svg width="1200" height="1100" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <style>
       .table-header { fill: #3498db; stroke: #2980b9; stroke-width: 2; }
@@ -19,20 +19,20 @@ def generate_database_svg():
       .primary-key { fill: #e74c3c; font-weight: bold; }
       .foreign-key { fill: #9b59b6; font-style: italic; }
       .field-type { fill: #7f8c8d; font-size: 9px; }
-      .connection-line { stroke: #e74c3c; stroke-width: 2; }
       .title { font-family: Arial, sans-serif; font-size: 20px; font-weight: bold; fill: #2c3e50; }
       .subtitle { font-family: Arial, sans-serif; font-size: 12px; fill: #7f8c8d; }
     </style>
   </defs>
   
   <!-- Background -->
-  <rect width="1400" height="1000" fill="#f8f9fa"/>
+  <rect width="1200" height="1100" fill="#f8f9fa"/>
   
   <!-- Title -->
-  <text x="700" y="30" text-anchor="middle" class="title">Database Structure</text>
+  <text x="600" y="30" text-anchor="middle" class="title">Database Structure</text>
   
+  <!-- Row 1 - User Management Tables -->
   <!-- auth_user table -->
-  <g transform="translate(20,80)">
+  <g transform="translate(50,70)">
     <rect width="200" height="25" class="table-header"/>
     <text x="100" y="17" text-anchor="middle" class="table-text">auth_user</text>
     <rect y="25" width="200" height="180" class="table-body"/>
@@ -55,7 +55,7 @@ def generate_database_svg():
   </g>
   
   <!-- customer_customer table -->
-  <g transform="translate(260,80)">
+  <g transform="translate(300,70)">
     <rect width="200" height="25" class="table-header"/>
     <text x="100" y="17" text-anchor="middle" class="table-text">customer_customer</text>
     <rect y="25" width="200" height="210" class="table-body"/>
@@ -82,7 +82,7 @@ def generate_database_svg():
   </g>
   
   <!-- pharmacy_pharmacy table -->
-  <g transform="translate(500,80)">
+  <g transform="translate(550,70)">
     <rect width="200" height="25" class="table-header"/>
     <text x="100" y="17" text-anchor="middle" class="table-text">pharmacy_pharmacy</text>
     <rect y="25" width="200" height="240" class="table-body"/>
@@ -113,7 +113,7 @@ def generate_database_svg():
   </g>
   
   <!-- pharmacy_medicine table -->
-  <g transform="translate(740,80)">
+  <g transform="translate(800,70)">
     <rect width="200" height="25" class="table-header"/>
     <text x="100" y="17" text-anchor="middle" class="table-text">pharmacy_medicine</text>
     <rect y="25" width="200" height="195" class="table-body"/>
@@ -137,8 +137,9 @@ def generate_database_svg():
     <text x="150" y="162" class="field-type">BOOLEAN</text>
   </g>
   
+  <!-- Row 2 - Order Management Tables -->
   <!-- customer_order table -->
-  <g transform="translate(260,350)">
+  <g transform="translate(50,370)">
     <rect width="200" height="25" class="table-header"/>
     <text x="100" y="17" text-anchor="middle" class="table-text">customer_order</text>
     <rect y="25" width="200" height="210" class="table-body"/>
@@ -165,7 +166,7 @@ def generate_database_svg():
   </g>
   
   <!-- customer_payment table -->
-  <g transform="translate(260,600)">
+  <g transform="translate(300,370)">
     <rect width="200" height="25" class="table-header"/>
     <text x="100" y="17" text-anchor="middle" class="table-text">customer_payment</text>
     <rect y="25" width="200" height="150" class="table-body"/>
@@ -185,8 +186,47 @@ def generate_database_svg():
     <text x="150" y="132" class="field-type">TIMESTAMP</text>
   </g>
   
+  <!-- customer_cart table -->
+  <g transform="translate(550,370)">
+    <rect width="200" height="25" class="table-header"/>
+    <text x="100" y="17" text-anchor="middle" class="table-text">customer_cart</text>
+    <rect y="25" width="200" height="120" class="table-body"/>
+    <text x="10" y="42" class="field-text primary-key">id (PK)</text>
+    <text x="150" y="42" class="field-type">INTEGER</text>
+    <text x="10" y="57" class="field-text foreign-key">customer_id (FK)</text>
+    <text x="150" y="57" class="field-type">INTEGER</text>
+    <text x="10" y="72" class="field-text">prescription_image</text>
+    <text x="150" y="72" class="field-type">VARCHAR(100)</text>
+    <text x="10" y="87" class="field-text">prescription_text</text>
+    <text x="150" y="87" class="field-type">TEXT</text>
+    <text x="10" y="102" class="field-text">created_at</text>
+    <text x="150" y="102" class="field-type">TIMESTAMP</text>
+  </g>
+  
+  <!-- customer_cartitem table -->
+  <g transform="translate(800,370)">
+    <rect width="200" height="25" class="table-header"/>
+    <text x="100" y="17" text-anchor="middle" class="table-text">customer_cartitem</text>
+    <rect y="25" width="200" height="165" class="table-body"/>
+    <text x="10" y="42" class="field-text primary-key">id (PK)</text>
+    <text x="150" y="42" class="field-type">INTEGER</text>
+    <text x="10" y="57" class="field-text foreign-key">cart_id (FK)</text>
+    <text x="150" y="57" class="field-type">INTEGER</text>
+    <text x="10" y="72" class="field-text foreign-key">medicine_id (FK)</text>
+    <text x="150" y="72" class="field-type">INTEGER</text>
+    <text x="10" y="87" class="field-text">quantity</text>
+    <text x="150" y="87" class="field-type">INTEGER</text>
+    <text x="10" y="102" class="field-text">validation_data</text>
+    <text x="150" y="102" class="field-type">TEXT</text>
+    <text x="10" y="117" class="field-text">is_validated</text>
+    <text x="150" y="117" class="field-type">BOOLEAN</text>
+    <text x="10" y="132" class="field-text">created_at</text>
+    <text x="150" y="132" class="field-type">TIMESTAMP</text>
+  </g>
+  
+  <!-- Row 3 - Delivery & MoH Tables -->
   <!-- delivery_deliveryperson table -->
-  <g transform="translate(980,80)">
+  <g transform="translate(50,650)">
     <rect width="200" height="25" class="table-header"/>
     <text x="100" y="17" text-anchor="middle" class="table-text">delivery_deliveryperson</text>
     <rect y="25" width="200" height="195" class="table-body"/>
@@ -211,7 +251,7 @@ def generate_database_svg():
   </g>
   
   <!-- delivery_delivery table -->
-  <g transform="translate(980,350)">
+  <g transform="translate(300,650)">
     <rect width="200" height="25" class="table-header"/>
     <text x="100" y="17" text-anchor="middle" class="table-text">delivery_delivery</text>
     <rect y="25" width="200" height="195" class="table-body"/>
@@ -236,58 +276,56 @@ def generate_database_svg():
   </g>
   
   <!-- moh_mohpharmacyregistry table -->
-  <g transform="translate(1200,80)">
-    <rect width="180" height="25" class="table-header"/>
-    <text x="90" y="17" text-anchor="middle" class="table-text">moh_mohpharmacyregistry</text>
-    <rect y="25" width="180" height="225" class="table-body"/>
+  <g transform="translate(550,650)">
+    <rect width="200" height="25" class="table-header"/>
+    <text x="100" y="17" text-anchor="middle" class="table-text">moh_mohpharmacyregistry</text>
+    <rect y="25" width="200" height="225" class="table-body"/>
     <text x="10" y="42" class="field-text primary-key">id (PK)</text>
-    <text x="130" y="42" class="field-type">INTEGER</text>
+    <text x="150" y="42" class="field-type">INTEGER</text>
     <text x="10" y="57" class="field-text foreign-key">pharmacy_id (FK)</text>
-    <text x="130" y="57" class="field-type">INTEGER</text>
+    <text x="150" y="57" class="field-type">INTEGER</text>
     <text x="10" y="72" class="field-text">pharmacy_name</text>
-    <text x="130" y="72" class="field-type">VARCHAR(200)</text>
+    <text x="150" y="72" class="field-type">VARCHAR(200)</text>
     <text x="10" y="87" class="field-text">license_number</text>
-    <text x="130" y="87" class="field-type">VARCHAR(50)</text>
+    <text x="150" y="87" class="field-type">VARCHAR(50)</text>
     <text x="10" y="102" class="field-text">owner_name</text>
-    <text x="130" y="102" class="field-type">VARCHAR(100)</text>
+    <text x="150" y="102" class="field-type">VARCHAR(100)</text>
     <text x="10" y="117" class="field-text">pharmacist_name</text>
-    <text x="130" y="117" class="field-type">VARCHAR(100)</text>
+    <text x="150" y="117" class="field-type">VARCHAR(100)</text>
     <text x="10" y="132" class="field-text">region</text>
-    <text x="130" y="132" class="field-type">VARCHAR(20)</text>
+    <text x="150" y="132" class="field-type">VARCHAR(20)</text>
     <text x="10" y="147" class="field-text">license_status</text>
-    <text x="130" y="147" class="field-type">VARCHAR(20)</text>
+    <text x="150" y="147" class="field-type">VARCHAR(20)</text>
     <text x="10" y="162" class="field-text">compliance_score</text>
-    <text x="130" y="162" class="field-type">INTEGER</text>
+    <text x="150" y="162" class="field-type">INTEGER</text>
     <text x="10" y="177" class="field-text foreign-key">verified_by (FK)</text>
-    <text x="130" y="177" class="field-type">INTEGER</text>
+    <text x="150" y="177" class="field-type">INTEGER</text>
   </g>
   
-  <!-- Connection lines -->
-  <line x1="220" y1="150" x2="260" y2="150" class="connection-line"/>
-  <line x1="220" y1="150" x2="220" y2="200" class="connection-line"/>
-  <line x1="220" y1="200" x2="500" y2="200" class="connection-line"/>
-  <line x1="500" y1="200" x2="500" y2="150" class="connection-line"/>
-  
-  <line x1="600" y1="150" x2="600" y2="200" class="connection-line"/>
-  <line x1="600" y1="200" x2="740" y2="200" class="connection-line"/>
-  <line x1="740" y1="200" x2="740" y2="150" class="connection-line"/>
-  
-  <line x1="360" y1="290" x2="360" y2="350" class="connection-line"/>
-  <line x1="360" y1="560" x2="360" y2="600" class="connection-line"/>
-  
-  <line x1="700" y1="150" x2="700" y2="200" class="connection-line"/>
-  <line x1="700" y1="200" x2="980" y2="200" class="connection-line"/>
-  <line x1="980" y1="200" x2="980" y2="150" class="connection-line"/>
-  
-  <line x1="460" y1="450" x2="980" y2="450" class="connection-line"/>
-  
-  <line x1="700" y1="150" x2="700" y2="320" class="connection-line"/>
-  <line x1="700" y1="320" x2="1200" y2="320" class="connection-line"/>
-  <line x1="1200" y1="320" x2="1200" y2="150" class="connection-line"/>
+  <!-- moh_mohofficer table -->
+  <g transform="translate(800,650)">
+    <rect width="200" height="25" class="table-header"/>
+    <text x="100" y="17" text-anchor="middle" class="table-text">moh_mohofficer</text>
+    <rect y="25" width="200" height="165" class="table-body"/>
+    <text x="10" y="42" class="field-text primary-key">id (PK)</text>
+    <text x="150" y="42" class="field-type">INTEGER</text>
+    <text x="10" y="57" class="field-text foreign-key">user_id (FK)</text>
+    <text x="150" y="57" class="field-type">INTEGER</text>
+    <text x="10" y="72" class="field-text">officer_id</text>
+    <text x="150" y="72" class="field-type">VARCHAR(20)</text>
+    <text x="10" y="87" class="field-text">name</text>
+    <text x="150" y="87" class="field-type">VARCHAR(100)</text>
+    <text x="10" y="102" class="field-text">position</text>
+    <text x="150" y="102" class="field-type">VARCHAR(100)</text>
+    <text x="10" y="117" class="field-text">department</text>
+    <text x="150" y="117" class="field-type">VARCHAR(100)</text>
+    <text x="10" y="132" class="field-text">created_at</text>
+    <text x="150" y="132" class="field-type">TIMESTAMP</text>
+  </g>
   
   <!-- Legend -->
-  <g transform="translate(50,800)">
-    <rect width="300" height="150" fill="white" stroke="#bdc3c7" stroke-width="1"/>
+  <g transform="translate(50,970)">
+    <rect width="300" height="100" fill="white" stroke="#bdc3c7" stroke-width="1"/>
     <text x="150" y="20" text-anchor="middle" class="table-text" fill="#2c3e50">Legend</text>
     
     <rect x="20" y="35" width="15" height="15" fill="#e74c3c"/>
@@ -296,31 +334,26 @@ def generate_database_svg():
     <rect x="20" y="60" width="15" height="15" fill="#9b59b6"/>
     <text x="45" y="72" class="field-text">Foreign Key (FK)</text>
     
-    <rect x="20" y="85" width="15" height="15" fill="#3498db"/>
-    <text x="45" y="97" class="field-text">Table Header</text>
-    
-    <line x1="20" y1="115" x2="50" y2="115" stroke="#e74c3c" stroke-width="2"/>
-    <text x="60" y="120" class="field-text">Relationship</text>
+    <rect x="150" y="35" width="15" height="15" fill="#3498db"/>
+    <text x="175" y="47" class="field-text">Table Header</text>
   </g>
   
   <!-- Summary -->
-  <g transform="translate(400,800)">
-    <rect width="350" height="150" fill="white" stroke="#bdc3c7" stroke-width="1"/>
-    <text x="175" y="20" text-anchor="middle" class="table-text" fill="#2c3e50">Database Summary</text>
+  <g transform="translate(400,970)">
+    <rect width="500" height="100" fill="white" stroke="#bdc3c7" stroke-width="1"/>
+    <text x="250" y="20" text-anchor="middle" class="table-text" fill="#2c3e50">Database Summary</text>
     <text x="20" y="40" class="field-text">• 13 Core Tables</text>
     <text x="20" y="55" class="field-text">• Multi-user Authentication</text>
     <text x="20" y="70" class="field-text">• Customer Management</text>
-    <text x="20" y="85" class="field-text">• Pharmacy Operations</text>
-    <text x="20" y="100" class="field-text">• Medicine Inventory</text>
-    <text x="20" y="115" class="field-text">• Order Processing</text>
-    <text x="20" y="130" class="field-text">• Payment Integration</text>
-    <text x="200" y="40" class="field-text">• Delivery Tracking</text>
-    <text x="200" y="55" class="field-text">• MoH Verification</text>
-    <text x="200" y="70" class="field-text">• Complete Audit Trail</text>
-    <text x="200" y="85" class="field-text">• Ethiopian Timezone Support</text>
-    <text x="200" y="100" class="field-text">• OCR Prescription Validation</text>
-    <text x="200" y="115" class="field-text">• QR Code Payment System</text>
-    <text x="200" y="130" class="field-text">• Production-Ready PostgreSQL</text>
+    <text x="20" y="85" class="field-text">• Order Processing</text>
+    <text x="150" y="40" class="field-text">• Pharmacy Operations</text>
+    <text x="150" y="55" class="field-text">• Medicine Inventory</text>
+    <text x="150" y="70" class="field-text">• Payment Integration</text>
+    <text x="150" y="85" class="field-text">• Delivery Tracking</text>
+    <text x="280" y="40" class="field-text">• MoH Verification</text>
+    <text x="280" y="55" class="field-text">• OCR Prescription Validation</text>
+    <text x="280" y="70" class="field-text">• QR Code Payment System</text>
+    <text x="280" y="85" class="field-text">• Production-Ready PostgreSQL</text>
   </g>
   
 </svg>'''
@@ -336,7 +369,7 @@ def convert_svg_to_png():
         f.write(svg_content)
     
     print("✅ PostgreSQL Database Design diagram saved as 'ethiopian_pharmacy_postgresql_database_design.svg'")
-    print("📊 Diagram includes all 13 core tables with relationships and field details")
+    print("📊 Diagram includes all 13 core tables with complete field details")
     print("🎨 SVG format suitable for documentation and presentations")
     print("💡 To convert to PNG, use: convert ethiopian_pharmacy_postgresql_database_design.svg ethiopian_pharmacy_postgresql_database_design.png")
 
