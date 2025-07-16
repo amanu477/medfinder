@@ -1,0 +1,440 @@
+#!/usr/bin/env python3
+"""
+Generate Class Diagram for Ethiopian Pharmacy Platform
+Creates a comprehensive UML class diagram showing all main classes and their relationships
+"""
+
+def generate_class_diagram():
+    """Generate SVG class diagram"""
+    
+    svg_content = '''<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1600" height="1200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .class-box { fill: #e8f4f8; stroke: #3498db; stroke-width: 2; }
+      .class-header { fill: #3498db; stroke: #2980b9; stroke-width: 2; }
+      .class-name { font-family: Arial, sans-serif; font-size: 12px; fill: white; font-weight: bold; text-anchor: middle; }
+      .attribute-text { font-family: Arial, sans-serif; font-size: 9px; fill: #2c3e50; }
+      .method-text { font-family: Arial, sans-serif; font-size: 9px; fill: #2c3e50; }
+      .separator { stroke: #3498db; stroke-width: 1; }
+      .title { font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; fill: #2c3e50; text-anchor: middle; }
+      .association { stroke: #7f8c8d; stroke-width: 1.5; fill: none; }
+      .inheritance { stroke: #e74c3c; stroke-width: 2; fill: none; }
+      .composition { stroke: #9b59b6; stroke-width: 2; fill: none; }
+      .aggregation { stroke: #f39c12; stroke-width: 2; fill: none; }
+      .relationship-label { font-family: Arial, sans-serif; font-size: 8px; fill: #7f8c8d; text-anchor: middle; }
+      .multiplicity { font-family: Arial, sans-serif; font-size: 8px; fill: #e74c3c; }
+    </style>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1600" height="1200" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="800" y="30" class="title">Ethiopian Pharmacy Platform - Class Diagram</text>
+  
+  <!-- User Class (Base) -->
+  <g transform="translate(50,70)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">User</text>
+    <rect y="25" width="200" height="120" class="class-box"/>
+    <line x1="0" y1="80" x2="200" y2="80" class="separator"/>
+    <line x1="0" y1="110" x2="200" y2="110" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- id: int</text>
+    <text x="10" y="55" class="attribute-text">- username: string</text>
+    <text x="10" y="68" class="attribute-text">- email: string</text>
+    <text x="10" y="93" class="attribute-text">+ authenticate()</text>
+    <text x="10" y="106" class="attribute-text">+ save()</text>
+    <text x="10" y="125" class="attribute-text">+ delete()</text>
+  </g>
+  
+  <!-- Customer Class -->
+  <g transform="translate(50,220)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">Customer</text>
+    <rect y="25" width="200" height="180" class="class-box"/>
+    <line x1="0" y1="125" x2="200" y2="125" class="separator"/>
+    <line x1="0" y1="170" x2="200" y2="170" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- name: string</text>
+    <text x="10" y="55" class="attribute-text">- phone: string</text>
+    <text x="10" y="68" class="attribute-text">- address: string</text>
+    <text x="10" y="81" class="attribute-text">- latitude: decimal</text>
+    <text x="10" y="94" class="attribute-text">- longitude: decimal</text>
+    <text x="10" y="107" class="attribute-text">- is_verified: boolean</text>
+    <text x="10" y="120" class="attribute-text">- created_at: datetime</text>
+    
+    <!-- Methods -->
+    <text x="10" y="142" class="method-text">+ place_order()</text>
+    <text x="10" y="155" class="method-text">+ search_medicines()</text>
+    <text x="10" y="185" class="method-text">+ update_location()</text>
+    <text x="10" y="198" class="method-text">+ view_order_history()</text>
+  </g>
+  
+  <!-- Pharmacy Class -->
+  <g transform="translate(300,220)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">Pharmacy</text>
+    <rect y="25" width="200" height="200" class="class-box"/>
+    <line x1="0" y1="145" x2="200" y2="145" class="separator"/>
+    <line x1="0" y1="185" x2="200" y2="185" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- name: string</text>
+    <text x="10" y="55" class="attribute-text">- license_number: string</text>
+    <text x="10" y="68" class="attribute-text">- owner_name: string</text>
+    <text x="10" y="81" class="attribute-text">- address: string</text>
+    <text x="10" y="94" class="attribute-text">- phone: string</text>
+    <text x="10" y="107" class="attribute-text">- latitude: decimal</text>
+    <text x="10" y="120" class="attribute-text">- longitude: decimal</text>
+    <text x="10" y="133" class="attribute-text">- is_verified: boolean</text>
+    
+    <!-- Methods -->
+    <text x="10" y="160" class="method-text">+ is_open_now()</text>
+    <text x="10" y="173" class="method-text">+ process_order()</text>
+    <text x="10" y="200" class="method-text">+ manage_inventory()</text>
+    <text x="10" y="213" class="method-text">+ set_opening_hours()</text>
+  </g>
+  
+  <!-- DeliveryPerson Class -->
+  <g transform="translate(550,220)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">DeliveryPerson</text>
+    <rect y="25" width="200" height="160" class="class-box"/>
+    <line x1="0" y1="105" x2="200" y2="105" class="separator"/>
+    <line x1="0" y1="145" x2="200" y2="145" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- employee_id: string</text>
+    <text x="10" y="55" class="attribute-text">- phone: string</text>
+    <text x="10" y="68" class="attribute-text">- vehicle_type: string</text>
+    <text x="10" y="81" class="attribute-text">- is_available: boolean</text>
+    <text x="10" y="94" class="attribute-text">- rating: decimal</text>
+    
+    <!-- Methods -->
+    <text x="10" y="120" class="method-text">+ accept_delivery()</text>
+    <text x="10" y="133" class="method-text">+ update_status()</text>
+    <text x="10" y="160" class="method-text">+ scan_qr_code()</text>
+    <text x="10" y="173" class="method-text">+ complete_delivery()</text>
+  </g>
+  
+  <!-- MoHOfficer Class -->
+  <g transform="translate(800,220)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">MoHOfficer</text>
+    <rect y="25" width="200" height="140" class="class-box"/>
+    <line x1="0" y1="85" x2="200" y2="85" class="separator"/>
+    <line x1="0" y1="125" x2="200" y2="125" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- officer_id: string</text>
+    <text x="10" y="55" class="attribute-text">- name: string</text>
+    <text x="10" y="68" class="attribute-text">- position: string</text>
+    <text x="10" y="81" class="attribute-text">- department: string</text>
+    
+    <!-- Methods -->
+    <text x="10" y="100" class="method-text">+ verify_license()</text>
+    <text x="10" y="113" class="method-text">+ monitor_compliance()</text>
+    <text x="10" y="140" class="method-text">+ generate_reports()</text>
+    <text x="10" y="153" class="method-text">+ update_registry()</text>
+  </g>
+  
+  <!-- Medicine Class -->
+  <g transform="translate(50,450)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">Medicine</text>
+    <rect y="25" width="200" height="160" class="class-box"/>
+    <line x1="0" y1="105" x2="200" y2="105" class="separator"/>
+    <line x1="0" y1="145" x2="200" y2="145" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- name: string</text>
+    <text x="10" y="55" class="attribute-text">- generic_name: string</text>
+    <text x="10" y="68" class="attribute-text">- dosage: string</text>
+    <text x="10" y="81" class="attribute-text">- price: decimal</text>
+    <text x="10" y="94" class="attribute-text">- stock_quantity: int</text>
+    
+    <!-- Methods -->
+    <text x="10" y="120" class="method-text">+ is_available()</text>
+    <text x="10" y="133" class="method-text">+ update_stock()</text>
+    <text x="10" y="160" class="method-text">+ calculate_price()</text>
+    <text x="10" y="173" class="method-text">+ validate_prescription()</text>
+  </g>
+  
+  <!-- Order Class -->
+  <g transform="translate(300,450)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">Order</text>
+    <rect y="25" width="200" height="180" class="class-box"/>
+    <line x1="0" y1="125" x2="200" y2="125" class="separator"/>
+    <line x1="0" y1="165" x2="200" y2="165" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- order_number: string</text>
+    <text x="10" y="55" class="attribute-text">- status: string</text>
+    <text x="10" y="68" class="attribute-text">- total_amount: decimal</text>
+    <text x="10" y="81" class="attribute-text">- delivery_address: string</text>
+    <text x="10" y="94" class="attribute-text">- is_scheduled: boolean</text>
+    <text x="10" y="107" class="attribute-text">- scheduled_time: datetime</text>
+    <text x="10" y="120" class="attribute-text">- created_at: datetime</text>
+    
+    <!-- Methods -->
+    <text x="10" y="140" class="method-text">+ calculate_total()</text>
+    <text x="10" y="153" class="method-text">+ update_status()</text>
+    <text x="10" y="180" class="method-text">+ schedule_delivery()</text>
+    <text x="10" y="193" class="method-text">+ generate_qr_code()</text>
+  </g>
+  
+  <!-- Payment Class -->
+  <g transform="translate(550,450)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">Payment</text>
+    <rect y="25" width="200" height="140" class="class-box"/>
+    <line x1="0" y1="85" x2="200" y2="85" class="separator"/>
+    <line x1="0" y1="125" x2="200" y2="125" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- payment_method: string</text>
+    <text x="10" y="55" class="attribute-text">- payment_status: string</text>
+    <text x="10" y="68" class="attribute-text">- amount: decimal</text>
+    <text x="10" y="81" class="attribute-text">- transaction_id: string</text>
+    
+    <!-- Methods -->
+    <text x="10" y="100" class="method-text">+ process_payment()</text>
+    <text x="10" y="113" class="method-text">+ verify_transaction()</text>
+    <text x="10" y="140" class="method-text">+ generate_receipt()</text>
+    <text x="10" y="153" class="method-text">+ refund_payment()</text>
+  </g>
+  
+  <!-- Delivery Class -->
+  <g transform="translate(800,450)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">Delivery</text>
+    <rect y="25" width="200" height="160" class="class-box"/>
+    <line x1="0" y1="105" x2="200" y2="105" class="separator"/>
+    <line x1="0" y1="145" x2="200" y2="145" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- status: string</text>
+    <text x="10" y="55" class="attribute-text">- delivery_address: string</text>
+    <text x="10" y="68" class="attribute-text">- estimated_time: datetime</text>
+    <text x="10" y="81" class="attribute-text">- actual_time: datetime</text>
+    <text x="10" y="94" class="attribute-text">- notes: string</text>
+    
+    <!-- Methods -->
+    <text x="10" y="120" class="method-text">+ assign_delivery_person()</text>
+    <text x="10" y="133" class="method-text">+ update_status()</text>
+    <text x="10" y="160" class="method-text">+ track_location()</text>
+    <text x="10" y="173" class="method-text">+ confirm_delivery()</text>
+  </g>
+  
+  <!-- Cart Class -->
+  <g transform="translate(50,650)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">Cart</text>
+    <rect y="25" width="200" height="140" class="class-box"/>
+    <line x1="0" y1="85" x2="200" y2="85" class="separator"/>
+    <line x1="0" y1="125" x2="200" y2="125" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- prescription_image: string</text>
+    <text x="10" y="55" class="attribute-text">- prescription_text: string</text>
+    <text x="10" y="68" class="attribute-text">- created_at: datetime</text>
+    
+    <!-- Methods -->
+    <text x="10" y="100" class="method-text">+ add_item()</text>
+    <text x="10" y="113" class="method-text">+ remove_item()</text>
+    <text x="10" y="140" class="method-text">+ validate_prescription()</text>
+    <text x="10" y="153" class="method-text">+ checkout()</text>
+  </g>
+  
+  <!-- CartItem Class -->
+  <g transform="translate(300,650)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">CartItem</text>
+    <rect y="25" width="200" height="140" class="class-box"/>
+    <line x1="0" y1="85" x2="200" y2="85" class="separator"/>
+    <line x1="0" y1="125" x2="200" y2="125" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- quantity: int</text>
+    <text x="10" y="55" class="attribute-text">- validation_data: string</text>
+    <text x="10" y="68" class="attribute-text">- is_validated: boolean</text>
+    
+    <!-- Methods -->
+    <text x="10" y="100" class="method-text">+ update_quantity()</text>
+    <text x="10" y="113" class="method-text">+ validate_ocr()</text>
+    <text x="10" y="140" class="method-text">+ calculate_subtotal()</text>
+    <text x="10" y="153" class="method-text">+ get_total_price()</text>
+  </g>
+  
+  <!-- MoHPharmacyRegistry Class -->
+  <g transform="translate(550,650)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">MoHPharmacyRegistry</text>
+    <rect y="25" width="200" height="160" class="class-box"/>
+    <line x1="0" y1="105" x2="200" y2="105" class="separator"/>
+    <line x1="0" y1="145" x2="200" y2="145" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- pharmacy_name: string</text>
+    <text x="10" y="55" class="attribute-text">- license_number: string</text>
+    <text x="10" y="68" class="attribute-text">- owner_name: string</text>
+    <text x="10" y="81" class="attribute-text">- license_status: string</text>
+    <text x="10" y="94" class="attribute-text">- compliance_score: int</text>
+    
+    <!-- Methods -->
+    <text x="10" y="120" class="method-text">+ verify_license()</text>
+    <text x="10" y="133" class="method-text">+ update_compliance()</text>
+    <text x="10" y="160" class="method-text">+ generate_report()</text>
+    <text x="10" y="173" class="method-text">+ check_validity()</text>
+  </g>
+  
+  <!-- OCRService Class -->
+  <g transform="translate(800,650)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">OCRService</text>
+    <rect y="25" width="200" height="140" class="class-box"/>
+    <line x1="0" y1="65" x2="200" y2="65" class="separator"/>
+    <line x1="0" y1="105" x2="200" y2="105" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- confidence_threshold: float</text>
+    <text x="10" y="55" class="attribute-text">- supported_formats: list</text>
+    
+    <!-- Methods -->
+    <text x="10" y="80" class="method-text">+ extract_text()</text>
+    <text x="10" y="93" class="method-text">+ validate_medicines()</text>
+    <text x="10" y="120" class="method-text">+ fuzzy_match()</text>
+    <text x="10" y="133" class="method-text">+ process_image()</text>
+    <text x="10" y="160" class="method-text">+ calculate_confidence()</text>
+  </g>
+  
+  <!-- QRCodeService Class -->
+  <g transform="translate(1050,650)">
+    <rect width="200" height="25" class="class-header"/>
+    <text x="100" y="17" class="class-name">QRCodeService</text>
+    <rect y="25" width="200" height="120" class="class-box"/>
+    <line x1="0" y1="45" x2="200" y2="45" class="separator"/>
+    <line x1="0" y1="85" x2="200" y2="85" class="separator"/>
+    
+    <!-- Attributes -->
+    <text x="10" y="42" class="attribute-text">- image_size: int</text>
+    
+    <!-- Methods -->
+    <text x="10" y="60" class="method-text">+ generate_qr()</text>
+    <text x="10" y="73" class="method-text">+ encode_payment_data()</text>
+    <text x="10" y="100" class="method-text">+ validate_qr()</text>
+    <text x="10" y="113" class="method-text">+ decode_data()</text>
+    <text x="10" y="130" class="method-text">+ create_base64_image()</text>
+  </g>
+  
+  <!-- Inheritance Relationships -->
+  <!-- Customer inherits from User -->
+  <line x1="150" y1="195" x2="150" y2="220" class="inheritance"/>
+  <polygon points="150,195 145,205 155,205" fill="#e74c3c"/>
+  
+  <!-- Pharmacy inherits from User -->
+  <line x1="150" y1="195" x2="400" y2="195" class="inheritance"/>
+  <line x1="400" y1="195" x2="400" y2="220" class="inheritance"/>
+  <polygon points="150,195 160,190 160,200" fill="#e74c3c"/>
+  
+  <!-- DeliveryPerson inherits from User -->
+  <line x1="150" y1="195" x2="650" y2="195" class="inheritance"/>
+  <line x1="650" y1="195" x2="650" y2="220" class="inheritance"/>
+  <polygon points="150,195 160,190 160,200" fill="#e74c3c"/>
+  
+  <!-- MoHOfficer inherits from User -->
+  <line x1="150" y1="195" x2="900" y2="195" class="inheritance"/>
+  <line x1="900" y1="195" x2="900" y2="220" class="inheritance"/>
+  <polygon points="150,195 160,190 160,200" fill="#e74c3c"/>
+  
+  <!-- Associations -->
+  <!-- Customer -> Order -->
+  <line x1="250" y1="310" x2="300" y2="540" class="association"/>
+  <text x="275" y="425" class="multiplicity">1</text>
+  <text x="275" y="535" class="multiplicity">*</text>
+  
+  <!-- Pharmacy -> Medicine -->
+  <line x1="300" y1="420" x2="250" y2="450" class="association"/>
+  <text x="275" y="435" class="multiplicity">1</text>
+  <text x="225" y="445" class="multiplicity">*</text>
+  
+  <!-- Order -> Payment -->
+  <line x1="500" y1="540" x2="550" y2="540" class="association"/>
+  <text x="525" y="535" class="multiplicity">1</text>
+  <text x="545" y="535" class="multiplicity">1</text>
+  
+  <!-- Order -> Delivery -->
+  <line x1="500" y1="540" x2="800" y2="540" class="association"/>
+  <text x="650" y="535" class="multiplicity">1</text>
+  <text x="795" y="535" class="multiplicity">1</text>
+  
+  <!-- Customer -> Cart -->
+  <line x1="150" y1="400" x2="150" y2="650" class="association"/>
+  <text x="145" y="525" class="multiplicity">1</text>
+  <text x="145" y="645" class="multiplicity">1</text>
+  
+  <!-- Cart -> CartItem -->
+  <line x1="250" y1="720" x2="300" y2="720" class="composition"/>
+  <polygon points="250,720 260,715 260,725" fill="#9b59b6"/>
+  <text x="275" y="715" class="multiplicity">1</text>
+  <text x="295" y="715" class="multiplicity">*</text>
+  
+  <!-- CartItem -> Medicine -->
+  <line x1="300" y1="720" x2="150" y2="610" class="association"/>
+  <text x="225" y="665" class="multiplicity">*</text>
+  <text x="145" y="605" class="multiplicity">1</text>
+  
+  <!-- DeliveryPerson -> Delivery -->
+  <line x1="650" y1="380" x2="800" y2="530" class="association"/>
+  <text x="725" y="455" class="multiplicity">1</text>
+  <text x="775" y="525" class="multiplicity">*</text>
+  
+  <!-- Pharmacy -> MoHPharmacyRegistry -->
+  <line x1="500" y1="320" x2="550" y2="730" class="association"/>
+  <text x="525" y="525" class="multiplicity">1</text>
+  <text x="545" y="725" class="multiplicity">1</text>
+  
+  <!-- Legend -->
+  <g transform="translate(1050,850)">
+    <rect width="300" height="120" fill="white" stroke="#bdc3c7" stroke-width="1"/>
+    <text x="150" y="20" class="class-name" fill="#2c3e50">Relationships</text>
+    
+    <line x1="20" y1="35" x2="60" y2="35" class="inheritance"/>
+    <polygon points="20,35 30,30 30,40" fill="#e74c3c"/>
+    <text x="70" y="40" class="attribute-text">Inheritance</text>
+    
+    <line x1="20" y1="55" x2="60" y2="55" class="association"/>
+    <text x="70" y="60" class="attribute-text">Association</text>
+    
+    <line x1="20" y1="75" x2="60" y2="75" class="composition"/>
+    <polygon points="20,75 30,70 30,80" fill="#9b59b6"/>
+    <text x="70" y="80" class="attribute-text">Composition</text>
+    
+    <text x="150" y="40" class="attribute-text">1, *, 0..1</text>
+    <text x="150" y="55" class="attribute-text">Multiplicity</text>
+  </g>
+  
+</svg>'''
+    
+    return svg_content
+
+def convert_to_png():
+    """Convert SVG to PNG"""
+    svg_content = generate_class_diagram()
+    
+    # Save SVG file
+    with open('ethiopian_pharmacy_class_diagram.svg', 'w') as f:
+        f.write(svg_content)
+    
+    print("✅ Class Diagram saved as 'ethiopian_pharmacy_class_diagram.svg'")
+    print("📊 Diagram includes all main classes with attributes and methods")
+    print("🔗 Shows inheritance, association, and composition relationships")
+    print("💡 Converting to PNG format...")
+
+if __name__ == "__main__":
+    convert_to_png()
