@@ -33,8 +33,8 @@ def generate_class_diagram():
   <!-- Title -->
   <text x="800" y="30" class="title">Ethiopian Pharmacy Platform - Class Diagram</text>
   
-  <!-- User Class (Base) -->
-  <g transform="translate(50,70)">
+  <!-- User Class (Base) - Centered at top -->
+  <g transform="translate(650,70)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">User</text>
     <rect y="25" width="200" height="120" class="class-box"/>
@@ -50,8 +50,8 @@ def generate_class_diagram():
     <text x="10" y="125" class="attribute-text">+ delete()</text>
   </g>
   
-  <!-- Customer Class -->
-  <g transform="translate(50,220)">
+  <!-- Customer Class - Top left -->
+  <g transform="translate(50,250)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">Customer</text>
     <rect y="25" width="200" height="180" class="class-box"/>
@@ -74,8 +74,8 @@ def generate_class_diagram():
     <text x="10" y="198" class="method-text">+ view_order_history()</text>
   </g>
   
-  <!-- Pharmacy Class -->
-  <g transform="translate(300,220)">
+  <!-- Pharmacy Class - Top center-left -->
+  <g transform="translate(350,250)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">Pharmacy</text>
     <rect y="25" width="200" height="200" class="class-box"/>
@@ -99,8 +99,8 @@ def generate_class_diagram():
     <text x="10" y="213" class="method-text">+ set_opening_hours()</text>
   </g>
   
-  <!-- DeliveryPerson Class -->
-  <g transform="translate(550,220)">
+  <!-- DeliveryPerson Class - Top center-right -->
+  <g transform="translate(650,250)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">DeliveryPerson</text>
     <rect y="25" width="200" height="160" class="class-box"/>
@@ -121,8 +121,8 @@ def generate_class_diagram():
     <text x="10" y="173" class="method-text">+ complete_delivery()</text>
   </g>
   
-  <!-- MoHOfficer Class -->
-  <g transform="translate(800,220)">
+  <!-- MoHOfficer Class - Top right -->
+  <g transform="translate(950,250)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">MoHOfficer</text>
     <rect y="25" width="200" height="140" class="class-box"/>
@@ -142,8 +142,8 @@ def generate_class_diagram():
     <text x="10" y="153" class="method-text">+ update_registry()</text>
   </g>
   
-  <!-- Medicine Class -->
-  <g transform="translate(50,450)">
+  <!-- Medicine Class - Bottom left -->
+  <g transform="translate(50,500)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">Medicine</text>
     <rect y="25" width="200" height="160" class="class-box"/>
@@ -164,8 +164,8 @@ def generate_class_diagram():
     <text x="10" y="173" class="method-text">+ validate_prescription()</text>
   </g>
   
-  <!-- Order Class -->
-  <g transform="translate(300,450)">
+  <!-- Order Class - Bottom center-left -->
+  <g transform="translate(300,500)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">Order</text>
     <rect y="25" width="200" height="180" class="class-box"/>
@@ -188,8 +188,8 @@ def generate_class_diagram():
     <text x="10" y="193" class="method-text">+ generate_qr_code()</text>
   </g>
   
-  <!-- Payment Class -->
-  <g transform="translate(550,450)">
+  <!-- Payment Class - Bottom center -->
+  <g transform="translate(550,500)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">Payment</text>
     <rect y="25" width="200" height="140" class="class-box"/>
@@ -209,8 +209,8 @@ def generate_class_diagram():
     <text x="10" y="153" class="method-text">+ refund_payment()</text>
   </g>
   
-  <!-- Delivery Class -->
-  <g transform="translate(800,450)">
+  <!-- Delivery Class - Bottom center-right -->
+  <g transform="translate(800,500)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">Delivery</text>
     <rect y="25" width="200" height="160" class="class-box"/>
@@ -231,8 +231,8 @@ def generate_class_diagram():
     <text x="10" y="173" class="method-text">+ confirm_delivery()</text>
   </g>
   
-  <!-- Cart Class -->
-  <g transform="translate(50,650)">
+  <!-- Cart Class - Far left -->
+  <g transform="translate(50,730)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">Cart</text>
     <rect y="25" width="200" height="140" class="class-box"/>
@@ -251,8 +251,8 @@ def generate_class_diagram():
     <text x="10" y="153" class="method-text">+ checkout()</text>
   </g>
   
-  <!-- CartItem Class -->
-  <g transform="translate(300,650)">
+  <!-- CartItem Class - Left -->
+  <g transform="translate(300,730)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">CartItem</text>
     <rect y="25" width="200" height="140" class="class-box"/>
@@ -271,8 +271,8 @@ def generate_class_diagram():
     <text x="10" y="153" class="method-text">+ get_total_price()</text>
   </g>
   
-  <!-- MoHPharmacyRegistry Class -->
-  <g transform="translate(550,650)">
+  <!-- MoHPharmacyRegistry Class - Center -->
+  <g transform="translate(550,730)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">MoHPharmacyRegistry</text>
     <rect y="25" width="200" height="160" class="class-box"/>
@@ -293,8 +293,8 @@ def generate_class_diagram():
     <text x="10" y="173" class="method-text">+ check_validity()</text>
   </g>
   
-  <!-- OCRService Class -->
-  <g transform="translate(800,650)">
+  <!-- OCRService Class - Right -->
+  <g transform="translate(800,730)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">OCRService</text>
     <rect y="25" width="200" height="140" class="class-box"/>
@@ -313,8 +313,8 @@ def generate_class_diagram():
     <text x="10" y="160" class="method-text">+ calculate_confidence()</text>
   </g>
   
-  <!-- QRCodeService Class -->
-  <g transform="translate(1050,650)">
+  <!-- QRCodeService Class - Far right -->
+  <g transform="translate(1050,730)">
     <rect width="200" height="25" class="class-header"/>
     <text x="100" y="17" class="class-name">QRCodeService</text>
     <rect y="25" width="200" height="120" class="class-box"/>
@@ -332,75 +332,86 @@ def generate_class_diagram():
     <text x="10" y="130" class="method-text">+ create_base64_image()</text>
   </g>
   
-  <!-- Inheritance Relationships -->
+  <!-- Inheritance Relationships - Clean lines avoiding crossings -->
   <!-- Customer inherits from User -->
-  <line x1="150" y1="195" x2="150" y2="220" class="inheritance"/>
-  <polygon points="150,195 145,205 155,205" fill="#e74c3c"/>
+  <line x1="650" y1="195" x2="150" y2="195" class="inheritance"/>
+  <line x1="150" y1="195" x2="150" y2="250" class="inheritance"/>
+  <polygon points="650,195 640,190 640,200" fill="#e74c3c"/>
   
   <!-- Pharmacy inherits from User -->
-  <line x1="150" y1="195" x2="400" y2="195" class="inheritance"/>
-  <line x1="400" y1="195" x2="400" y2="220" class="inheritance"/>
-  <polygon points="150,195 160,190 160,200" fill="#e74c3c"/>
+  <line x1="650" y1="195" x2="450" y2="195" class="inheritance"/>
+  <line x1="450" y1="195" x2="450" y2="250" class="inheritance"/>
+  <polygon points="650,195 640,190 640,200" fill="#e74c3c"/>
   
   <!-- DeliveryPerson inherits from User -->
-  <line x1="150" y1="195" x2="650" y2="195" class="inheritance"/>
-  <line x1="650" y1="195" x2="650" y2="220" class="inheritance"/>
-  <polygon points="150,195 160,190 160,200" fill="#e74c3c"/>
+  <line x1="750" y1="195" x2="750" y2="250" class="inheritance"/>
+  <polygon points="750,195 745,205 755,205" fill="#e74c3c"/>
   
   <!-- MoHOfficer inherits from User -->
-  <line x1="150" y1="195" x2="900" y2="195" class="inheritance"/>
-  <line x1="900" y1="195" x2="900" y2="220" class="inheritance"/>
-  <polygon points="150,195 160,190 160,200" fill="#e74c3c"/>
+  <line x1="850" y1="195" x2="1050" y2="195" class="inheritance"/>
+  <line x1="1050" y1="195" x2="1050" y2="250" class="inheritance"/>
+  <polygon points="850,195 860,190 860,200" fill="#e74c3c"/>
   
-  <!-- Associations -->
-  <!-- Customer -> Order -->
-  <line x1="250" y1="310" x2="300" y2="540" class="association"/>
-  <text x="275" y="425" class="multiplicity">1</text>
-  <text x="275" y="535" class="multiplicity">*</text>
+  <!-- Business Associations - Optimized paths -->
+  <!-- Customer -> Order (direct down) -->
+  <line x1="150" y1="430" x2="150" y2="480" class="association"/>
+  <line x1="150" y1="480" x2="300" y2="480" class="association"/>
+  <line x1="300" y1="480" x2="300" y2="500" class="association"/>
+  <text x="125" y="455" class="multiplicity">1</text>
+  <text x="275" y="495" class="multiplicity">*</text>
   
-  <!-- Pharmacy -> Medicine -->
-  <line x1="300" y1="420" x2="250" y2="450" class="association"/>
-  <text x="275" y="435" class="multiplicity">1</text>
-  <text x="225" y="445" class="multiplicity">*</text>
+  <!-- Pharmacy -> Medicine (direct down) -->
+  <line x1="450" y1="450" x2="450" y2="480" class="association"/>
+  <line x1="450" y1="480" x2="150" y2="480" class="association"/>
+  <line x1="150" y1="480" x2="150" y2="500" class="association"/>
+  <text x="425" y="465" class="multiplicity">1</text>
+  <text x="125" y="495" class="multiplicity">*</text>
   
-  <!-- Order -> Payment -->
-  <line x1="500" y1="540" x2="550" y2="540" class="association"/>
-  <text x="525" y="535" class="multiplicity">1</text>
-  <text x="545" y="535" class="multiplicity">1</text>
+  <!-- Order -> Payment (horizontal) -->
+  <line x1="500" y1="590" x2="550" y2="590" class="association"/>
+  <text x="525" y="585" class="multiplicity">1</text>
+  <text x="545" y="585" class="multiplicity">1</text>
   
-  <!-- Order -> Delivery -->
-  <line x1="500" y1="540" x2="800" y2="540" class="association"/>
-  <text x="650" y="535" class="multiplicity">1</text>
-  <text x="795" y="535" class="multiplicity">1</text>
+  <!-- Order -> Delivery (horizontal) -->
+  <line x1="500" y1="610" x2="800" y2="610" class="association"/>
+  <text x="650" y="605" class="multiplicity">1</text>
+  <text x="795" y="605" class="multiplicity">1</text>
   
-  <!-- Customer -> Cart -->
-  <line x1="150" y1="400" x2="150" y2="650" class="association"/>
-  <text x="145" y="525" class="multiplicity">1</text>
-  <text x="145" y="645" class="multiplicity">1</text>
+  <!-- Customer -> Cart (direct down) -->
+  <line x1="150" y1="430" x2="150" y2="730" class="association"/>
+  <text x="125" y="580" class="multiplicity">1</text>
+  <text x="125" y="725" class="multiplicity">1</text>
   
-  <!-- Cart -> CartItem -->
-  <line x1="250" y1="720" x2="300" y2="720" class="composition"/>
-  <polygon points="250,720 260,715 260,725" fill="#9b59b6"/>
-  <text x="275" y="715" class="multiplicity">1</text>
-  <text x="295" y="715" class="multiplicity">*</text>
+  <!-- Cart -> CartItem (horizontal) -->
+  <line x1="250" y1="800" x2="300" y2="800" class="composition"/>
+  <polygon points="250,800 260,795 260,805" fill="#9b59b6"/>
+  <text x="275" y="795" class="multiplicity">1</text>
+  <text x="295" y="795" class="multiplicity">*</text>
   
-  <!-- CartItem -> Medicine -->
-  <line x1="300" y1="720" x2="150" y2="610" class="association"/>
-  <text x="225" y="665" class="multiplicity">*</text>
-  <text x="145" y="605" class="multiplicity">1</text>
+  <!-- CartItem -> Medicine (clean path) -->
+  <line x1="300" y1="815" x2="280" y2="815" class="association"/>
+  <line x1="280" y1="815" x2="280" y2="690" class="association"/>
+  <line x1="280" y1="690" x2="150" y2="690" class="association"/>
+  <line x1="150" y1="690" x2="150" y2="660" class="association"/>
+  <text x="255" y="810" class="multiplicity">*</text>
+  <text x="125" y="675" class="multiplicity">1</text>
   
-  <!-- DeliveryPerson -> Delivery -->
-  <line x1="650" y1="380" x2="800" y2="530" class="association"/>
-  <text x="725" y="455" class="multiplicity">1</text>
-  <text x="775" y="525" class="multiplicity">*</text>
+  <!-- DeliveryPerson -> Delivery (clean path) -->
+  <line x1="750" y1="410" x2="750" y2="480" class="association"/>
+  <line x1="750" y1="480" x2="900" y2="480" class="association"/>
+  <line x1="900" y1="480" x2="900" y2="500" class="association"/>
+  <text x="725" y="445" class="multiplicity">1</text>
+  <text x="875" y="495" class="multiplicity">*</text>
   
-  <!-- Pharmacy -> MoHPharmacyRegistry -->
-  <line x1="500" y1="320" x2="550" y2="730" class="association"/>
-  <text x="525" y="525" class="multiplicity">1</text>
-  <text x="545" y="725" class="multiplicity">1</text>
+  <!-- Pharmacy -> MoHPharmacyRegistry (clean path) -->
+  <line x1="450" y1="450" x2="450" y2="900" class="association"/>
+  <line x1="450" y1="900" x2="550" y2="900" class="association"/>
+  <line x1="550" y1="900" x2="550" y2="890" class="association"/>
+  <text x="425" y="675" class="multiplicity">1</text>
+  <text x="525" y="885" class="multiplicity">1</text>
   
   <!-- Legend -->
-  <g transform="translate(1050,850)">
+  <g transform="translate(1050,950)">
     <rect width="300" height="120" fill="white" stroke="#bdc3c7" stroke-width="1"/>
     <text x="150" y="20" class="class-name" fill="#2c3e50">Relationships</text>
     
