@@ -202,108 +202,138 @@ def generate_project_class_diagram():
     <text x="10" y="95" class="method-text">+ __str__()</text>
   </g>
   
-  <!-- Relationships -->
+  <!-- Relationships with Enhanced Multiplicity -->
   
   <!-- User to Customer (1:1) -->
   <line x1="200" y1="110" x2="250" y2="110" class="association"/>
-  <text x="210" y="105" class="multiplicity">1</text>
-  <text x="240" y="105" class="multiplicity">1</text>
+  <rect x="205" y="100" width="15" height="12" fill="white" stroke="none"/>
+  <text x="212" y="109" class="multiplicity">1</text>
+  <rect x="235" y="100" width="15" height="12" fill="white" stroke="none"/>
+  <text x="242" y="109" class="multiplicity">1</text>
   
   <!-- User to Pharmacy (1:1) -->
   <line x1="200" y1="110" x2="200" y2="30" class="association"/>
   <line x1="200" y1="30" x2="450" y2="30" class="association"/>
   <line x1="450" y1="30" x2="450" y2="50" class="association"/>
-  <text x="205" y="70" class="multiplicity">1</text>
-  <text x="445" y="45" class="multiplicity">1</text>
+  <rect x="195" y="95" width="15" height="12" fill="white" stroke="none"/>
+  <text x="202" y="104" class="multiplicity">1</text>
+  <rect x="440" y="40" width="15" height="12" fill="white" stroke="none"/>
+  <text x="447" y="49" class="multiplicity">1</text>
   
   <!-- User to DeliveryPerson (1:1) -->
   <line x1="200" y1="110" x2="200" y2="20" class="association"/>
   <line x1="200" y1="20" x2="650" y2="20" class="association"/>
   <line x1="650" y1="20" x2="650" y2="50" class="association"/>
-  <text x="205" y="60" class="multiplicity">1</text>
-  <text x="645" y="45" class="multiplicity">1</text>
+  <rect x="195" y="85" width="15" height="12" fill="white" stroke="none"/>
+  <text x="202" y="94" class="multiplicity">1</text>
+  <rect x="640" y="40" width="15" height="12" fill="white" stroke="none"/>
+  <text x="647" y="49" class="multiplicity">1</text>
   
   <!-- Customer to Order (1:*) -->
   <line x1="325" y1="190" x2="325" y2="250" class="association"/>
-  <text x="320" y="220" class="multiplicity">1</text>
-  <text x="320" y="245" class="multiplicity">*</text>
+  <rect x="315" y="205" width="15" height="12" fill="white" stroke="none"/>
+  <text x="322" y="214" class="multiplicity">1</text>
+  <rect x="315" y="240" width="15" height="12" fill="white" stroke="none"/>
+  <text x="322" y="249" class="multiplicity">*</text>
   
   <!-- Pharmacy to Order (1:*) -->
   <line x1="450" y1="210" x2="400" y2="210" class="association"/>
-  <line x1="400" y1="210" x2="400" y2="280" class="association"/>
-  <text x="420" y="205" class="multiplicity">1</text>
-  <text x="395" y="275" class="multiplicity">*</text>
+  <line x1="400" y1="210" x2="400" y2="250" class="association"/>
+  <rect x="415" y="200" width="15" height="12" fill="white" stroke="none"/>
+  <text x="422" y="209" class="multiplicity">1</text>
+  <rect x="390" y="240" width="15" height="12" fill="white" stroke="none"/>
+  <text x="397" y="249" class="multiplicity">*</text>
   
   <!-- Order to Payment (1:1) -->
-  <line x1="400" y1="340" x2="400" y2="400" class="association"/>
-  <line x1="400" y1="400" x2="450" y2="400" class="association"/>
-  <line x1="450" y1="400" x2="450" y2="450" class="association"/>
-  <text x="395" y="370" class="multiplicity">1</text>
-  <text x="445" y="445" class="multiplicity">1</text>
+  <line x1="325" y1="430" x2="325" y2="470" class="association"/>
+  <line x1="325" y1="470" x2="450" y2="470" class="association"/>
+  <line x1="450" y1="470" x2="450" y2="450" class="association"/>
+  <rect x="315" y="445" width="15" height="12" fill="white" stroke="none"/>
+  <text x="322" y="454" class="multiplicity">1</text>
+  <rect x="440" y="460" width="15" height="12" fill="white" stroke="none"/>
+  <text x="447" y="469" class="multiplicity">1</text>
   
   <!-- Order to Delivery (1:1) -->
   <line x1="400" y1="340" x2="400" y2="420" class="association"/>
   <line x1="400" y1="420" x2="650" y2="420" class="association"/>
   <line x1="650" y1="420" x2="650" y2="450" class="association"/>
-  <text x="395" y="380" class="multiplicity">1</text>
-  <text x="645" y="445" class="multiplicity">1</text>
+  <rect x="390" y="355" width="15" height="12" fill="white" stroke="none"/>
+  <text x="397" y="364" class="multiplicity">1</text>
+  <rect x="640" y="440" width="15" height="12" fill="white" stroke="none"/>
+  <text x="647" y="449" class="multiplicity">1</text>
   
   <!-- Pharmacy to Medicine (1:*) -->
   <line x1="450" y1="210" x2="430" y2="210" class="association"/>
   <line x1="430" y1="210" x2="430" y2="440" class="association"/>
   <line x1="430" y1="440" x2="200" y2="440" class="association"/>
   <line x1="200" y1="440" x2="200" y2="450" class="association"/>
-  <text x="435" y="330" class="multiplicity">1</text>
-  <text x="195" y="445" class="multiplicity">*</text>
+  <rect x="435" y="320" width="15" height="12" fill="white" stroke="none"/>
+  <text x="442" y="329" class="multiplicity">1</text>
+  <rect x="190" y="440" width="15" height="12" fill="white" stroke="none"/>
+  <text x="197" y="449" class="multiplicity">*</text>
   
   <!-- DeliveryPerson to Delivery (1:*) -->
   <line x1="650" y1="190" x2="650" y2="220" class="association"/>
   <line x1="650" y1="220" x2="800" y2="220" class="association"/>
   <line x1="800" y1="220" x2="800" y2="530" class="association"/>
   <line x1="800" y1="530" x2="725" y2="530" class="association"/>
-  <text x="655" y="205" class="multiplicity">1</text>
-  <text x="730" y="525" class="multiplicity">*</text>
+  <rect x="645" y="205" width="15" height="12" fill="white" stroke="none"/>
+  <text x="652" y="214" class="multiplicity">1</text>
+  <rect x="720" y="520" width="15" height="12" fill="white" stroke="none"/>
+  <text x="727" y="529" class="multiplicity">*</text>
   
   <!-- Customer to Cart (1:1) -->
   <line x1="250" y1="190" x2="230" y2="190" class="association"/>
   <line x1="230" y1="190" x2="230" y2="630" class="association"/>
   <line x1="230" y1="630" x2="125" y2="630" class="association"/>
   <line x1="125" y1="630" x2="125" y2="650" class="association"/>
-  <text x="245" y="185" class="multiplicity">1</text>
-  <text x="120" y="645" class="multiplicity">1</text>
+  <rect x="240" y="180" width="15" height="12" fill="white" stroke="none"/>
+  <text x="247" y="189" class="multiplicity">1</text>
+  <rect x="115" y="640" width="15" height="12" fill="white" stroke="none"/>
+  <text x="122" y="649" class="multiplicity">1</text>
   
   <!-- Cart to CartItem (1:*) -->
   <line x1="200" y1="710" x2="250" y2="710" class="association"/>
-  <text x="210" y="705" class="multiplicity">1</text>
-  <text x="240" y="705" class="multiplicity">*</text>
+  <rect x="205" y="700" width="15" height="12" fill="white" stroke="none"/>
+  <text x="212" y="709" class="multiplicity">1</text>
+  <rect x="235" y="700" width="15" height="12" fill="white" stroke="none"/>
+  <text x="242" y="709" class="multiplicity">*</text>
   
   <!-- CartItem to Medicine (*:1) -->
   <line x1="250" y1="710" x2="220" y2="710" class="association"/>
   <line x1="220" y1="710" x2="220" y2="590" class="association"/>
   <line x1="220" y1="590" x2="125" y2="590" class="association"/>
-  <text x="245" y="705" class="multiplicity">*</text>
-  <text x="120" y="585" class="multiplicity">1</text>
+  <rect x="240" y="700" width="15" height="12" fill="white" stroke="none"/>
+  <text x="247" y="709" class="multiplicity">*</text>
+  <rect x="115" y="580" width="15" height="12" fill="white" stroke="none"/>
+  <text x="122" y="589" class="multiplicity">1</text>
   
   <!-- Order to OrderItem (1:*) -->
-  <line x1="400" y1="340" x2="400" y2="630" class="association"/>
+  <line x1="400" y1="430" x2="400" y2="630" class="association"/>
   <line x1="400" y1="630" x2="650" y2="630" class="association"/>
   <line x1="650" y1="630" x2="650" y2="650" class="association"/>
-  <text x="395" y="485" class="multiplicity">1</text>
-  <text x="645" y="645" class="multiplicity">*</text>
+  <rect x="390" y="530" width="15" height="12" fill="white" stroke="none"/>
+  <text x="397" y="539" class="multiplicity">1</text>
+  <rect x="640" y="640" width="15" height="12" fill="white" stroke="none"/>
+  <text x="647" y="649" class="multiplicity">*</text>
   
   <!-- OrderItem to Medicine (*:1) -->
   <line x1="650" y1="710" x2="620" y2="710" class="association"/>
   <line x1="620" y1="710" x2="620" y2="750" class="association"/>
   <line x1="620" y1="750" x2="125" y2="750" class="association"/>
   <line x1="125" y1="750" x2="125" y2="590" class="association"/>
-  <text x="645" y="705" class="multiplicity">*</text>
-  <text x="120" y="745" class="multiplicity">1</text>
+  <rect x="640" y="700" width="15" height="12" fill="white" stroke="none"/>
+  <text x="647" y="709" class="multiplicity">*</text>
+  <rect x="115" y="740" width="15" height="12" fill="white" stroke="none"/>
+  <text x="122" y="749" class="multiplicity">1</text>
   
   <!-- Pharmacy to MoHPharmacyRegistry (1:0..1) -->
   <line x1="525" y1="210" x2="525" y2="630" class="association"/>
   <line x1="525" y1="630" x2="525" y2="650" class="association"/>
-  <text x="520" y="430" class="multiplicity">1</text>
-  <text x="520" y="645" class="multiplicity">0..1</text>
+  <rect x="515" y="420" width="15" height="12" fill="white" stroke="none"/>
+  <text x="522" y="429" class="multiplicity">1</text>
+  <rect x="510" y="640" width="25" height="12" fill="white" stroke="none"/>
+  <text x="517" y="649" class="multiplicity">0..1</text>
   
 </svg>'''
     
