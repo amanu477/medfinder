@@ -14,31 +14,28 @@ from customer import views as customer_views
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Demo Route
-    path('demo/', lambda request: __import__('demo_view').demo_home(request), name='demo'),
-    
     # Customer Routes
     path('', customer_views.home, name='home'),
     path('search/', customer_views.search_medicines, name='search_medicines'),
     path('prescription/upload/', customer_views.upload_prescription, name='upload_prescription'),
     path('prescription/success/', customer_views.prescription_success, name='prescription_success'),
-    path('customer/', include('customer.urls', namespace='customer')),
+    path('customer/', include('customer.urls')),
     
     # Unified Authentication System
     path('login/', customer_views.unified_login, name='login'),
     path('logout/', customer_views.customer_logout, name='logout'),
     
     # Pharmacy Routes
-    path('pharmacy/', include('pharmacy.urls', namespace='pharmacy')),
+    path('pharmacy/', include('pharmacy.urls')),
     
     # Ministry of Health System (Independent Government Portal)
-    path('moh/', include('moh.urls', namespace='moh')),
+    path('moh/', include('moh.urls')),
     
     # Platform Admin Dashboard (Independent Admin System)
-    path('platform-admin/', include('platform_admin.urls', namespace='platform_admin')),
+    path('platform-admin/', include('platform_admin.urls')),
     
     # Delivery System
-    path('delivery/', include('delivery.urls', namespace='delivery')),
+    path('delivery/', include('delivery.urls')),
 ]
 
 # Serve media files in development

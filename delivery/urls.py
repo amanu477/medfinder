@@ -1,11 +1,9 @@
 from django.urls import path
 from . import views
 
-app_name = 'delivery'
-
 urlpatterns = [
     # Delivery person dashboard
-    path('dashboard/', views.delivery_dashboard, name='dashboard'),
+    path('dashboard/', views.delivery_dashboard, name='delivery_dashboard'),
     
     # Pharmacy delivery management
     path('pharmacy/dashboard/', views.pharmacy_delivery_dashboard, name='pharmacy_delivery_dashboard'),

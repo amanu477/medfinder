@@ -2,20 +2,18 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
 
-app_name = 'pharmacy'
-
 urlpatterns = [
     # Authentication
     path('login/', views.pharmacy_login, name='pharmacy_login'),
     path('logout/', views.pharmacy_logout, name='pharmacy_logout'),
-    path('register/', views.register, name='register'),
+    path('register/', views.register, name='pharmacy_register'),
     
     # Verification
     path('verification/', views.pharmacy_verification, name='pharmacy_verification'),
     path('verification/pending/', views.verification_pending, name='verification_pending'),
     
     # Dashboard
-    path('dashboard/', views.dashboard, name='dashboard'),
+    path('dashboard/', views.dashboard, name='pharmacy_dashboard'),
     path('profile/', views.pharmacy_profile, name='pharmacy_profile'),
     
     # Medicines
