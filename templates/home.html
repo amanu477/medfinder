@@ -1,85 +1,511 @@
 {% extends 'base.html' %}
 
-{% block title %}MedFinder - Find Medicines{% endblock %}
+{% block title %}MedFinder - Find Medicines Instantly{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Enhanced Medical Hero Section */
+.medical-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+    background-size: 400% 400%;
+    animation: medicalGradient 15s ease infinite;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes medicalGradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.medical-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="medical" patternUnits="userSpaceOnUse" width="20" height="20"><circle cx="10" cy="10" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23medical)"/></svg>');
+    animation: float 20s ease-in-out infinite;
+}
+
+.medical-hero::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.1), transparent);
+    animation: rotate 30s linear infinite;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 3;
+    text-align: center;
+    color: white;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    background: linear-gradient(45deg, #fff, #f8f9fa, #fff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-subtitle {
+    font-size: 1.4rem;
+    margin-bottom: 3rem;
+    opacity: 0.95;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.medical-search-container {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px);
+    border-radius: 25px;
+    padding: 2.5rem;
+    margin: 2rem 0;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.search-input-group {
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.search-input {
+    border: none;
+    border-radius: 50px;
+    padding: 1.2rem 2rem;
+    font-size: 1.1rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    background: rgba(255,255,255,0.95);
+}
+
+.search-input:focus {
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
+}
+
+.search-btn {
+    border-radius: 50px;
+    padding: 1.2rem 2.5rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+    border: none;
+    color: white;
+    box-shadow: 0 10px 30px rgba(255,107,107,0.4);
+    transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 40px rgba(255,107,107,0.6);
+}
+
+.floating-medical-icons {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.medical-icon {
+    position: absolute;
+    color: rgba(255,255,255,0.1);
+    animation: floatMedical 15s infinite linear;
+}
+
+.medical-icon.icon-1 { top: 10%; left: 10%; animation-delay: 0s; font-size: 2rem; }
+.medical-icon.icon-2 { top: 20%; right: 15%; animation-delay: -3s; font-size: 1.5rem; }
+.medical-icon.icon-3 { bottom: 30%; left: 20%; animation-delay: -6s; font-size: 2.5rem; }
+.medical-icon.icon-4 { bottom: 15%; right: 25%; animation-delay: -9s; font-size: 1.8rem; }
+.medical-icon.icon-5 { top: 50%; left: 5%; animation-delay: -12s; font-size: 2.2rem; }
+
+@keyframes floatMedical {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-20px) rotate(5deg); }
+    50% { transform: translateY(0px) rotate(0deg); }
+    75% { transform: translateY(-15px) rotate(-5deg); }
+}
+
+/* Trust Indicators */
+.trust-badges {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.trust-badge {
+    background: rgba(255,255,255,0.2);
+    padding: 1rem 1.5rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+
+.trust-badge:hover {
+    transform: translateY(-5px);
+    background: rgba(255,255,255,0.3);
+}
+
+.quick-actions {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.quick-action-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 1rem 2rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    font-weight: 600;
+}
+
+.quick-action-btn:hover {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* Missing animation keyframes */
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+    animation: float 3s ease-in-out infinite;
+}
+
+@media (max-width: 768px) {
+    .hero-title { font-size: 2.5rem; }
+    .medical-search-container { padding: 1.5rem; }
+    .trust-badges { gap: 1rem; }
+    .quick-actions { gap: 1rem; }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<!-- Hero Section -->
-<section class="hero {% if user.is_authenticated and user.customer %}customer-theme{% endif %}">
+<!-- Enhanced Medical Hero Section -->
+<section class="medical-hero">
+    <!-- Floating Medical Icons -->
+    <div class="floating-medical-icons">
+        <i class="fas fa-pills medical-icon icon-1"></i>
+        <i class="fas fa-heartbeat medical-icon icon-2"></i>
+        <i class="fas fa-stethoscope medical-icon icon-3"></i>
+        <i class="fas fa-syringe medical-icon icon-4"></i>
+        <i class="fas fa-user-md medical-icon icon-5"></i>
+    </div>
+    
     <div class="hero-content">
-        <h1 class="animate-fadeInUp">Find the medicines you need, quickly and easily</h1>
-        <p class="animate-fadeInUp animate-delay-1">Connect with pharmacies that have the medications you're looking for</p>
-        <div class="search-container animate-fadeInUp animate-delay-2">
-            <form method="get" action="{% url 'search_medicines' %}" class="search-form" id="medicine-search-form">
-                <div class="input-group input-group-lg">
-                    <input type="text" name="query" class="form-control" placeholder="Search for medicines..." required>
+        <h1 class="hero-title animate-fadeInUp">
+            Your Health, Our Priority
+        </h1>
+        <p class="hero-subtitle animate-fadeInUp animate-delay-1">
+            Connect instantly with verified pharmacies across Ethiopia. Find medicines, upload prescriptions, and get care delivered to your doorstep.
+        </p>
+        
+        <div class="medical-search-container animate-fadeInUp animate-delay-2">
+            <form method="get" action="{% url 'search_medicines' %}" id="medicine-search-form">
+                <div class="search-input-group">
+                    <input type="text" name="query" class="form-control search-input" 
+                           placeholder="Search for medicines, brands, or conditions..." required>
                     <input type="hidden" name="lat" id="search-lat">
                     <input type="hidden" name="lon" id="search-lon">
-                    <button type="submit" class="{% if user.is_authenticated and user.customer %}btn-customer-primary{% else %}btn btn-primary{% endif %} px-4">
-                        <i class="fas fa-search me-2"></i> Search
-                    </button>
                 </div>
-            </form>
-            <div class="text-center mt-3">
-                <button type="button" class="btn btn-outline-light btn-sm animate-pulse" id="get-location-btn">
-                    <i class="fas fa-map-marker-alt me-1"></i> Get My Location for Better Results
+                <button type="submit" class="btn search-btn w-100">
+                    <i class="fas fa-search me-2"></i> Find Medicines Now
                 </button>
-                <div id="location-status" class="mt-2 small text-white-75"></div>
+            </form>
+            
+            <div class="text-center mt-3">
+                <button type="button" class="btn btn-outline-light btn-sm" id="get-location-btn">
+                    <i class="fas fa-map-marker-alt me-2"></i> Enable Location for Nearby Pharmacies
+                </button>
+                <div id="location-status" class="mt-2 small"></div>
             </div>
-            <div class="text-center mt-4">
-                <a href="{% url 'upload_prescription' %}" class="{% if user.is_authenticated and user.customer %}btn-customer-primary{% else %}btn btn-light{% endif %} btn-lg hover-float">
-                    <i class="fas fa-file-prescription me-2 animate-pulse"></i> Upload Prescription
+            
+            <!-- Trust Indicators -->
+            <div class="trust-badges animate-fadeInUp animate-delay-3">
+                <div class="trust-badge">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    <small>Verified Pharmacies</small>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-clock me-2"></i>
+                    <small>24/7 Available</small>
+                </div>
+                <div class="trust-badge">
+                    <i class="fas fa-truck me-2"></i>
+                    <small>Fast Delivery</small>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions animate-fadeInUp animate-delay-4">
+                <a href="{% url 'upload_prescription' %}" class="quick-action-btn">
+                    <i class="fas fa-file-medical me-2"></i> Upload Prescription
                 </a>
-                <p class="mt-2 text-white-50 small">Have a prescription? Upload it directly to your preferred pharmacy</p>
+                <a href="#emergency" class="quick-action-btn">
+                    <i class="fas fa-ambulance me-2"></i> Emergency Medicines
+                </a>
+                {% if not user.is_authenticated %}
+                <a href="{% url 'customer_register' %}" class="quick-action-btn">
+                    <i class="fas fa-user-plus me-2"></i> Join MedFinder
+                </a>
+                {% endif %}
             </div>
         </div>
     </div>
 </section>
 
-<!-- Features Section -->
-<section class="features bg-light py-5">
+<!-- How It Works Section -->
+<section class="py-5" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
     <div class="container">
-        <h2 class="section-title text-center mb-5 animate-fadeInDown">How MedFinder Works</h2>
-        <div class="row">
-            <div class="col-md-4 mb-4 animate-fadeInUp">
-                <div class="{% if user.is_authenticated and user.customer %}customer-card{% else %}feature-card{% endif %} hover-float text-center">
-                    <div class="mb-4">
-                        <i class="fas fa-search fa-3x text-primary animate-heartbeat"></i>
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3 animate-fadeInDown">How MedFinder Works</h2>
+            <p class="lead text-muted animate-fadeInDown animate-delay-1">Simple steps to get your medicines delivered</p>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Step 1 -->
+            <div class="col-lg-4 animate-fadeInUp">
+                <div class="text-center h-100">
+                    <div class="position-relative mb-4">
+                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 80px; height: 80px; animation: pulse 2s infinite;">
+                            <i class="fas fa-search fa-2x text-white"></i>
+                        </div>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                              style="font-size: 1.2rem;">1</span>
                     </div>
-                    <h3 class="mb-3">Search Medicines</h3>
-                    <p>Quickly search for the medicines you need and find pharmacies that have them in stock.</p>
-                    {% if user.is_authenticated and user.customer %}
-                        <a href="{% url 'home' %}" class="btn btn-customer-primary mt-3">
-                            <i class="fas fa-search me-2"></i>Start Searching
-                        </a>
-                    {% endif %}
+                    <h4 class="mb-3">Search & Discover</h4>
+                    <p class="text-muted mb-4">Search for any medicine by name, condition, or brand. Our AI-powered search finds exactly what you need from verified pharmacies.</p>
+                    <div class="bg-white p-3 rounded shadow-sm">
+                        <small class="text-primary fw-semibold">
+                            <i class="fas fa-lightbulb me-1"></i> Pro Tip: Use generic names for better results
+                        </small>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-4 animate-fadeInUp animate-delay-1">
-                <div class="{% if user.is_authenticated and user.customer %}customer-card{% else %}feature-card{% endif %} hover-float text-center">
-                    <div class="mb-4">
-                        <i class="fas fa-file-prescription fa-3x text-primary animate-heartbeat"></i>
+            
+            <!-- Step 2 -->
+            <div class="col-lg-4 animate-fadeInUp animate-delay-1">
+                <div class="text-center h-100">
+                    <div class="position-relative mb-4">
+                        <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 80px; height: 80px; animation: heartbeat 2s infinite;">
+                            <i class="fas fa-prescription-bottle fa-2x text-white"></i>
+                        </div>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                              style="font-size: 1.2rem;">2</span>
                     </div>
-                    <h3 class="mb-3">Upload Prescriptions</h3>
-                    <p>Upload your prescription directly to your preferred pharmacy for quick processing.</p>
-                    {% if user.is_authenticated and user.customer %}
-                        <a href="{% url 'upload_prescription' %}" class="btn btn-customer-primary mt-3">
-                            <i class="fas fa-upload me-2"></i>Upload Now
-                        </a>
-                    {% endif %}
+                    <h4 class="mb-3">Order & Upload</h4>
+                    <p class="text-muted mb-4">Add medicines to cart or upload prescription directly. Our OCR technology validates prescriptions automatically for safety.</p>
+                    <div class="bg-white p-3 rounded shadow-sm">
+                        <small class="text-success fw-semibold">
+                            <i class="fas fa-shield-check me-1"></i> Prescription validation included
+                        </small>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-4 mb-4 animate-fadeInUp animate-delay-2">
-                <div class="{% if user.is_authenticated and user.customer %}customer-card{% else %}feature-card{% endif %} hover-float text-center">
-                    <div class="mb-4">
-                        <i class="fas fa-hospital-user fa-3x text-primary animate-heartbeat"></i>
+            
+            <!-- Step 3 -->
+            <div class="col-lg-4 animate-fadeInUp animate-delay-2">
+                <div class="text-center h-100">
+                    <div class="position-relative mb-4">
+                        <div class="bg-warning rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 80px; height: 80px; animation: bounce 2s infinite;">
+                            <i class="fas fa-truck-fast fa-2x text-white"></i>
+                        </div>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                              style="font-size: 1.2rem;">3</span>
                     </div>
-                    <h3 class="mb-3">Connect with Pharmacies</h3>
-                    <p>Find all pharmacies that carry the medications you need in one place.</p>
-                    {% if user.is_authenticated and user.customer %}
-                        <a href="{% url 'home' %}" class="btn btn-customer-primary mt-3">
-                            <i class="fas fa-store me-2"></i>Find Pharmacies
-                        </a>
-                    {% endif %}
+                    <h4 class="mb-3">Track & Receive</h4>
+                    <p class="text-muted mb-4">Real-time tracking with GPS location updates. QR code verification ensures secure delivery to your doorstep.</p>
+                    <div class="bg-white p-3 rounded shadow-sm">
+                        <small class="text-warning fw-semibold">
+                            <i class="fas fa-clock me-1"></i> Average delivery: 30-60 minutes
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics Row -->
+        <div class="row mt-5 text-center">
+            <div class="col-md-3 mb-4 animate-fadeInUp">
+                <div class="bg-white p-4 rounded shadow-sm h-100">
+                    <h3 class="text-primary fw-bold mb-2" style="font-size: 2.5rem;">500+</h3>
+                    <p class="text-muted mb-0">Verified Pharmacies</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4 animate-fadeInUp animate-delay-1">
+                <div class="bg-white p-4 rounded shadow-sm h-100">
+                    <h3 class="text-success fw-bold mb-2" style="font-size: 2.5rem;">10K+</h3>
+                    <p class="text-muted mb-0">Medicines Available</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4 animate-fadeInUp animate-delay-2">
+                <div class="bg-white p-4 rounded shadow-sm h-100">
+                    <h3 class="text-warning fw-bold mb-2" style="font-size: 2.5rem;">24/7</h3>
+                    <p class="text-muted mb-0">Emergency Service</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4 animate-fadeInUp animate-delay-3">
+                <div class="bg-white p-4 rounded shadow-sm h-100">
+                    <h3 class="text-danger fw-bold mb-2" style="font-size: 2.5rem;">30min</h3>
+                    <p class="text-muted mb-0">Average Delivery</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Emergency Section -->
+<section id="emergency" class="py-5 bg-danger text-white position-relative overflow-hidden">
+    <div class="position-absolute top-0 start-0 w-100 h-100 opacity-10">
+        <div class="position-absolute animate-pulse" style="top: 10%; left: 10%; width: 60px; height: 60px;">
+            <i class="fas fa-plus fa-3x"></i>
+        </div>
+        <div class="position-absolute animate-pulse" style="bottom: 20%; right: 15%; width: 40px; height: 40px; animation-delay: 1s;">
+            <i class="fas fa-ambulance fa-2x"></i>
+        </div>
+    </div>
+    <div class="container text-center position-relative">
+        <h2 class="display-6 fw-bold mb-4 animate-fadeInUp">Emergency Medicine Service</h2>
+        <p class="lead mb-4 animate-fadeInUp animate-delay-1">Need medicines urgently? We're here 24/7 for medical emergencies</p>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="bg-white bg-opacity-10 p-4 rounded backdrop-blur">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="tel:+251911000000" class="btn btn-light btn-lg w-100">
+                                <i class="fas fa-phone me-2"></i> Emergency Hotline
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{% url 'upload_prescription' %}" class="btn btn-outline-light btn-lg w-100">
+                                <i class="fas fa-upload me-2"></i> Rush Order
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3 animate-fadeInDown">What Our Users Say</h2>
+            <p class="lead text-muted animate-fadeInDown animate-delay-1">Real stories from satisfied customers and pharmacy partners</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-4 animate-fadeInUp">
+                <div class="bg-white p-4 rounded shadow-sm h-100 position-relative">
+                    <div class="text-center mb-3">
+                        <div class="bg-primary rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-user text-white fa-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="mb-3">"MedFinder saved my day! I needed urgent medication at midnight and found a 24/7 pharmacy nearby. Delivery was within 30 minutes!"</p>
+                    <div class="text-end">
+                        <strong>- Sarah T.</strong>
+                        <div class="small text-muted">Addis Ababa Customer</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 animate-fadeInUp animate-delay-1">
+                <div class="bg-white p-4 rounded shadow-sm h-100 position-relative">
+                    <div class="text-center mb-3">
+                        <div class="bg-success rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-store text-white fa-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="mb-3">"Since joining MedFinder, our pharmacy has seen 40% more customers. The digital prescription system has streamlined our operations completely."</p>
+                    <div class="text-end">
+                        <strong>- Ahmed Pharmacy</strong>
+                        <div class="small text-muted">Hawassa Partner</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 animate-fadeInUp animate-delay-2">
+                <div class="bg-white p-4 rounded shadow-sm h-100 position-relative">
+                    <div class="text-center mb-3">
+                        <div class="bg-info rounded-circle d-inline-flex align-items-center justify-content-center" 
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-truck text-white fa-lg"></i>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                        <i class="fas fa-star text-warning"></i>
+                    </div>
+                    <p class="mb-3">"As a delivery person, the QR code system and GPS tracking make my job efficient and secure. Great technology for healthcare delivery."</p>
+                    <div class="text-end">
+                        <strong>- Michael D.</strong>
+                        <div class="small text-muted">Delivery Personnel</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -87,84 +513,202 @@
 </section>
 
 <!-- For Pharmacies Section -->
-<section class="py-5 {% if user.is_authenticated and user.pharmacy %}pharmacy-theme{% endif %}">
-    <div class="container">
+<section class="py-5 position-relative overflow-hidden" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="position-absolute top-0 start-0 w-100 h-100 opacity-10">
+        <div class="position-absolute" style="top: 15%; left: 10%;">
+            <i class="fas fa-pills fa-3x text-white animate-float"></i>
+        </div>
+        <div class="position-absolute" style="bottom: 20%; right: 15%;">
+            <i class="fas fa-capsules fa-2x text-white animate-float" style="animation-delay: 2s;"></i>
+        </div>
+    </div>
+    <div class="container text-white position-relative">
         <div class="row align-items-center">
-            <div class="col-md-6 mb-4 mb-md-0 animate-slideInFromLeft">
-                <h2 class="mb-4">For Pharmacies</h2>
-                <p class="lead mb-4">Join our network of pharmacies and connect with more customers in your area.</p>
-                <ul class="list-unstyled mb-4">
-                    <li class="mb-3 animate-fadeInLeft animate-delay-1">
-                        <i class="fas fa-check-circle text-primary me-3 fa-lg"></i> 
-                        <strong>Manage your inventory online</strong>
-                    </li>
-                    <li class="mb-3 animate-fadeInLeft animate-delay-2">
-                        <i class="fas fa-check-circle text-primary me-3 fa-lg"></i> 
-                        <strong>Receive prescriptions digitally</strong>
-                    </li>
-                    <li class="mb-3 animate-fadeInLeft animate-delay-3">
-                        <i class="fas fa-check-circle text-primary me-3 fa-lg"></i> 
-                        <strong>Increase visibility to nearby customers</strong>
-                    </li>
-                    <li class="mb-3 animate-fadeInLeft animate-delay-4">
-                        <i class="fas fa-check-circle text-primary me-3 fa-lg"></i> 
-                        <strong>Track medicine expiry dates</strong>
-                    </li>
-                </ul>
-                <a href="{% url 'pharmacy_register' %}" class="{% if user.is_authenticated and user.pharmacy %}btn-pharmacy-primary{% else %}btn btn-primary{% endif %} btn-lg hover-scale">
-                    <i class="fas fa-store me-2"></i>Register Your Pharmacy
-                </a>
+            <div class="col-lg-6 mb-5 mb-lg-0 animate-slideInFromLeft">
+                <h2 class="display-5 fw-bold mb-4">For Healthcare Providers</h2>
+                <p class="lead mb-4">Join Ethiopia's largest digital pharmacy network and transform your healthcare business</p>
+                
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3 flex-shrink-0">
+                                <i class="fas fa-chart-line fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5>Increase Revenue</h5>
+                                <p class="small mb-0">Average 40% increase in sales within first month</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3 flex-shrink-0">
+                                <i class="fas fa-mobile-alt fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5>Digital Management</h5>
+                                <p class="small mb-0">Complete inventory and prescription management system</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3 flex-shrink-0">
+                                <i class="fas fa-users fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5>More Customers</h5>
+                                <p class="small mb-0">Connect with thousands of patients in your area</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-start">
+                            <div class="bg-white bg-opacity-20 rounded-circle p-3 me-3 flex-shrink-0">
+                                <i class="fas fa-shield-check fa-lg"></i>
+                            </div>
+                            <div>
+                                <h5>Verified Badge</h5>
+                                <p class="small mb-0">Official verification increases customer trust</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{% url 'pharmacy_register' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-store me-2"></i> Register Your Pharmacy
+                    </a>
+                    <a href="tel:+251911000000" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-phone me-2"></i> Call for Demo
+                    </a>
+                </div>
             </div>
-            <div class="col-md-6 animate-slideInFromRight">
-                <div class="position-relative">
-                    <img src="https://images.unsplash.com/photo-1576602976047-174e57a47881?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1469&q=80" 
-                         alt="Pharmacy" class="img-fluid rounded shadow hover-float">
-                    <div class="position-absolute top-0 start-0 w-100 h-100 bg-primary opacity-10 rounded"></div>
+            
+            <div class="col-lg-6 animate-slideInFromRight">
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="bg-white bg-opacity-10 p-4 rounded text-center backdrop-blur">
+                            <h3 class="fw-bold mb-2">500+</h3>
+                            <p class="mb-0 small">Partner Pharmacies</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-white bg-opacity-10 p-4 rounded text-center backdrop-blur">
+                            <h3 class="fw-bold mb-2">50K+</h3>
+                            <p class="mb-0 small">Monthly Orders</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-white bg-opacity-10 p-4 rounded text-center backdrop-blur">
+                            <h3 class="fw-bold mb-2">24/7</h3>
+                            <p class="mb-0 small">Support Available</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="bg-white bg-opacity-10 p-4 rounded text-center backdrop-blur">
+                            <h3 class="fw-bold mb-2">99.9%</h3>
+                            <p class="mb-0 small">Uptime Guarantee</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-4 bg-white bg-opacity-10 rounded backdrop-blur">
+                    <h5 class="mb-3">🎯 Special Launch Offer</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-check me-2"></i> Free setup and onboarding</li>
+                        <li><i class="fas fa-check me-2"></i> First 3 months commission-free</li>
+                        <li><i class="fas fa-check me-2"></i> Dedicated account manager</li>
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- CTA Section -->
-<section class="bg-primary text-white py-5 position-relative overflow-hidden">
-    <div class="position-absolute top-0 start-0 w-100 h-100 opacity-10">
-        <div class="position-absolute top-0 start-0 bg-white rounded-circle" style="width: 300px; height: 300px; transform: translate(-50%, -50%);"></div>
-        <div class="position-absolute bottom-0 end-0 bg-white rounded-circle" style="width: 200px; height: 200px; transform: translate(25%, 25%);"></div>
-    </div>
-    <div class="container text-center position-relative">
-        <h2 class="mb-4 animate-fadeInUp">Ready to find your medicines?</h2>
-        <p class="lead mb-5 animate-fadeInUp animate-delay-1">Start searching now or upload your prescription to a pharmacy near you.</p>
-        <div class="d-flex justify-content-center gap-3 flex-wrap animate-fadeInUp animate-delay-2">
-            <a href="#" class="{% if user.is_authenticated and user.customer %}btn-customer-primary{% else %}btn btn-light{% endif %} btn-lg hover-scale" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
-                <i class="fas fa-search me-2 animate-pulse"></i> Search Medicines
-            </a>
-            <a href="{% url 'upload_prescription' %}" class="btn btn-outline-light btn-lg hover-scale">
-                <i class="fas fa-file-prescription me-2 animate-pulse"></i> Upload Prescription
-            </a>
+<!-- Final CTA Section -->
+<section class="position-relative overflow-hidden" style="background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 50%, #ffa8a8 100%); min-height: 400px;">
+    <div class="position-absolute top-0 start-0 w-100 h-100">
+        <div class="position-absolute animate-pulse" style="top: 20%; left: 15%; width: 60px; height: 60px;">
+            <i class="fas fa-heartbeat fa-3x text-white opacity-25"></i>
         </div>
-        {% if user.is_authenticated %}
-            <div class="mt-4 animate-fadeInUp animate-delay-3">
-                <p class="mb-2">Welcome back, <strong>{{ user.get_full_name|default:user.username }}</strong>!</p>
-                {% if user.customer %}
-                    <a href="{% url 'customer_dashboard' %}" class="btn btn-outline-light">
-                        <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
-                    </a>
-                {% elif user.pharmacy %}
-                    <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-light">
-                        <i class="fas fa-store me-2"></i>Go to Pharmacy Dashboard
-                    </a>
-                {% elif user.deliveryperson %}
-                    <a href="{% url 'delivery_dashboard' %}" class="btn btn-outline-light">
-                        <i class="fas fa-truck me-2"></i>Go to Delivery Dashboard
-                    </a>
-                {% elif user.is_staff %}
-                    <a href="{% url 'platform_admin:dashboard' %}" class="btn btn-outline-light">
-                        <i class="fas fa-user-shield me-2"></i>Go to Admin Dashboard
-                    </a>
-                {% endif %}
+        <div class="position-absolute animate-pulse" style="bottom: 30%; right: 20%; width: 40px; height: 40px; animation-delay: 1s;">
+            <i class="fas fa-pills fa-2x text-white opacity-25"></i>
+        </div>
+        <div class="position-absolute animate-pulse" style="top: 40%; right: 10%; width: 50px; height: 50px; animation-delay: 2s;">
+            <i class="fas fa-stethoscope fa-2x text-white opacity-25"></i>
+        </div>
+    </div>
+    
+    <div class="container d-flex align-items-center justify-content-center text-white position-relative" style="min-height: 400px;">
+        <div class="text-center">
+            <h2 class="display-4 fw-bold mb-4 animate-fadeInUp">Start Your Health Journey Today</h2>
+            <p class="lead mb-5 animate-fadeInUp animate-delay-1">Join thousands of Ethiopians who trust MedFinder for their healthcare needs</p>
+            
+            <div class="row justify-content-center animate-fadeInUp animate-delay-2">
+                <div class="col-lg-8">
+                    {% if not user.is_authenticated %}
+                    <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
+                        <a href="{% url 'customer_register' %}" class="btn btn-light btn-lg px-5">
+                            <i class="fas fa-user-plus me-2"></i> Join as Customer
+                        </a>
+                        <a href="{% url 'pharmacy_register' %}" class="btn btn-outline-light btn-lg px-5">
+                            <i class="fas fa-store me-2"></i> Join as Pharmacy
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
+                        <a href="#" class="btn btn-light btn-lg px-5" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+                            <i class="fas fa-search me-2"></i> Search Medicines
+                        </a>
+                        <a href="{% url 'upload_prescription' %}" class="btn btn-outline-light btn-lg px-5">
+                            <i class="fas fa-file-prescription me-2"></i> Upload Prescription
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="bg-white bg-opacity-10 p-4 rounded backdrop-blur">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <h4 class="fw-bold mb-1">✓</h4>
+                                <small>Verified Pharmacies</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="fw-bold mb-1">✓</h4>
+                                <small>Secure Delivery</small>
+                            </div>
+                            <div class="col-4">
+                                <h4 class="fw-bold mb-1">✓</h4>
+                                <small>24/7 Support</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                    <div class="mt-4 animate-fadeInUp animate-delay-3">
+                        <p class="mb-3">Welcome back, <strong>{{ user.get_full_name|default:user.username }}</strong>!</p>
+                        {% if user.customer %}
+                            <a href="{% url 'customer_dashboard' %}" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                            </a>
+                        {% elif user.pharmacy %}
+                            <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-store me-2"></i>Pharmacy Dashboard
+                            </a>
+                        {% elif user.deliveryperson %}
+                            <a href="{% url 'delivery_dashboard' %}" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-truck me-2"></i>Delivery Dashboard
+                            </a>
+                        {% elif user.is_staff %}
+                            <a href="{% url 'platform_admin:dashboard' %}" class="btn btn-outline-light btn-lg">
+                                <i class="fas fa-user-shield me-2"></i>Admin Dashboard
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
             </div>
-        {% endif %}
+        </div>
     </div>
 </section>
 
