@@ -3,16 +3,14 @@ from django.contrib.auth import views as auth_views
 from . import views
 from .views_ocr_summary import ocr_validation_summary
 
-app_name = 'customer'
-
 urlpatterns = [
     # Customer authentication
-    path('register/', views.customer_register, name='register'),
+    path('register/', views.customer_register, name='customer_register'),
     path('login/', views.customer_login, name='customer_login'),
     path('logout/', views.customer_logout, name='customer_logout'),
     
     # Customer dashboard and profile
-    path('dashboard/', views.customer_dashboard, name='dashboard'),
+    path('dashboard/', views.customer_dashboard, name='customer_dashboard'),
     
     # Order management
     path('order/<int:medicine_id>/', views.place_order, name='place_order'),
@@ -43,7 +41,7 @@ urlpatterns = [
     path('report-incident/', views.quick_report_incident, name='quick_report_incident'),
     
     # Shopping cart
-    path('cart/', views.cart_view, name='cart'),
+    path('cart/', views.cart_view, name='cart_view'),
     path('cart/add/<int:medicine_id>/', views.add_to_cart, name='add_to_cart'),
     path('cart/update/<int:item_id>/', views.update_cart_item, name='update_cart_item'),
     path('cart/remove/<int:item_id>/', views.remove_from_cart, name='remove_from_cart'),

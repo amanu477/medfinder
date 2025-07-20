@@ -1,562 +1,267 @@
 {% extends 'base.html' %}
 
-{% block title %}MedFinder - Find Medicines Instantly{% endblock %}
-
-{% block extra_css %}
-<style>
-/* Stunning Medical Hero Section with Blue & White Theme */
-.medical-hero {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 25%, #3498db 50%, #74b9ff 75%, #ffffff 100%);
-    background-size: 400% 400%;
-    animation: medicalGradient 8s ease infinite;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-}
-
-/* Floating Medical Icons */
-.floating-medical-icons {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    z-index: 1;
-}
-
-.medical-icon {
-    position: absolute;
-    font-size: 2rem;
-    color: rgba(255, 255, 255, 0.2);
-    animation: float 6s ease-in-out infinite;
-}
-
-.medical-icon:nth-child(1) { top: 20%; left: 10%; animation-delay: 0s; font-size: 3rem; }
-.medical-icon:nth-child(2) { top: 60%; left: 80%; animation-delay: 1s; font-size: 2.5rem; }
-.medical-icon:nth-child(3) { top: 80%; left: 20%; animation-delay: 2s; font-size: 2rem; }
-.medical-icon:nth-child(4) { top: 40%; left: 90%; animation-delay: 3s; font-size: 2.8rem; }
-.medical-icon:nth-child(5) { top: 10%; left: 60%; animation-delay: 4s; font-size: 2.2rem; }
-.medical-icon:nth-child(6) { top: 70%; left: 50%; animation-delay: 5s; font-size: 2.6rem; }
-
-@keyframes medicalGradient {
-    0% { background-position: 0% 50%; }
-    25% { background-position: 100% 0%; }
-    50% { background-position: 100% 100%; }
-    75% { background-position: 0% 100%; }
-    100% { background-position: 0% 50%; }
-}
-
-@keyframes float {
-    0%, 100% { 
-        transform: translateY(0px) rotate(0deg); 
-        opacity: 0.2;
-    }
-    25% { 
-        transform: translateY(-20px) rotate(90deg); 
-        opacity: 0.4;
-    }
-    50% { 
-        transform: translateY(-40px) rotate(180deg); 
-        opacity: 0.6;
-    }
-    75% { 
-        transform: translateY(-20px) rotate(270deg); 
-        opacity: 0.4;
-    }
-}
-
-@keyframes pulse {
-    0%, 100% { 
-        transform: scale(1); 
-        box-shadow: 0 0 20px rgba(52, 152, 219, 0.3);
-    }
-    50% { 
-        transform: scale(1.05); 
-        box-shadow: 0 0 40px rgba(52, 152, 219, 0.6);
-    }
-}
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    25% { transform: translateY(-10px); }
-    50% { transform: translateY(-20px); }
-    75% { transform: translateY(-10px); }
-}
-
-@keyframes slideInFromLeft {
-    0% { transform: translateX(-100%); opacity: 0; }
-    100% { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes slideInFromRight {
-    0% { transform: translateX(100%); opacity: 0; }
-    100% { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes slideInFromBottom {
-    0% { transform: translateY(100%); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
-}
-
-.hero-content {
-    position: relative;
-    z-index: 3;
-    text-align: center;
-    color: white;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
-.hero-title {
-    font-size: 4rem;
-    font-weight: 900;
-    margin-bottom: 1.5rem;
-    text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
-    background: linear-gradient(45deg, #fff, #e8f4fd, #fff, #cce7ff);
-    background-size: 300% 300%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: textShimmer 3s ease-in-out infinite, bounce 2s ease-in-out infinite;
-}
-
-@keyframes textShimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-}
-
-.hero-subtitle {
-    font-size: 1.6rem;
-    margin-bottom: 3rem;
-    opacity: 0.95;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    animation: slideInFromLeft 1s ease-out 0.5s both;
-}
-
-.medical-search-container {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(15px);
-    border-radius: 25px;
-    padding: 2.5rem;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    margin: 2rem auto;
-    max-width: 600px;
-    animation: slideInFromBottom 1s ease-out 1s both, pulse 4s ease-in-out infinite;
-}
-
-.search-input-group {
-    position: relative;
-    margin-bottom: 1.5rem;
-}
-
-.search-input {
-    width: 100%;
-    padding: 1.2rem 1.5rem;
-    border: 3px solid transparent;
-    border-radius: 50px;
-    font-size: 1.2rem;
-    background: white;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-    color: #2c3e50;
-}
-
-.search-input:focus {
-    border-color: #3498db;
-    box-shadow: 0 15px 35px rgba(52, 152, 219, 0.3);
-    transform: translateY(-2px);
-    outline: none;
-}
-
-.search-btn {
-    background: linear-gradient(45deg, #3498db, #74b9ff);
-    border: none;
-    color: white;
-    padding: 1.2rem 2.5rem;
-    border-radius: 50px;
-    font-size: 1.2rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 25px rgba(52, 152, 219, 0.4);
-    animation: pulse 2s infinite;
-}
-
-.search-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 15px 35px rgba(52, 152, 219, 0.6);
-}
-
-.cta-buttons {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 2rem;
-    animation: slideInFromRight 1s ease-out 1.5s both;
-}
-
-.cta-btn {
-    background: linear-gradient(45deg, #2980b9, #3498db);
-    color: white;
-    text-decoration: none;
-    padding: 1rem 2rem;
-    border-radius: 25px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 8px 20px rgba(41, 128, 185, 0.4);
-    position: relative;
-    overflow: hidden;
-}
-
-.cta-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
-}
-
-.cta-btn:hover::before {
-    left: 100%;
-}
-
-.cta-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(41, 128, 185, 0.6);
-    color: white;
-    text-decoration: none;
-}
-
-/* Features Section */
-.features-section {
-    padding: 5rem 0;
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #e3f2fd 100%);
-    position: relative;
-}
-
-.feature-card {
-    background: white;
-    border-radius: 20px;
-    padding: 2.5rem;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    border-top: 4px solid #3498db;
-    height: 100%;
-    animation: slideInFromBottom 0.8s ease-out both;
-}
-
-.feature-card:nth-child(1) { animation-delay: 0.2s; }
-.feature-card:nth-child(2) { animation-delay: 0.4s; }
-.feature-card:nth-child(3) { animation-delay: 0.6s; }
-
-.feature-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-}
-
-.feature-icon {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(45deg, #3498db, #74b9ff);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem;
-    color: white;
-    font-size: 2rem;
-    animation: pulse 3s infinite;
-}
-
-.feature-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 1rem;
-    text-align: center;
-}
-
-.feature-description {
-    color: #6c757d;
-    line-height: 1.6;
-    text-align: center;
-    font-size: 1.1rem;
-}
-
-/* Stats Section */
-.stats-section {
-    padding: 4rem 0;
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-    color: white;
-}
-
-.stat-item {
-    text-align: center;
-    animation: slideInFromBottom 0.8s ease-out both;
-}
-
-.stat-item:nth-child(1) { animation-delay: 0.2s; }
-.stat-item:nth-child(2) { animation-delay: 0.4s; }
-.stat-item:nth-child(3) { animation-delay: 0.6s; }
-.stat-item:nth-child(4) { animation-delay: 0.8s; }
-
-.stat-number {
-    font-size: 3rem;
-    font-weight: 900;
-    margin-bottom: 0.5rem;
-    animation: bounce 2s infinite;
-}
-
-.stat-label {
-    font-size: 1.2rem;
-    opacity: 0.9;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .hero-title {
-        font-size: 2.5rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 1.2rem;
-    }
-    
-    .medical-search-container {
-        margin: 1rem;
-        padding: 2rem;
-    }
-    
-    .cta-buttons {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .feature-card {
-        margin-bottom: 2rem;
-    }
-}
-
-/* Scrolling animations */
-.fade-in-on-scroll {
-    opacity: 0;
-    transform: translateY(50px);
-    transition: all 0.8s ease-out;
-}
-
-.fade-in-on-scroll.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-</style>
-{% endblock %}
+{% block title %}MedFinder - Find Medicines{% endblock %}
 
 {% block content %}
-<!-- Hero Section with Floating Medical Icons -->
-<section class="medical-hero">
-    <div class="floating-medical-icons">
-        <i class="fas fa-pills medical-icon"></i>
-        <i class="fas fa-heartbeat medical-icon"></i>
-        <i class="fas fa-stethoscope medical-icon"></i>
-        <i class="fas fa-user-md medical-icon"></i>
-        <i class="fas fa-hospital medical-icon"></i>
-        <i class="fas fa-first-aid medical-icon"></i>
-    </div>
-    
+<!-- Hero Section -->
+<section class="hero {% if user.is_authenticated and user.customer %}customer-theme{% endif %}">
     <div class="hero-content">
-        <h1 class="hero-title">🏥 Ethiopian Pharmacy Platform</h1>
-        <p class="hero-subtitle">Find medicines instantly • Upload prescriptions • Connect with verified pharmacies</p>
-        
-        <div class="medical-search-container">
-            <form method="get" action="{% url 'search_medicines' %}" class="search-form">
-                <div class="search-input-group">
-                    <input type="text" 
-                           name="query" 
-                           class="search-input" 
-                           placeholder="Search for medicines, pharmacies, or treatments..."
-                           required>
+        <h1 class="animate-fadeInUp">Find the medicines you need, quickly and easily</h1>
+        <p class="animate-fadeInUp animate-delay-1">Connect with pharmacies that have the medications you're looking for</p>
+        <div class="search-container animate-fadeInUp animate-delay-2">
+            <form method="get" action="{% url 'search_medicines' %}" class="search-form" id="medicine-search-form">
+                <div class="input-group input-group-lg">
+                    <input type="text" name="query" class="form-control" placeholder="Search for medicines..." required>
+                    <input type="hidden" name="lat" id="search-lat">
+                    <input type="hidden" name="lon" id="search-lon">
+                    <button type="submit" class="{% if user.is_authenticated and user.customer %}btn-customer-primary{% else %}btn btn-primary{% endif %} px-4">
+                        <i class="fas fa-search me-2"></i> Search
+                    </button>
                 </div>
-                <button type="submit" class="search-btn">
-                    <i class="fas fa-search me-2"></i>Search Medicines
-                </button>
             </form>
-            
-            <div class="cta-buttons">
-                {% if user.is_authenticated %}
-                    {% if user.is_customer %}
-                        <a href="{% url 'customer:dashboard' %}" class="cta-btn">
-                            <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
-                        </a>
-                    {% elif user.is_pharmacy %}
-                        <a href="{% url 'pharmacy:dashboard' %}" class="cta-btn">
-                            <i class="fas fa-store me-2"></i>Pharmacy Dashboard
-                        </a>
-                    {% elif user.is_delivery_person %}
-                        <a href="{% url 'delivery:dashboard' %}" class="cta-btn">
-                            <i class="fas fa-truck me-2"></i>Delivery Dashboard
-                        </a>
-                    {% endif %}
-                    <a href="{% url 'customer:cart' %}" class="cta-btn">
-                        <i class="fas fa-shopping-cart me-2"></i>My Cart
-                    </a>
-                {% else %}
-                    <a href="{% url 'customer:register' %}" class="cta-btn">
-                        <i class="fas fa-user-plus me-2"></i>Register as Customer
-                    </a>
-                    <a href="{% url 'pharmacy:register' %}" class="cta-btn">
-                        <i class="fas fa-store me-2"></i>Register Pharmacy
-                    </a>
-                {% endif %}
+            <div class="text-center mt-3">
+                <button type="button" class="btn btn-outline-light btn-sm animate-pulse" id="get-location-btn">
+                    <i class="fas fa-map-marker-alt me-1"></i> Get My Location for Better Results
+                </button>
+                <div id="location-status" class="mt-2 small text-white-75"></div>
+            </div>
+            <div class="text-center mt-4">
+                <a href="{% url 'upload_prescription' %}" class="{% if user.is_authenticated and user.customer %}btn-customer-primary{% else %}btn btn-light{% endif %} btn-lg hover-float">
+                    <i class="fas fa-file-prescription me-2 animate-pulse"></i> Upload Prescription
+                </a>
+                <p class="mt-2 text-white-50 small">Have a prescription? Upload it directly to your preferred pharmacy</p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Features Section -->
-<section class="features-section">
+<section class="features bg-light py-5">
     <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-12">
-                <h2 class="display-4 font-weight-bold text-primary mb-3 fade-in-on-scroll">
-                    Why Choose Our Platform?
-                </h2>
-                <p class="lead text-muted fade-in-on-scroll">
-                    Revolutionary healthcare technology connecting you with Ethiopia's best pharmacies
-                </p>
-            </div>
-        </div>
-        
+        <h2 class="section-title text-center mb-5 animate-fadeInDown">How MedFinder Works</h2>
         <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-search"></i>
+            <div class="col-md-4 mb-4 animate-fadeInUp">
+                <div class="{% if user.is_authenticated and user.customer %}customer-card{% else %}feature-card{% endif %} hover-float text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-search fa-3x text-primary animate-heartbeat"></i>
                     </div>
-                    <h3 class="feature-title">Smart Medicine Search</h3>
-                    <p class="feature-description">
-                        Find any medicine instantly across verified pharmacies with real-time availability and pricing
-                    </p>
+                    <h3 class="mb-3">Search Medicines</h3>
+                    <p>Quickly search for the medicines you need and find pharmacies that have them in stock.</p>
+                    {% if user.is_authenticated and user.customer %}
+                        <a href="{% url 'home' %}" class="btn btn-customer-primary mt-3">
+                            <i class="fas fa-search me-2"></i>Start Searching
+                        </a>
+                    {% endif %}
                 </div>
             </div>
-            
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-camera"></i>
+            <div class="col-md-4 mb-4 animate-fadeInUp animate-delay-1">
+                <div class="{% if user.is_authenticated and user.customer %}customer-card{% else %}feature-card{% endif %} hover-float text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-file-prescription fa-3x text-primary animate-heartbeat"></i>
                     </div>
-                    <h3 class="feature-title">AI Prescription Validation</h3>
-                    <p class="feature-description">
-                        Upload prescription images and let our OCR technology validate medicines with 90% accuracy
-                    </p>
+                    <h3 class="mb-3">Upload Prescriptions</h3>
+                    <p>Upload your prescription directly to your preferred pharmacy for quick processing.</p>
+                    {% if user.is_authenticated and user.customer %}
+                        <a href="{% url 'upload_prescription' %}" class="btn btn-customer-primary mt-3">
+                            <i class="fas fa-upload me-2"></i>Upload Now
+                        </a>
+                    {% endif %}
                 </div>
             </div>
-            
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-truck"></i>
+            <div class="col-md-4 mb-4 animate-fadeInUp animate-delay-2">
+                <div class="{% if user.is_authenticated and user.customer %}customer-card{% else %}feature-card{% endif %} hover-float text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-hospital-user fa-3x text-primary animate-heartbeat"></i>
                     </div>
-                    <h3 class="feature-title">Fast Delivery Tracking</h3>
-                    <p class="feature-description">
-                        Real-time delivery tracking with QR code verification and secure payment options
-                    </p>
+                    <h3 class="mb-3">Connect with Pharmacies</h3>
+                    <p>Find all pharmacies that carry the medications you need in one place.</p>
+                    {% if user.is_authenticated and user.customer %}
+                        <a href="{% url 'home' %}" class="btn btn-customer-primary mt-3">
+                            <i class="fas fa-store me-2"></i>Find Pharmacies
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Stats Section -->
-<section class="stats-section">
+<!-- For Pharmacies Section -->
+<section class="py-5 {% if user.is_authenticated and user.pharmacy %}pharmacy-theme{% endif %}">
     <div class="container">
-        <div class="row">
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-item">
-                    <div class="stat-number">500+</div>
-                    <div class="stat-label">Verified Pharmacies</div>
-                </div>
+        <div class="row align-items-center">
+            <div class="col-md-6 mb-4 mb-md-0 animate-slideInFromLeft">
+                <h2 class="mb-4">For Pharmacies</h2>
+                <p class="lead mb-4">Join our network of pharmacies and connect with more customers in your area.</p>
+                <ul class="list-unstyled mb-4">
+                    <li class="mb-3 animate-fadeInLeft animate-delay-1">
+                        <i class="fas fa-check-circle text-primary me-3 fa-lg"></i> 
+                        <strong>Manage your inventory online</strong>
+                    </li>
+                    <li class="mb-3 animate-fadeInLeft animate-delay-2">
+                        <i class="fas fa-check-circle text-primary me-3 fa-lg"></i> 
+                        <strong>Receive prescriptions digitally</strong>
+                    </li>
+                    <li class="mb-3 animate-fadeInLeft animate-delay-3">
+                        <i class="fas fa-check-circle text-primary me-3 fa-lg"></i> 
+                        <strong>Increase visibility to nearby customers</strong>
+                    </li>
+                    <li class="mb-3 animate-fadeInLeft animate-delay-4">
+                        <i class="fas fa-check-circle text-primary me-3 fa-lg"></i> 
+                        <strong>Track medicine expiry dates</strong>
+                    </li>
+                </ul>
+                <a href="{% url 'pharmacy_register' %}" class="{% if user.is_authenticated and user.pharmacy %}btn-pharmacy-primary{% else %}btn btn-primary{% endif %} btn-lg hover-scale">
+                    <i class="fas fa-store me-2"></i>Register Your Pharmacy
+                </a>
             </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-item">
-                    <div class="stat-number">10K+</div>
-                    <div class="stat-label">Medicines Available</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-item">
-                    <div class="stat-number">25K+</div>
-                    <div class="stat-label">Orders Delivered</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-item">
-                    <div class="stat-number">99%</div>
-                    <div class="stat-label">Customer Satisfaction</div>
+            <div class="col-md-6 animate-slideInFromRight">
+                <div class="position-relative">
+                    <img src="https://images.unsplash.com/photo-1576602976047-174e57a47881?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1469&q=80" 
+                         alt="Pharmacy" class="img-fluid rounded shadow hover-float">
+                    <div class="position-absolute top-0 start-0 w-100 h-100 bg-primary opacity-10 rounded"></div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
+<!-- CTA Section -->
+<section class="bg-primary text-white py-5 position-relative overflow-hidden">
+    <div class="position-absolute top-0 start-0 w-100 h-100 opacity-10">
+        <div class="position-absolute top-0 start-0 bg-white rounded-circle" style="width: 300px; height: 300px; transform: translate(-50%, -50%);"></div>
+        <div class="position-absolute bottom-0 end-0 bg-white rounded-circle" style="width: 200px; height: 200px; transform: translate(25%, 25%);"></div>
+    </div>
+    <div class="container text-center position-relative">
+        <h2 class="mb-4 animate-fadeInUp">Ready to find your medicines?</h2>
+        <p class="lead mb-5 animate-fadeInUp animate-delay-1">Start searching now or upload your prescription to a pharmacy near you.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap animate-fadeInUp animate-delay-2">
+            <a href="#" class="{% if user.is_authenticated and user.customer %}btn-customer-primary{% else %}btn btn-light{% endif %} btn-lg hover-scale" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+                <i class="fas fa-search me-2 animate-pulse"></i> Search Medicines
+            </a>
+            <a href="{% url 'upload_prescription' %}" class="btn btn-outline-light btn-lg hover-scale">
+                <i class="fas fa-file-prescription me-2 animate-pulse"></i> Upload Prescription
+            </a>
+        </div>
+        {% if user.is_authenticated %}
+            <div class="mt-4 animate-fadeInUp animate-delay-3">
+                <p class="mb-2">Welcome back, <strong>{{ user.get_full_name|default:user.username }}</strong>!</p>
+                {% if user.customer %}
+                    <a href="{% url 'customer_dashboard' %}" class="btn btn-outline-light">
+                        <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                    </a>
+                {% elif user.pharmacy %}
+                    <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-light">
+                        <i class="fas fa-store me-2"></i>Go to Pharmacy Dashboard
+                    </a>
+                {% elif user.deliveryperson %}
+                    <a href="{% url 'delivery_dashboard' %}" class="btn btn-outline-light">
+                        <i class="fas fa-truck me-2"></i>Go to Delivery Dashboard
+                    </a>
+                {% elif user.is_staff %}
+                    <a href="{% url 'platform_admin:dashboard' %}" class="btn btn-outline-light">
+                        <i class="fas fa-user-shield me-2"></i>Go to Admin Dashboard
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Floating Cart Button for Customers -->
+{% if user.is_authenticated and user.customer %}
+<a href="{% url 'view_cart' %}" class="fab-customer">
+    <i class="fas fa-shopping-cart"></i>
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-count">
+        0
+    </span>
+</a>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
 <script>
-// Scroll animations
-function isElementInViewport(el) {
-    const rect = el.getBoundingClientRect();
-    return (
-        rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-    );
-}
-
-function handleScrollAnimation() {
-    const elements = document.querySelectorAll('.fade-in-on-scroll');
-    elements.forEach(element => {
-        if (isElementInViewport(element)) {
-            element.classList.add('visible');
+document.addEventListener('DOMContentLoaded', function() {
+    const getLocationBtn = document.getElementById('get-location-btn');
+    const locationStatus = document.getElementById('location-status');
+    const searchLatInput = document.getElementById('search-lat');
+    const searchLonInput = document.getElementById('search-lon');
+    
+    // Check if location is already stored
+    const savedLat = localStorage.getItem('customer_lat');
+    const savedLon = localStorage.getItem('customer_lon');
+    
+    if (savedLat && savedLon) {
+        searchLatInput.value = savedLat;
+        searchLonInput.value = savedLon;
+        locationStatus.innerHTML = '<i class="fas fa-check-circle me-1"></i> Location detected - results will be sorted by distance';
+        getLocationBtn.innerHTML = '<i class="fas fa-check me-1"></i> Location Set';
+        getLocationBtn.classList.remove('btn-outline-light');
+        getLocationBtn.classList.add('btn-success');
+        console.log('Loaded saved location:', savedLat, savedLon);
+    }
+    
+    getLocationBtn.addEventListener('click', function() {
+        if (navigator.geolocation) {
+            locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Getting your location...';
+            getLocationBtn.disabled = true;
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    // Store location in form and localStorage
+                    searchLatInput.value = lat;
+                    searchLonInput.value = lon;
+                    localStorage.setItem('customer_lat', lat);
+                    localStorage.setItem('customer_lon', lon);
+                    
+                    locationStatus.innerHTML = `<i class="fas fa-check-circle me-1"></i> Location detected: ${lat.toFixed(4)}, ${lon.toFixed(4)} - results will be sorted by distance`;
+                    getLocationBtn.innerHTML = '<i class="fas fa-check me-1"></i> Location Set';
+                    getLocationBtn.classList.remove('btn-outline-light');
+                    getLocationBtn.classList.add('btn-success');
+                    getLocationBtn.disabled = false;
+                    console.log('Location obtained and stored:', lat, lon);
+                },
+                function(error) {
+                    let errorMsg = 'Unable to get location. ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg += 'Please allow location access for better results.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg += 'Location information unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg += 'Location request timed out.';
+                            break;
+                        default:
+                            errorMsg += 'An unknown error occurred.';
+                            break;
+                    }
+                    locationStatus.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> ' + errorMsg;
+                    getLocationBtn.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 300000  // Cache location for 5 minutes
+                }
+            );
+        } else {
+            locationStatus.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Geolocation is not supported by this browser.';
         }
     });
-}
-
-window.addEventListener('scroll', handleScrollAnimation);
-window.addEventListener('load', handleScrollAnimation);
-
-// Counter animation
-function animateCounters() {
-    const counters = document.querySelectorAll('.stat-number');
-    counters.forEach(counter => {
-        const target = parseInt(counter.textContent.replace(/[^0-9]/g, ''));
-        const increment = target / 100;
-        let current = 0;
-        
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-                counter.textContent = counter.textContent.replace(/[0-9]+/, target);
-                clearInterval(timer);
-            } else {
-                counter.textContent = counter.textContent.replace(/[0-9]+/, Math.floor(current));
+    
+    // Auto-get location if user hasn't set it yet
+    if (!savedLat || !savedLon) {
+        setTimeout(() => {
+            if (navigator.geolocation) {
+                getLocationBtn.click();
             }
-        }, 20);
-    });
-}
-
-// Trigger counter animation when stats section is visible
-const statsSection = document.querySelector('.stats-section');
-const observer = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-        animateCounters();
-        observer.unobserve(statsSection);
+        }, 1000);
     }
 });
-
-observer.observe(statsSection);
 </script>
 {% endblock %}

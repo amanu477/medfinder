@@ -286,31 +286,6 @@ function handlePharmacyLocationButton() {
     }
 }
 
-// Update customer location on server
-function updateCustomerLocation(lat, lon) {
-    fetch('/customer/update-location/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            latitude: lat,
-            longitude: lon
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('Customer location updated successfully');
-        } else {
-            console.error('Failed to update customer location:', data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error updating customer location:', error);
-    });
-}
-
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
     // Handle pharmacy registration location
@@ -321,15 +296,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Automatically try to get location for search pages
     initializeLocation();
-    
-    // Auto-update customer location for authenticated customers
-    if (window.location.pathname.includes('/customer/')) {
-        getUserLocation()
-            .then((location) => {
-                updateCustomerLocation(location.lat, location.lon);
-            })
-            .catch((error) => {
-                console.log('Customer location update failed:', error);
-            });
-    }
 });

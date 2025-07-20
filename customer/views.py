@@ -24,8 +24,11 @@ import logging
 
 def home(request):
     """Home page view with search functionality"""
-    # Return simple standalone template to avoid URL issues
-    return render(request, 'home_simple.html')
+    # Ensure no MoH notifications appear on main homepage
+    context = {
+        'suppress_moh_notifications': True,
+    }
+    return render(request, 'home.html', context)
 
 def login_selector(request):
     """Login selector page showing all login options"""
