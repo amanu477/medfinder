@@ -28,7 +28,7 @@ def home(request):
     context = {
         'suppress_moh_notifications': True,
     }
-    return render(request, 'home.html', context)
+    return render(request, 'home_fixed.html', context)
 
 def login_selector(request):
     """Login selector page showing all login options"""

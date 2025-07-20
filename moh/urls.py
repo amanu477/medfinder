@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+app_name = 'moh'
+
 # Ministry of Health URLs (Independent Government System)
 urlpatterns = [
     path('', views.moh_login, name='moh_login'),
