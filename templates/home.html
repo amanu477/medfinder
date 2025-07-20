@@ -86,6 +86,96 @@
     </div>
 </section>
 
+<!-- Popular Medicines Section -->
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="text-center mb-5 animate-fadeInDown">Popular Medicines</h2>
+        <div class="row">
+            <div class="col-md-3 col-sm-6 mb-4 animate-fadeInUp">
+                <div class="medicine-showcase hover-float text-center">
+                    <div class="medicine-image-container mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 200 200" class="medicine-svg">
+                            <defs>
+                                <linearGradient id="pillGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#e3f2fd;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#1976d2;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <ellipse cx="100" cy="100" rx="80" ry="40" fill="url(#pillGradient1)" stroke="#1976d2" stroke-width="2"/>
+                            <text x="100" y="105" text-anchor="middle" fill="white" font-family="Arial" font-size="16" font-weight="bold">Aspirin</text>
+                        </svg>
+                    </div>
+                    <h5 class="mb-2">Aspirin</h5>
+                    <p class="text-muted small">Pain relief & fever reduction</p>
+                    <span class="badge bg-primary">25.00 ETB</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4 animate-fadeInUp animate-delay-1">
+                <div class="medicine-showcase hover-float text-center">
+                    <div class="medicine-image-container mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 200 200" class="medicine-svg">
+                            <defs>
+                                <linearGradient id="pillGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#f3e5f5;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#7b1fa2;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="60" y="60" width="80" height="80" rx="40" fill="url(#pillGradient2)" stroke="#7b1fa2" stroke-width="2"/>
+                            <text x="100" y="105" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">Vitamin C</text>
+                        </svg>
+                    </div>
+                    <h5 class="mb-2">Vitamin C</h5>
+                    <p class="text-muted small">Immune system support</p>
+                    <span class="badge bg-primary">15.00 ETB</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4 animate-fadeInUp animate-delay-2">
+                <div class="medicine-showcase hover-float text-center">
+                    <div class="medicine-image-container mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 200 200" class="medicine-svg">
+                            <defs>
+                                <linearGradient id="pillGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#e8f5e8;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#2e7d32;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="100" cy="100" r="50" fill="url(#pillGradient3)" stroke="#2e7d32" stroke-width="2"/>
+                            <text x="100" y="105" text-anchor="middle" fill="white" font-family="Arial" font-size="12" font-weight="bold">Paracetamol</text>
+                        </svg>
+                    </div>
+                    <h5 class="mb-2">Paracetamol</h5>
+                    <p class="text-muted small">Fever & pain relief</p>
+                    <span class="badge bg-primary">12.00 ETB</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-4 animate-fadeInUp animate-delay-3">
+                <div class="medicine-showcase hover-float text-center">
+                    <div class="medicine-image-container mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 200 200" class="medicine-svg">
+                            <defs>
+                                <linearGradient id="pillGradient4" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#fff3e0;stop-opacity:1" />
+                                    <stop offset="100%" style="stop-color:#f57c00;stop-opacity:1" />
+                                </linearGradient>
+                            </defs>
+                            <polygon points="100,50 150,100 100,150 50,100" fill="url(#pillGradient4)" stroke="#f57c00" stroke-width="2"/>
+                            <text x="100" y="105" text-anchor="middle" fill="white" font-family="Arial" font-size="14" font-weight="bold">Amoxicillin</text>
+                        </svg>
+                    </div>
+                    <h5 class="mb-2">Amoxicillin</h5>
+                    <p class="text-muted small">Antibiotic treatment</p>
+                    <span class="badge bg-primary">45.00 ETB</span>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <a href="#" class="btn btn-outline-primary btn-lg" onclick="document.querySelector('.hero input').focus(); return false;">
+                <i class="fas fa-search me-2"></i>Search All Medicines
+            </a>
+        </div>
+    </div>
+</section>
+
 <!-- For Pharmacies Section -->
 <section class="py-5 {% if user.is_authenticated and user.pharmacy %}pharmacy-theme{% endif %}">
     <div class="container">

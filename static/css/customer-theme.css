@@ -198,6 +198,38 @@
     100% { transform: rotate(360deg); }
 }
 
+/* Medicine Showcase */
+.medicine-showcase {
+    background: white;
+    border-radius: 15px;
+    padding: 25px 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.medicine-showcase:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(30, 136, 229, 0.15);
+    border-color: #e3f2fd;
+}
+
+.medicine-image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 120px;
+}
+
+.medicine-svg {
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    transition: all 0.3s ease;
+}
+
+.medicine-showcase:hover .medicine-svg {
+    transform: scale(1.05);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .customer-card {
@@ -208,5 +240,14 @@
     .btn-customer-primary {
         padding: 10px 20px;
         font-size: 0.9rem;
+    }
+    
+    .medicine-showcase {
+        padding: 20px 10px;
+    }
+    
+    .medicine-svg {
+        width: 100px;
+        height: 100px;
     }
 }
