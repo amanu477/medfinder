@@ -1,4 +1,6 @@
-/* Core Animation Definitions */
+/* Animation Utilities */
+
+/* Fade Animations */
 @keyframes fadeInUp {
     from {
         opacity: 0;
@@ -43,119 +45,84 @@
     }
 }
 
-@keyframes slideInFromLeft {
+@keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateX(-100px);
     }
     to {
         opacity: 1;
-        transform: translateX(0);
     }
 }
 
-@keyframes slideInFromRight {
+/* Scale Animations */
+@keyframes scaleIn {
     from {
         opacity: 0;
-        transform: translateX(100px);
+        transform: scale(0.9);
     }
     to {
         opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes pulse {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-}
-
-@keyframes heartbeat {
-    0%, 100% {
-        transform: scale(1);
-    }
-    14% {
-        transform: scale(1.1);
-    }
-    28% {
-        transform: scale(1);
-    }
-    42% {
-        transform: scale(1.1);
-    }
-    70% {
         transform: scale(1);
     }
 }
 
 @keyframes bounce {
     0%, 20%, 53%, 80%, 100% {
-        transform: translateY(0);
+        transform: translate3d(0,0,0);
     }
     40%, 43% {
-        transform: translateY(-15px);
+        transform: translate3d(0, -30px, 0);
     }
     70% {
-        transform: translateY(-7px);
+        transform: translate3d(0, -15px, 0);
     }
     90% {
-        transform: translateY(-3px);
+        transform: translate3d(0, -4px, 0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    }
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
     }
 }
 
 @keyframes float {
-    0%, 100% {
+    0% {
         transform: translateY(0px);
     }
     50% {
         transform: translateY(-10px);
     }
-}
-
-@keyframes rotate {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes shake {
-    0%, 100% {
-        transform: translateX(0);
-    }
-    10%, 30%, 50%, 70%, 90% {
-        transform: translateX(-5px);
-    }
-    20%, 40%, 60%, 80% {
-        transform: translateX(5px);
-    }
-}
-
-@keyframes zoomIn {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-@keyframes flipInX {
-    from {
-        opacity: 0;
-        transform: perspective(400px) rotateX(90deg);
-    }
-    to {
-        opacity: 1;
-        transform: perspective(400px) rotateX(0deg);
+    100% {
+        transform: translateY(0px);
     }
 }
 
@@ -176,68 +143,56 @@
     animation: fadeInRight 0.8s ease-out;
 }
 
-.animate-slideInFromLeft {
-    animation: slideInFromLeft 1s ease-out;
+.animate-fadeIn {
+    animation: fadeIn 0.8s ease-out;
 }
 
-.animate-slideInFromRight {
-    animation: slideInFromRight 1s ease-out;
+.animate-scaleIn {
+    animation: scaleIn 0.6s ease-out;
+}
+
+.animate-bounce {
+    animation: bounce 1s;
 }
 
 .animate-pulse {
     animation: pulse 2s infinite;
 }
 
-.animate-heartbeat {
-    animation: heartbeat 2s infinite;
+.animate-slideInLeft {
+    animation: slideInLeft 0.8s ease-out;
 }
 
-.animate-bounce {
-    animation: bounce 2s infinite;
+.animate-slideInRight {
+    animation: slideInRight 0.8s ease-out;
 }
 
 .animate-float {
     animation: float 3s ease-in-out infinite;
 }
 
-.animate-rotate {
-    animation: rotate 2s linear infinite;
-}
-
-.animate-shake {
-    animation: shake 0.5s ease-in-out;
-}
-
-.animate-zoomIn {
-    animation: zoomIn 0.6s ease-out;
-}
-
-.animate-flipInX {
-    animation: flipInX 0.8s ease-out;
-}
-
-/* Animation Delays */
+/* Delay Classes */
 .animate-delay-1 {
-    animation-delay: 0.2s;
+    animation-delay: 0.1s;
 }
 
 .animate-delay-2 {
-    animation-delay: 0.4s;
+    animation-delay: 0.2s;
 }
 
 .animate-delay-3 {
-    animation-delay: 0.6s;
+    animation-delay: 0.3s;
 }
 
 .animate-delay-4 {
-    animation-delay: 0.8s;
+    animation-delay: 0.4s;
 }
 
 .animate-delay-5 {
-    animation-delay: 1s;
+    animation-delay: 0.5s;
 }
 
-/* Hover Effects */
+/* Hover Animations */
 .hover-float:hover {
     transform: translateY(-5px);
     transition: all 0.3s ease;
@@ -248,21 +203,20 @@
     transition: all 0.3s ease;
 }
 
-.hover-glow:hover {
-    box-shadow: 0 0 20px rgba(0,123,255,0.5);
-    transition: all 0.3s ease;
-}
-
-.hover-rotate:hover {
-    transform: rotate(5deg);
-    transition: all 0.3s ease;
-}
-
 .hover-bounce:hover {
     animation: bounce 1s;
 }
 
-/* Staggered Animations for Lists */
+.hover-pulse:hover {
+    animation: pulse 1s;
+}
+
+/* Stagger Animation Utility */
+.stagger-animation > * {
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
 .stagger-animation > *:nth-child(1) { animation-delay: 0.1s; }
 .stagger-animation > *:nth-child(2) { animation-delay: 0.2s; }
 .stagger-animation > *:nth-child(3) { animation-delay: 0.3s; }
@@ -273,116 +227,37 @@
 .stagger-animation > *:nth-child(8) { animation-delay: 0.8s; }
 
 /* Loading Animations */
-.loading-spinner {
-    animation: rotate 1s linear infinite;
-}
-
-.loading-dots::after {
-    content: '';
-    animation: loadingDots 1.5s infinite;
-}
-
-@keyframes loadingDots {
-    0%, 20% {
-        content: '.';
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
     }
-    40% {
-        content: '..';
-    }
-    60%, 100% {
-        content: '...';
+    to {
+        transform: rotate(360deg);
     }
 }
 
-/* Entrance Animations on Scroll */
-.animate-on-scroll {
-    opacity: 0;
-    transition: all 0.6s ease;
+.animate-spin {
+    animation: spin 1s linear infinite;
 }
 
-.animate-on-scroll.visible {
-    opacity: 1;
+/* Medical Icon Floating Animation */
+.medical-float {
+    animation: float 4s ease-in-out infinite;
 }
 
-/* Medical Theme Specific Animations */
-@keyframes medicalPulse {
-    0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
-    }
-    50% {
-        transform: scale(1.05);
-        box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
-    }
+.medical-float:nth-child(2) {
+    animation-delay: 0.5s;
 }
 
-.medical-pulse {
-    animation: medicalPulse 2s infinite;
+.medical-float:nth-child(3) {
+    animation-delay: 1s;
 }
 
-@keyframes heartMonitor {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    25% {
-        transform: translateY(-3px);
-    }
-    50% {
-        transform: translateY(0);
-    }
-    75% {
-        transform: translateY(-1px);
-    }
+.medical-float:nth-child(4) {
+    animation-delay: 1.5s;
 }
 
-.heart-monitor {
-    animation: heartMonitor 1s infinite;
-}
-
-/* Utility Classes */
-.animate-faster {
-    animation-duration: 0.5s;
-}
-
-.animate-slower {
-    animation-duration: 2s;
-}
-
-.animate-infinite {
-    animation-iteration-count: infinite;
-}
-
-.animate-once {
-    animation-iteration-count: 1;
-}
-
-.animate-pause {
-    animation-play-state: paused;
-}
-
-.animate-reverse {
-    animation-direction: reverse;
-}
-
-/* Responsive Animations */
-@media (max-width: 768px) {
-    .animate-fadeInUp,
-    .animate-fadeInDown,
-    .animate-fadeInLeft,
-    .animate-fadeInRight,
-    .animate-slideInFromLeft,
-    .animate-slideInFromRight {
-        animation-duration: 0.6s;
-    }
-    
-    .animate-delay-1 { animation-delay: 0.1s; }
-    .animate-delay-2 { animation-delay: 0.2s; }
-    .animate-delay-3 { animation-delay: 0.3s; }
-    .animate-delay-4 { animation-delay: 0.4s; }
-    .animate-delay-5 { animation-delay: 0.5s; }
-}
-
-/* Reduced Motion Support */
+/* Responsive Animation Control */
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -391,4 +266,21 @@
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
     }
+}
+
+/* Theme-specific animations */
+.customer-animate {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.pharmacy-animate {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.delivery-animate {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.admin-animate {
+    animation: fadeInUp 0.8s ease-out;
 }

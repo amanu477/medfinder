@@ -4,79 +4,85 @@
 {% block title %}Delivery Dashboard{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1>🚚 Delivery Dashboard</h1>
-                <div class="text-end">
-                    <h5>Welcome, {{ delivery_person.user.get_full_name }}!</h5>
-                    <small class="text-muted">{{ delivery_person.pharmacy.name }}</small>
-                    <br>
-                    <div class="mt-2">
-                        {% if delivery_person.is_available %}
-                            <span class="badge bg-success">Available</span>
-                        {% else %}
-                            <span class="badge bg-danger">Not Available</span>
-                        {% endif %}
-                        <small class="text-muted ms-2">{{ delivery_person.get_active_deliveries_count }} active deliveries</small>
-                    </div>
+<div class="delivery-dashboard-header animate-fadeInDown">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-2">🚚 Delivery Dashboard</h1>
+                <p class="mb-0 opacity-75">{{ delivery_person.pharmacy.name }} - Delivery Operations</p>
+            </div>
+            <div class="text-end">
+                <h5>Welcome, {{ delivery_person.user.get_full_name }}!</h5>
+                <div class="mt-2">
+                    {% if delivery_person.is_available %}
+                        <span class="delivery-status-badge delivery-status-delivered">Available</span>
+                    {% else %}
+                        <span class="delivery-status-badge bg-danger">Busy</span>
+                    {% endif %}
+                    <small class="text-light ms-2">{{ delivery_person.get_active_deliveries_count }} active deliveries</small>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Statistics Cards -->
-            <div class="row mb-4">
-                <div class="col-md-3 delivery-animate">
-                    <div class="delivery-stat">
-                        <div class="stat-icon">
-                            <i class="fas fa-truck"></i>
-                        </div>
-                        <div class="stat-number">{{ stats.total_deliveries }}</div>
-                        <div class="stat-label">Total Deliveries</div>
-                    </div>
+<div class="container-fluid mt-4">
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 animate-fadeInUp">
+            <div class="delivery-stat-card">
+                <div class="delivery-stat-icon">
+                    <i class="fas fa-truck"></i>
                 </div>
-                <div class="col-md-3 delivery-animate animate-delay-1">
-                    <div class="delivery-stat">
-                        <div class="stat-icon">
-                            <i class="fas fa-shipping-fast"></i>
-                        </div>
-                        <div class="stat-number">{{ stats.current_active }}</div>
-                        <div class="stat-label">Active Deliveries</div>
-                        <small class="d-block mt-2">
-                            {% if delivery_person.is_available %}
-                                <span class="badge bg-success">Available</span>
-                            {% else %}
-                                <span class="badge bg-danger">Busy</span>
-                            {% endif %}
-                        </small>
-                    </div>
+                <h3>{{ stats.total_deliveries }}</h3>
+                <p>Total Deliveries</p>
+            </div>
+        </div>
+        <div class="col-md-3 animate-fadeInUp animate-delay-1">
+            <div class="delivery-stat-card">
+                <div class="delivery-stat-icon">
+                    <i class="fas fa-shipping-fast"></i>
                 </div>
-                <div class="col-md-3 delivery-animate animate-delay-2">
-                    <div class="delivery-stat">
-                        <div class="stat-icon">
-                            <i class="fas fa-star"></i>
-                        </div>
-                        <div class="stat-number">{{ stats.rating }}/5.0</div>
-                        <div class="stat-label">Rating</div>
-                    </div>
-                </div>
-                <div class="col-md-3 delivery-animate animate-delay-3">
-                    <div class="delivery-status-card">
-                        <div class="status-icon">
-                            <i class="fas fa-heartbeat"></i>
-                        </div>
-                        <h5>Current Status</h5>
-                        <h3>{% if delivery_person.is_available %}Available{% else %}Busy{% endif %}</h3>
-                    </div>
+                <h3>{{ stats.current_active }}</h3>
+                <p>Active Deliveries</p>
+                <div class="mt-2">
+                    {% if delivery_person.is_available %}
+                        <span class="delivery-status-badge delivery-status-delivered">Available</span>
+                    {% else %}
+                        <span class="delivery-status-badge bg-danger">Busy</span>
+                    {% endif %}
                 </div>
             </div>
-
-            <!-- Current Deliveries -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>🚚 Current Deliveries</h5>
+        </div>
+        <div class="col-md-3 animate-fadeInUp animate-delay-2">
+            <div class="delivery-stat-card">
+                <div class="delivery-stat-icon">
+                    <i class="fas fa-star"></i>
                 </div>
-                <div class="card-body">
+                <h3>{{ stats.rating }}/5.0</h3>
+                <p>Rating</p>
+            </div>
+        </div>
+        <div class="col-md-3 animate-fadeInUp animate-delay-3">
+            <div class="delivery-stat-card">
+                <div class="delivery-stat-icon">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <h3>{% if delivery_person.is_available %}Available{% else %}Busy{% endif %}</h3>
+                <p>Current Status</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Deliveries -->
+    <div class="delivery-card mb-4 animate-fadeInUp">
+        <div class="d-flex align-items-center mb-3">
+            <div class="delivery-stat-icon me-3" style="width: 50px; height: 50px;">
+                <i class="fas fa-truck"></i>
+            </div>
+            <h5 class="mb-0">🚚 Current Deliveries</h5>
+        </div>
                     {% if current_deliveries %}
                         <div class="table-responsive">
                             <table class="table table-striped">
@@ -98,11 +104,17 @@
                                         <td>{{ delivery.customer_address|truncatechars:30 }}</td>
                                         <td>{{ delivery.customer_phone }}</td>
                                         <td>
-                                            <span class="badge bg-primary">{{ delivery.get_status_display }}</span>
+                                            <span class="delivery-status-badge 
+                                                {% if delivery.status == 'assigned' %}delivery-status-assigned
+                                                {% elif delivery.status == 'picked_up' %}delivery-status-picked
+                                                {% elif delivery.status == 'in_transit' %}delivery-status-transit
+                                                {% elif delivery.status == 'arrived' %}delivery-status-picked
+                                                {% elif delivery.status == 'delivered' %}delivery-status-delivered
+                                                {% endif %}">{{ delivery.get_status_display }}</span>
                                         </td>
                                         <td>
-                                            <a href="{% url 'delivery_detail' delivery.id %}" class="btn btn-sm btn-outline-primary">View</a>
-                                            <a href="{% url 'update_delivery_status' delivery.id %}" class="btn btn-sm btn-warning">Update</a>
+                                            <a href="{% url 'delivery_detail' delivery.id %}" class="btn btn-sm btn-delivery-primary">View</a>
+                                            <a href="{% url 'update_delivery_status' delivery.id %}" class="btn btn-sm btn-delivery-primary">Update</a>
                                             
                                             <!-- QR Scanner Button when arrived -->
                                             {% if delivery.status == 'arrived' %}
