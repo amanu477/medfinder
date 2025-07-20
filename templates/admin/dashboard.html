@@ -23,55 +23,47 @@
 
     <!-- Statistics Cards -->
     <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title">Total Pharmacies</h5>
-                            <h2>{{ stats.total_pharmacies }}</h2>
-                        </div>
-                        <i class="fas fa-store fa-2x opacity-75"></i>
+        <div class="col-md-3 mb-3 admin-animate">
+            <div class="stat-card-admin">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Total Pharmacies</div>
+                        <div class="stat-number">{{ stats.total_pharmacies }}</div>
                     </div>
+                    <i class="fas fa-store fa-3x opacity-75"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title">Pending Verifications</h5>
-                            <h2>{{ stats.pending_verifications }}</h2>
-                        </div>
-                        <i class="fas fa-clock fa-2x opacity-75"></i>
+        <div class="col-md-3 mb-3 admin-animate animate-delay-1">
+            <div class="stat-card-admin" style="background: linear-gradient(135deg, #d97706, #f59e0b);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Pending Verifications</div>
+                        <div class="stat-number">{{ stats.pending_verifications }}</div>
                     </div>
+                    <i class="fas fa-clock fa-3x opacity-75"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title">Verified Pharmacies</h5>
-                            <h2>{{ stats.verified_pharmacies }}</h2>
-                        </div>
-                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+        <div class="col-md-3 mb-3 admin-animate animate-delay-2">
+            <div class="stat-card-admin" style="background: linear-gradient(135deg, #059669, #10b981);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Verified Pharmacies</div>
+                        <div class="stat-number">{{ stats.verified_pharmacies }}</div>
                     </div>
+                    <i class="fas fa-check-circle fa-3x opacity-75"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h5 class="card-title">Total Customers</h5>
-                            <h2>{{ stats.total_customers }}</h2>
-                        </div>
-                        <i class="fas fa-users fa-2x opacity-75"></i>
+        <div class="col-md-3 mb-3 admin-animate animate-delay-3">
+            <div class="stat-card-admin" style="background: linear-gradient(135deg, #0284c7, #0ea5e9);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Total Customers</div>
+                        <div class="stat-number">{{ stats.total_customers }}</div>
                     </div>
+                    <i class="fas fa-users fa-3x opacity-75"></i>
                 </div>
             </div>
         </div>

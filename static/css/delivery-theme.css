@@ -1,0 +1,363 @@
+/* Delivery-Specific Theme - Dynamic & Mobile-First */
+:root {
+    --delivery-primary: #059669;
+    --delivery-secondary: #047857;
+    --delivery-accent: #10b981;
+    --delivery-success: #065f46;
+    --delivery-warning: #d97706;
+    --delivery-danger: #dc2626;
+    --delivery-bg: #ecfdf5;
+    --delivery-card-bg: #ffffff;
+    --delivery-text: #065f46;
+    --delivery-text-light: #6b7280;
+}
+
+/* Delivery Body Styling */
+.delivery-theme {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    min-height: 100vh;
+    font-family: 'Inter', 'Roboto', sans-serif;
+}
+
+.delivery-theme .navbar {
+    background: rgba(5, 150, 105, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.delivery-theme .navbar-brand,
+.delivery-theme .nav-link {
+    color: white !important;
+    font-weight: 600;
+}
+
+.delivery-theme .navbar-brand {
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+}
+
+.delivery-theme .navbar-brand i {
+    color: #a7f3d0;
+    margin-right: 10px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Delivery Cards */
+.delivery-card {
+    background: var(--delivery-card-bg);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.1);
+    border: 2px solid rgba(16, 185, 129, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.delivery-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--delivery-primary), var(--delivery-accent));
+}
+
+.delivery-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 45px rgba(16, 185, 129, 0.2);
+    border-color: var(--delivery-accent);
+}
+
+/* Delivery Status Cards */
+.delivery-status-card {
+    background: linear-gradient(135deg, var(--delivery-primary), var(--delivery-secondary));
+    color: white;
+    border-radius: 20px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.delivery-status-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.delivery-status-card .status-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+/* Delivery Buttons */
+.btn-delivery-primary {
+    background: linear-gradient(45deg, var(--delivery-primary), var(--delivery-accent));
+    border: none;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-delivery-primary::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn-delivery-primary:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-delivery-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(5, 150, 105, 0.4);
+}
+
+/* Delivery Timeline */
+.delivery-timeline {
+    position: relative;
+    padding: 2rem 0;
+}
+
+.delivery-timeline::before {
+    content: '';
+    position: absolute;
+    left: 30px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: linear-gradient(to bottom, var(--delivery-primary), var(--delivery-accent));
+    border-radius: 2px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 80px;
+    margin-bottom: 2rem;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: 15px;
+    top: 0;
+    width: 30px;
+    height: 30px;
+    background: var(--delivery-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+    z-index: 2;
+}
+
+.timeline-icon.active {
+    background: var(--delivery-accent);
+    animation: pulse-ring 1.5s infinite;
+}
+
+@keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.timeline-content {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(16, 185, 129, 0.1);
+    border-left: 4px solid var(--delivery-primary);
+}
+
+/* Delivery Map Container */
+.delivery-map-container {
+    background: white;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.delivery-map-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--delivery-primary), var(--delivery-accent));
+}
+
+/* QR Scanner Styling */
+.qr-scanner-container {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 15px 50px rgba(16, 185, 129, 0.2);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.qr-scanner-container::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: conic-gradient(from 0deg, transparent, rgba(16, 185, 129, 0.1), transparent);
+    animation: rotate 10s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.qr-preview {
+    border: 4px solid var(--delivery-primary);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    z-index: 2;
+}
+
+/* Delivery Statistics */
+.delivery-stat {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 5px 20px rgba(16, 185, 129, 0.1);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.delivery-stat:hover {
+    border-color: var(--delivery-accent);
+    transform: translateY(-5px);
+}
+
+.delivery-stat .stat-icon {
+    font-size: 2.5rem;
+    color: var(--delivery-primary);
+    margin-bottom: 1rem;
+}
+
+.delivery-stat .stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--delivery-text);
+    margin-bottom: 0.5rem;
+}
+
+.delivery-stat .stat-label {
+    color: var(--delivery-text-light);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.875rem;
+}
+
+/* Mobile Optimization */
+.delivery-mobile-actions {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    background: white;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 10px 40px rgba(16, 185, 129, 0.2);
+    display: flex;
+    gap: 1rem;
+    z-index: 1000;
+}
+
+.delivery-mobile-actions .btn {
+    flex: 1;
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
+}
+
+/* Animations */
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.delivery-animate {
+    animation: slideInFromRight 0.6s ease-out forwards;
+}
+
+.delivery-animate:nth-child(2) { animation-delay: 0.1s; }
+.delivery-animate:nth-child(3) { animation-delay: 0.2s; }
+.delivery-animate:nth-child(4) { animation-delay: 0.3s; }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .delivery-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .delivery-status-card {
+        padding: 1.5rem;
+    }
+    
+    .btn-delivery-primary {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .timeline-item {
+        padding-left: 60px;
+    }
+}

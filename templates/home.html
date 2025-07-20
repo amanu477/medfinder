@@ -6,9 +6,9 @@
 <!-- Hero Section -->
 <section class="hero">
     <div class="hero-content">
-        <h1>Find the medicines you need, quickly and easily</h1>
-        <p>Connect with pharmacies that have the medications you're looking for</p>
-        <div class="search-container">
+        <h1 class="animate-fadeInUp">Find the medicines you need, quickly and easily</h1>
+        <p class="animate-fadeInUp animate-delay-1">Connect with pharmacies that have the medications you're looking for</p>
+        <div class="search-container animate-fadeInUp animate-delay-2">
             <form method="get" action="{% url 'search_medicines' %}" class="search-form" id="medicine-search-form">
                 <input type="text" name="query" placeholder="Search for medicines..." required>
                 <input type="hidden" name="lat" id="search-lat">
@@ -38,23 +38,23 @@
     <div class="container">
         <h2 class="section-title">How MedFinder Works</h2>
         <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <i class="fas fa-search"></i>
+            <div class="col-md-4 mb-4 animate-fadeInUp">
+                <div class="feature-card hover-float">
+                    <i class="fas fa-search animate-pulse"></i>
                     <h3>Search Medicines</h3>
                     <p>Quickly search for the medicines you need and find pharmacies that have them in stock.</p>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <i class="fas fa-file-prescription"></i>
+            <div class="col-md-4 mb-4 animate-fadeInUp animate-delay-1">
+                <div class="feature-card hover-float">
+                    <i class="fas fa-file-prescription animate-pulse"></i>
                     <h3>Upload Prescriptions</h3>
                     <p>Upload your prescription directly to your preferred pharmacy for quick processing.</p>
                 </div>
             </div>
-            <div class="col-md-4 mb-4">
-                <div class="feature-card">
-                    <i class="fas fa-hospital-user"></i>
+            <div class="col-md-4 mb-4 animate-fadeInUp animate-delay-2">
+                <div class="feature-card hover-float">
+                    <i class="fas fa-hospital-user animate-pulse"></i>
                     <h3>Connect with Pharmacies</h3>
                     <p>Find all pharmacies that carry the medications you need in one place.</p>
                 </div>

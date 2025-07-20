@@ -26,43 +26,47 @@
 
             <!-- Statistics Cards -->
             <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="card bg-primary text-white">
-                        <div class="card-body">
-                            <h5 class="card-title">Total Deliveries</h5>
-                            <h3>{{ stats.total_deliveries }}</h3>
+                <div class="col-md-3 delivery-animate">
+                    <div class="delivery-stat">
+                        <div class="stat-icon">
+                            <i class="fas fa-truck"></i>
                         </div>
+                        <div class="stat-number">{{ stats.total_deliveries }}</div>
+                        <div class="stat-label">Total Deliveries</div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-warning text-white">
-                        <div class="card-body">
-                            <h5 class="card-title">Active Deliveries</h5>
-                            <h3>{{ stats.current_active }}</h3>
-                            <small>
-                                {% if delivery_person.is_available %}
-                                    Status: Available
-                                {% else %}
-                                    Status: Busy
-                                {% endif %}
-                            </small>
+                <div class="col-md-3 delivery-animate animate-delay-1">
+                    <div class="delivery-stat">
+                        <div class="stat-icon">
+                            <i class="fas fa-shipping-fast"></i>
                         </div>
+                        <div class="stat-number">{{ stats.current_active }}</div>
+                        <div class="stat-label">Active Deliveries</div>
+                        <small class="d-block mt-2">
+                            {% if delivery_person.is_available %}
+                                <span class="badge bg-success">Available</span>
+                            {% else %}
+                                <span class="badge bg-danger">Busy</span>
+                            {% endif %}
+                        </small>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-success text-white">
-                        <div class="card-body">
-                            <h5 class="card-title">Rating</h5>
-                            <h3>{{ stats.rating }}/5.0</h3>
+                <div class="col-md-3 delivery-animate animate-delay-2">
+                    <div class="delivery-stat">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
                         </div>
+                        <div class="stat-number">{{ stats.rating }}/5.0</div>
+                        <div class="stat-label">Rating</div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card bg-info text-white">
-                        <div class="card-body">
-                            <h5 class="card-title">Status</h5>
-                            <h3>{% if delivery_person.is_available %}Available{% else %}Busy{% endif %}</h3>
+                <div class="col-md-3 delivery-animate animate-delay-3">
+                    <div class="delivery-status-card">
+                        <div class="status-icon">
+                            <i class="fas fa-heartbeat"></i>
                         </div>
+                        <h5>Current Status</h5>
+                        <h3>{% if delivery_person.is_available %}Available{% else %}Busy{% endif %}</h3>
                     </div>
                 </div>
             </div>

@@ -16,10 +16,24 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/animations.css">
+    
+    <!-- Theme-specific CSS based on user type -->
+    {% if user.is_authenticated %}
+        {% if user.customer %}
+            <link rel="stylesheet" href="/static/css/customer-theme.css">
+        {% elif user.pharmacy %}
+            <link rel="stylesheet" href="/static/css/pharmacy-theme.css">
+        {% elif user.deliveryperson %}
+            <link rel="stylesheet" href="/static/css/delivery-theme.css">
+        {% elif user.is_staff or user.is_superuser %}
+            <link rel="stylesheet" href="/static/css/admin-theme.css">
+        {% endif %}
+    {% endif %}
     
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% if user.is_authenticated %}{% if user.customer %}customer-theme{% elif user.pharmacy %}pharmacy-theme{% elif user.deliveryperson %}delivery-theme{% elif user.is_staff or user.is_superuser %}admin-theme{% endif %}{% endif %}">
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div class="container">

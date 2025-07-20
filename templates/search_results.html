@@ -52,8 +52,8 @@
         <div class="row">
             {% if medicines %}
                 {% for medicine in medicines %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100 shadow-sm">
+                <div class="col-md-6 col-lg-4 mb-4 animate-fadeInUp animate-delay-{{ forloop.counter }}">
+                    <div class="medicine-card-customer h-100 shadow-sm">
                         <div class="card-body">
                             <div class="text-center mb-3">
                                 {% if medicine.medicine_image %}

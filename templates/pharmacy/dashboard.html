@@ -43,36 +43,36 @@
         
         <!-- Stats -->
         <div class="row dashboard-stats">
-            <div class="col-md-3 mb-4">
-                <div class="stat-card">
-                    <div class="stat-icon text-gradient bg-gradient-primary">
+            <div class="col-md-3 mb-4 pharmacy-animate">
+                <div class="pharmacy-stat-card">
+                    <div class="stat-icon">
                         <i class="fas fa-pills"></i>
                     </div>
-                    <div class="stat-value">{{ total_medicines }}</div>
+                    <div class="stat-number">{{ total_medicines }}</div>
                     <div class="stat-label">Total Medicines</div>
                 </div>
             </div>
-            <div class="col-md-3 mb-4">
-                <div class="stat-card">
-                    <div class="stat-icon text-gradient bg-gradient-success">
+            <div class="col-md-3 mb-4 pharmacy-animate animate-delay-1">
+                <div class="pharmacy-stat-card">
+                    <div class="stat-icon">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
-                    <div class="stat-value">{{ total_orders }}</div>
+                    <div class="stat-number">{{ total_orders }}</div>
                     <div class="stat-label">Total Orders</div>
                 </div>
             </div>
-            <div class="col-md-3 mb-4">
-                <div class="stat-card">
-                    <div class="stat-icon text-gradient bg-gradient-success">
+            <div class="col-md-3 mb-4 pharmacy-animate animate-delay-2">
+                <div class="pharmacy-stat-card">
+                    <div class="stat-icon">
                         <i class="fas fa-check-circle"></i>
                     </div>
-                    <div class="stat-value">{{ available_medicines }}</div>
+                    <div class="stat-number">{{ available_medicines }}</div>
                     <div class="stat-label">Available Medicines</div>
                 </div>
             </div>
-            <div class="col-md-3 mb-4">
-                <div class="stat-card">
-                    <div class="stat-icon text-gradient bg-gradient-warning">
+            <div class="col-md-3 mb-4 pharmacy-animate animate-delay-3">
+                <div class="pharmacy-stat-card">
+                    <div class="stat-icon">
                         <i class="fas fa-clock"></i>
                     </div>
                     <div class="stat-value">{{ expiring_soon }}</div>
