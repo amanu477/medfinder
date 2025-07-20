@@ -2,35 +2,83 @@
 
 {% block title %}MedFinder - Find Medicines{% endblock %}
 
+{% block extra_css %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/medical-hero.css' %}">
+{% endblock %}
+
 {% block content %}
-<!-- Hero Section -->
-<section class="hero {% if user.is_authenticated and user.customer %}customer-theme{% endif %}">
+<!-- Medical-themed Hero Section -->
+<section class="medical-hero">
+    <!-- Animated Medical Background -->
+    <div class="medical-bg">
+        <!-- Floating Medical Icons -->
+        <i class="fas fa-pills medical-icon"></i>
+        <i class="fas fa-heartbeat medical-icon"></i>
+        <i class="fas fa-stethoscope medical-icon"></i>
+        <i class="fas fa-syringe medical-icon"></i>
+        <i class="fas fa-capsules medical-icon"></i>
+        <i class="fas fa-prescription-bottle medical-icon"></i>
+        
+        <!-- Medical Cross -->
+        <div class="medical-cross"></div>
+        
+        <!-- DNA Helix -->
+        <div class="dna-helix">
+            <div class="dna-strand"></div>
+            <div class="dna-strand"></div>
+        </div>
+        
+        <!-- Floating Pills -->
+        <div class="floating-pill pill-1"></div>
+        <div class="floating-pill pill-2"></div>
+        <div class="floating-pill pill-3"></div>
+    </div>
+    
+    <!-- Hero Content -->
     <div class="hero-content">
-        <h1 class="animate-fadeInUp">Find the medicines you need, quickly and easily</h1>
-        <p class="animate-fadeInUp animate-delay-1">Connect with pharmacies that have the medications you're looking for</p>
-        <div class="search-container animate-fadeInUp animate-delay-2">
-            <form method="get" action="{% url 'search_medicines' %}" class="search-form" id="medicine-search-form">
-                <div class="input-group input-group-lg">
-                    <input type="text" name="query" class="form-control" placeholder="Search for medicines..." required>
+        <h1 class="hero-title">Find the medicines you need, quickly and easily</h1>
+        <p class="hero-subtitle">Connect with pharmacies that have the medications you're looking for</p>
+        
+        <!-- Search Section -->
+        <div class="hero-search">
+            <form method="get" action="{% url 'search_medicines' %}" id="medicine-search-form">
+                <div class="search-wrapper">
+                    <input type="text" name="query" class="search-input" placeholder="Search for medicines, vitamins, supplements..." required>
                     <input type="hidden" name="lat" id="search-lat">
                     <input type="hidden" name="lon" id="search-lon">
-                    <button type="submit" class="{% if user.is_authenticated and user.customer %}btn-customer-primary{% else %}btn btn-primary{% endif %} px-4">
+                    <button type="submit" class="search-btn">
                         <i class="fas fa-search me-2"></i> Search
                     </button>
                 </div>
             </form>
-            <div class="text-center mt-3">
-                <button type="button" class="btn btn-outline-light btn-sm animate-pulse" id="get-location-btn">
+            
+            <div class="text-center">
+                <button type="button" class="btn btn-outline-light btn-sm" id="get-location-btn">
                     <i class="fas fa-map-marker-alt me-1"></i> Get My Location for Better Results
                 </button>
                 <div id="location-status" class="mt-2 small text-white-75"></div>
             </div>
-            <div class="text-center mt-4">
-                <a href="{% url 'upload_prescription' %}" class="{% if user.is_authenticated and user.customer %}btn-customer-primary{% else %}btn btn-light{% endif %} btn-lg hover-float">
-                    <i class="fas fa-file-prescription me-2 animate-pulse"></i> Upload Prescription
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="hero-buttons">
+            <a href="{% url 'upload_prescription' %}" class="btn btn-light btn-lg me-3 hover-float">
+                <i class="fas fa-file-prescription me-2"></i> Upload Prescription
+            </a>
+            {% if user.is_authenticated and user.customer %}
+                <a href="{% url 'customer_dashboard' %}" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-tachometer-alt me-2"></i> My Dashboard
                 </a>
-                <p class="mt-2 text-white-50 small">Have a prescription? Upload it directly to your preferred pharmacy</p>
-            </div>
+            {% else %}
+                <a href="{% url 'customer_register' %}" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-user-plus me-2"></i> Sign Up Free
+                </a>
+            {% endif %}
+            <p class="mt-3 text-white-50 small">
+                <i class="fas fa-shield-alt me-1"></i>
+                Secure • Fast • Reliable Healthcare Connection
+            </p>
         </div>
     </div>
 </section>
