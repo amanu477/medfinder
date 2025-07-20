@@ -1,12 +1,15 @@
 /* Medical-themed Hero Section */
 .medical-hero {
     min-height: 70vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: 
+        linear-gradient(135deg, rgba(54, 130, 216, 0.9) 0%, rgba(59, 130, 246, 0.95) 50%, rgba(37, 99, 235, 0.9) 100%),
+        url('https://images.unsplash.com/photo-1559757148-5c350d0d3c56?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    background-attachment: fixed;
 }
 
 /* Animated Medical Background */
@@ -16,14 +19,31 @@
     left: 0;
     width: 100%;
     height: 100%;
-    opacity: 0.1;
+    opacity: 0.15;
     overflow: hidden;
+}
+
+.medical-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        url('https://images.unsplash.com/photo-1576602976047-174e57a47881?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80') 20% 20%/200px no-repeat,
+        url('https://images.unsplash.com/photo-1587854692152-cbe660dbde88?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80') 80% 60%/180px no-repeat,
+        url('https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80') 10% 70%/160px no-repeat,
+        url('https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80') 70% 20%/140px no-repeat;
+    opacity: 0.08;
+    animation: medicineFloat 20s ease-in-out infinite;
 }
 
 /* Floating Medical Icons */
 .medical-icon {
     position: absolute;
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.25);
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
     animation: float 6s ease-in-out infinite;
 }
 
@@ -84,8 +104,9 @@
 .medical-cross::after {
     content: '';
     position: absolute;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(59, 130, 246, 0.3);
     animation: pulse 2s ease-in-out infinite alternate;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
 }
 
 .medical-cross::before {
@@ -167,13 +188,14 @@
     right: 8px;
     top: 50%;
     transform: translateY(-50%);
-    background: linear-gradient(45deg, #667eea, #764ba2);
+    background: linear-gradient(45deg, #3b82f6, #1d4ed8);
     border: none;
     border-radius: 50px;
     padding: 0.8rem 2rem;
     color: white;
     font-weight: 600;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 .search-btn:hover {
@@ -222,22 +244,25 @@
 .pill-1 {
     top: 25%;
     left: 20%;
-    background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+    background: linear-gradient(90deg, #60a5fa, #3b82f6);
     animation-delay: 0s;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 .pill-2 {
     top: 70%;
     right: 25%;
-    background: linear-gradient(90deg, #a8e6cf, #dcedc8);
+    background: linear-gradient(90deg, #93c5fd, #2563eb);
     animation-delay: 3s;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
 }
 
 .pill-3 {
     top: 40%;
     left: 80%;
-    background: linear-gradient(90deg, #ffaaa5, #ff8a80);
+    background: linear-gradient(90deg, #bfdbfe, #1d4ed8);
     animation-delay: 6s;
+    box-shadow: 0 4px 15px rgba(29, 78, 216, 0.3);
 }
 
 /* Animations */
@@ -273,6 +298,13 @@
     0%, 100% { transform: translateY(0px) rotateZ(0deg); }
     33% { transform: translateY(-15px) rotateZ(120deg); }
     66% { transform: translateY(-25px) rotateZ(240deg); }
+}
+
+@keyframes medicineFloat {
+    0%, 100% { transform: translateY(0px) scale(1); }
+    25% { transform: translateY(-10px) scale(1.05); }
+    50% { transform: translateY(-5px) scale(0.95); }
+    75% { transform: translateY(-15px) scale(1.02); }
 }
 
 @keyframes heartbeat {
