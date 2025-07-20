@@ -258,8 +258,8 @@
 .pharmacy-theme .stats-card {
     background: white;
     border: 2px solid var(--pharmacy-border);
-    border-radius: 16px;
-    padding: 2rem;
+    border-radius: 12px;
+    padding: 1.5rem;
     text-align: center;
     transition: all 0.3s ease;
     position: relative;
@@ -285,20 +285,21 @@
 .pharmacy-theme .stats-card h3 {
     color: var(--pharmacy-primary);
     font-weight: 700;
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    margin-bottom: 0.3rem;
 }
 
 .pharmacy-theme .stats-card p {
     color: var(--pharmacy-text-light);
     font-weight: 500;
     margin-bottom: 0;
+    font-size: 0.9rem;
 }
 
 .pharmacy-theme .stats-card i {
-    font-size: 3rem;
+    font-size: 2.2rem;
     color: var(--pharmacy-accent);
-    margin-bottom: 1rem;
+    margin-bottom: 0.8rem;
     opacity: 0.8;
 }
 
@@ -405,11 +406,16 @@
     }
     
     .pharmacy-theme .stats-card {
-        padding: 1.5rem;
+        padding: 1.2rem;
     }
     
     .pharmacy-theme .stats-card h3 {
-        font-size: 2rem;
+        font-size: 1.5rem;
+    }
+    
+    .pharmacy-theme .stats-card i {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
     }
 }
 

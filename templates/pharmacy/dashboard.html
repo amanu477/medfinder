@@ -42,29 +42,29 @@
         </div>
         
         <!-- Dashboard Statistics -->
-        <div class="row mb-5">
-            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3 fade-in">
                 <div class="stats-card">
                     <i class="fas fa-pills"></i>
                     <h3>{{ total_medicines|default:"0" }}</h3>
                     <p>Total Medicines</p>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+            <div class="col-lg-3 col-md-6 mb-3 fade-in">
                 <div class="stats-card">
                     <i class="fas fa-shopping-cart"></i>
                     <h3>{{ total_orders|default:"0" }}</h3>
                     <p>Total Orders</p>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+            <div class="col-lg-3 col-md-6 mb-3 fade-in">
                 <div class="stats-card">
                     <i class="fas fa-file-prescription"></i>
                     <h3>{{ pending_count|default:"0" }}</h3>
                     <p>Pending Prescriptions</p>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+            <div class="col-lg-3 col-md-6 mb-3 fade-in">
                 <div class="stats-card">
                     <i class="fas fa-check-circle"></i>
                     <h3>{{ available_medicines|default:"0" }}</h3>
@@ -74,29 +74,29 @@
         </div>
 
         <!-- Additional Statistics Row -->
-        <div class="row mb-5">
-            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6 mb-3 fade-in">
                 <div class="stats-card">
                     <i class="fas fa-clock text-warning"></i>
                     <h3>{{ expiring_medicines|length|default:"0" }}</h3>
                     <p>Medicines Expiring Soon</p>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+            <div class="col-lg-3 col-md-6 mb-3 fade-in">
                 <div class="stats-card">
                     <i class="fas fa-calendar-alt text-info"></i>
                     <h3>{{ scheduled_orders_count|default:"0" }}</h3>
                     <p>Scheduled Orders</p>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+            <div class="col-lg-3 col-md-6 mb-3 fade-in">
                 <div class="stats-card">
                     <i class="fas fa-truck text-success"></i>
                     <h3>{{ pending_deliveries|default:"0" }}</h3>
                     <p>Pending Deliveries</p>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+            <div class="col-lg-3 col-md-6 mb-3 fade-in">
                 <div class="stats-card">
                     <i class="fas fa-receipt text-primary"></i>
                     <h3>{{ total_receipts|default:"0" }}</h3>
