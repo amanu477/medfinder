@@ -21,30 +21,29 @@
                     {% endif %}
                 </p>
             </div>
-            <a href="{% url 'home' %}" class="btn btn-outline-primary">
+            <a href="{% url 'home' %}" class="btn btn-customer-secondary">
                 <i class="fas fa-arrow-left me-2"></i> New Search
             </a>
         </div>
         
         <!-- Search Bar -->
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <form method="get" action="{% url 'search_medicines' %}" class="d-flex" id="results-search-form">
-                    <input type="text" name="query" value="{{ query }}" class="form-control me-2" placeholder="Search for medicines..." required>
-                    <input type="hidden" name="lat" id="results-lat">
-                    <input type="hidden" name="lon" id="results-lon">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search me-2"></i> Search
-                    </button>
-                </form>
-                {% if not user_has_location %}
-                <div class="text-center mt-2">
-                    <button type="button" class="btn btn-outline-primary btn-sm" id="enable-location-btn">
-                        <i class="fas fa-map-marker-alt me-1"></i> Enable Location for Distance Sorting
-                    </button>
-                    <div id="location-status-results" class="mt-2 small text-muted"></div>
-                </div>
-                {% endif %}
+        <div class="customer-card fade-in">
+            <form method="get" action="{% url 'search_medicines' %}" class="d-flex" id="results-search-form">
+                <input type="text" name="query" value="{{ query }}" class="form-control me-2" placeholder="Search for medicines..." required>
+                <input type="hidden" name="lat" id="results-lat">
+                <input type="hidden" name="lon" id="results-lon">
+                <button type="submit" class="btn btn-customer-primary">
+                    <i class="fas fa-search me-2"></i> Search
+                </button>
+            </form>
+            {% if not user_has_location %}
+            <div class="text-center mt-3">
+                <button type="button" class="btn btn-customer-secondary btn-sm" id="enable-location-btn">
+                    <i class="fas fa-map-marker-alt me-1"></i> Enable Location for Distance Sorting
+                </button>
+                <div id="location-status-results" class="mt-2 small text-muted"></div>
+            </div>
+            {% endif %}
             </div>
         </div>
         
@@ -52,8 +51,8 @@
         <div class="row">
             {% if medicines %}
                 {% for medicine in medicines %}
-                <div class="col-md-6 col-lg-4 mb-4 animate-fadeInUp animate-delay-{{ forloop.counter }}">
-                    <div class="medicine-card-customer h-100 shadow-sm">
+                <div class="col-md-6 col-lg-4 mb-4 slide-up">
+                    <div class="search-result-item h-100">
                         <div class="card-body">
                             <div class="text-center mb-3">
                                 {% if medicine.medicine_image %}
@@ -148,23 +147,23 @@
                                             {% csrf_token %}
                                             <input type="hidden" name="quantity" value="1">
                                             <input type="hidden" name="skip_prescription" value="true">
-                                            <button type="submit" class="btn btn-primary btn-sm w-100">
+                                            <button type="submit" class="btn btn-customer-primary btn-sm w-100">
                                                 <i class="fas fa-cart-plus me-2"></i> Add to Cart
                                             </button>
                                         </form>
                                     </div>
-                                    <a href="{% url 'prescription_validation' medicine.id %}" class="btn btn-success btn-sm">
+                                    <a href="{% url 'prescription_validation' medicine.id %}" class="btn btn-customer-primary btn-sm">
                                         <i class="fas fa-prescription me-2"></i> Order with Prescription
                                     </a>
                                 {% else %}
-                                    <a href="{% url 'customer_login' %}?next={% url 'prescription_validation' medicine.id %}" class="btn btn-success btn-sm">
+                                    <a href="{% url 'customer_login' %}?next={% url 'prescription_validation' medicine.id %}" class="btn btn-customer-primary btn-sm">
                                         <i class="fas fa-sign-in-alt me-2"></i> Login to Order
                                     </a>
                                 {% endif %}
-                                <a href="tel:{{ medicine.pharmacy.phone }}" class="btn btn-outline-primary btn-sm">
+                                <a href="tel:{{ medicine.pharmacy.phone }}" class="btn btn-customer-secondary btn-sm">
                                     <i class="fas fa-phone me-2"></i> {{ medicine.pharmacy.phone }}
                                 </a>
-                                <button type="button" class="btn btn-primary btn-sm upload-rx-btn" data-bs-toggle="modal" data-bs-target="#prescriptionModal" data-pharmacy-id="{{ medicine.pharmacy.id }}" data-pharmacy-name="{{ medicine.pharmacy.name }}">
+                                <button type="button" class="btn btn-customer-secondary btn-sm upload-rx-btn" data-bs-toggle="modal" data-bs-target="#prescriptionModal" data-pharmacy-id="{{ medicine.pharmacy.id }}" data-pharmacy-name="{{ medicine.pharmacy.name }}">
                                     <i class="fas fa-file-prescription me-2"></i> Send Prescription
                                 </button>
                             </div>

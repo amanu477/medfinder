@@ -1,33 +1,38 @@
-/* Customer-Specific Theme - Modern & User-Friendly */
+/* Customer Theme - Blue and White */
 :root {
-    --customer-primary: #4f46e5;
-    --customer-secondary: #7c3aed;
-    --customer-accent: #06b6d4;
+    --customer-primary: #2563eb;
+    --customer-secondary: #3b82f6;
+    --customer-accent: #60a5fa;
+    --customer-light: #dbeafe;
     --customer-success: #10b981;
     --customer-warning: #f59e0b;
     --customer-danger: #ef4444;
-    --customer-bg: #f8fafc;
+    --customer-bg: #ffffff;
     --customer-card-bg: #ffffff;
     --customer-text: #1f2937;
     --customer-text-light: #6b7280;
+    --customer-border: #e5e7eb;
+    --blue-gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+    --light-blue-bg: #eff6ff;
 }
 
 /* Customer Body Styling */
 .customer-theme {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #f0f9ff 100%);
     min-height: 100vh;
     font-family: 'Inter', 'Roboto', sans-serif;
 }
 
+/* Navigation Bar */
 .customer-theme .navbar {
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(79, 70, 229, 0.1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(15px);
+    border-bottom: 2px solid var(--customer-primary);
+    box-shadow: 0 4px 25px rgba(37, 99, 235, 0.1);
 }
 
 .customer-theme .navbar-brand {
-    background: linear-gradient(45deg, var(--customer-primary), var(--customer-secondary));
+    background: var(--blue-gradient);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -35,13 +40,24 @@
     font-size: 1.8rem;
 }
 
+.customer-theme .nav-link {
+    color: var(--customer-primary) !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.customer-theme .nav-link:hover {
+    color: var(--customer-secondary) !important;
+    transform: translateY(-2px);
+}
+
 /* Customer Cards */
 .customer-card {
     background: var(--customer-card-bg);
-    border-radius: 20px;
+    border-radius: 16px;
     padding: 2rem;
-    box-shadow: 0 10px 40px rgba(79, 70, 229, 0.1);
-    border: 1px solid rgba(79, 70, 229, 0.1);
+    box-shadow: 0 8px 30px rgba(37, 99, 235, 0.1);
+    border: 2px solid var(--customer-light);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -54,52 +70,289 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--customer-primary), var(--customer-secondary));
+    background: var(--blue-gradient);
 }
 
 .customer-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 60px rgba(79, 70, 229, 0.15);
+    transform: translateY(-8px);
+    box-shadow: 0 16px 50px rgba(37, 99, 235, 0.15);
+    border-color: var(--customer-primary);
 }
 
 /* Customer Buttons */
 .btn-customer-primary {
-    background: linear-gradient(45deg, var(--customer-primary), var(--customer-secondary));
+    background: var(--blue-gradient);
     border: none;
     color: white;
+    padding: 14px 32px;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
+.btn-customer-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+    color: white;
+}
+
+.btn-customer-secondary {
+    background: white;
+    border: 2px solid var(--customer-primary);
+    color: var(--customer-primary);
     padding: 12px 30px;
     border-radius: 50px;
     font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-customer-secondary:hover {
+    background: var(--customer-primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Content Areas */
+.customer-theme .container {
+    background: transparent;
+}
+
+.customer-theme .content-wrapper {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin: 2rem 0;
+    box-shadow: 0 10px 40px rgba(37, 99, 235, 0.08);
+    border: 1px solid var(--customer-light);
+}
+
+/* Forms */
+.customer-theme .form-control {
+    border: 2px solid var(--customer-light);
+    border-radius: 12px;
+    padding: 14px 16px;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.customer-theme .form-control:focus {
+    border-color: var(--customer-primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
+}
+
+.customer-theme .form-label {
+    color: var(--customer-text);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* Tables */
+.customer-theme .table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.05);
+}
+
+.customer-theme .table th {
+    background: var(--light-blue-bg);
+    color: var(--customer-primary);
+    font-weight: 700;
+    border: none;
+    padding: 16px;
+}
+
+.customer-theme .table td {
+    padding: 16px;
+    border-color: var(--customer-light);
+    color: var(--customer-text);
+}
+
+.customer-theme .table tbody tr:hover {
+    background: var(--light-blue-bg);
+}
+
+/* Badges and Status */
+.customer-theme .badge {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.customer-theme .badge-primary {
+    background: var(--customer-primary);
+    color: white;
+}
+
+.customer-theme .badge-secondary {
+    background: var(--customer-light);
+    color: var(--customer-primary);
+}
+
+/* Alerts */
+.customer-theme .alert {
+    border-radius: 12px;
+    border: none;
+    padding: 16px 20px;
+}
+
+.customer-theme .alert-primary {
+    background: var(--light-blue-bg);
+    color: var(--customer-primary);
+    border-left: 4px solid var(--customer-primary);
+}
+
+.customer-theme .alert-success {
+    background: #ecfdf5;
+    color: var(--customer-success);
+    border-left: 4px solid var(--customer-success);
+}
+
+/* Search Results */
+.customer-theme .search-result-item {
+    background: white;
+    border: 2px solid var(--customer-light);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.customer-theme .search-result-item:hover {
+    border-color: var(--customer-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.1);
+}
+
+/* Cart Styling */
+.customer-theme .cart-item {
+    background: white;
+    border: 2px solid var(--customer-light);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.customer-theme .cart-summary {
+    background: var(--light-blue-bg);
+    border: 2px solid var(--customer-primary);
+    border-radius: 16px;
+    padding: 2rem;
+}
+
+/* Order Status */
+.customer-theme .order-status {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.customer-theme .status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.customer-theme .status-approved {
+    background: #dbeafe;
+    color: var(--customer-primary);
+}
+
+.customer-theme .status-delivered {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+/* Dashboard Cards */
+.customer-theme .dashboard-card {
+    background: white;
+    border: 2px solid var(--customer-light);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
 }
 
-.btn-customer-primary::before {
+.customer-theme .dashboard-card::before {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: var(--blue-gradient);
 }
 
-.btn-customer-primary:hover::before {
-    left: 100%;
+.customer-theme .dashboard-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 16px 40px rgba(37, 99, 235, 0.15);
+    border-color: var(--customer-primary);
 }
 
-.btn-customer-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);
+.customer-theme .dashboard-card h3 {
+    color: var(--customer-primary);
+    font-weight: 700;
 }
 
-/* Customer Dashboard Animations */
-@keyframes fadeInUp {
+.customer-theme .dashboard-card p {
+    color: var(--customer-text-light);
+}
+
+/* Pagination */
+.customer-theme .pagination .page-link {
+    color: var(--customer-primary);
+    border: 2px solid var(--customer-light);
+    margin: 0 4px;
+    border-radius: 8px;
+}
+
+.customer-theme .pagination .page-link:hover {
+    background: var(--customer-primary);
+    color: white;
+    border-color: var(--customer-primary);
+}
+
+.customer-theme .pagination .page-item.active .page-link {
+    background: var(--customer-primary);
+    border-color: var(--customer-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .customer-theme .content-wrapper {
+        margin: 1rem 0;
+        padding: 1.5rem;
+    }
+    
+    .customer-card {
+        padding: 1.5rem;
+    }
+    
+    .customer-theme .dashboard-card {
+        padding: 1.5rem;
+    }
+}
+
+/* Animation Classes for Customer Pages */
+.customer-theme .fade-in {
+    animation: customerFadeIn 0.8s ease-out;
+}
+
+.customer-theme .slide-up {
+    animation: customerSlideUp 0.6s ease-out;
+}
+
+@keyframes customerFadeIn {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -107,106 +360,13 @@
     }
 }
 
-.customer-animate {
-    animation: fadeInUp 0.8s ease-out forwards;
-}
-
-.customer-animate:nth-child(2) { animation-delay: 0.1s; }
-.customer-animate:nth-child(3) { animation-delay: 0.2s; }
-.customer-animate:nth-child(4) { animation-delay: 0.3s; }
-
-/* Medicine Search Results */
-.medicine-card-customer {
-    background: white;
-    border-radius: 15px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 5px 20px rgba(79, 70, 229, 0.08);
-    transition: all 0.3s ease;
-    border-left: 4px solid var(--customer-primary);
-}
-
-.medicine-card-customer:hover {
-    transform: translateX(5px);
-    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.15);
-}
-
-/* Order Status Pills */
-.order-status-customer {
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.status-pending { background: #fef3c7; color: #92400e; }
-.status-approved { background: #dbeafe; color: #1e40af; }
-.status-delivered { background: #d1fae5; color: #065f46; }
-
-/* Shopping Cart Styling */
-.cart-item-customer {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-    border: 1px solid #e5e7eb;
-    transition: all 0.3s ease;
-}
-
-.cart-item-customer:hover {
-    border-color: var(--customer-primary);
-    box-shadow: 0 5px 15px rgba(79, 70, 229, 0.1);
-}
-
-/* Floating Action Button */
-.fab-customer {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(45deg, var(--customer-primary), var(--customer-secondary));
-    border-radius: 50%;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);
-    transition: all 0.3s ease;
-    z-index: 1000;
-}
-
-.fab-customer:hover {
-    transform: scale(1.1);
-    box-shadow: 0 15px 40px rgba(79, 70, 229, 0.4);
-}
-
-/* Loading Spinner */
-.loading-customer {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid var(--customer-primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .customer-card {
-        padding: 1.5rem;
-        margin-bottom: 1rem;
+@keyframes customerSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
     }
-    
-    .btn-customer-primary {
-        padding: 10px 20px;
-        font-size: 0.9rem;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

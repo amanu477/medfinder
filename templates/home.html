@@ -218,7 +218,7 @@
 
 <!-- Floating Cart Button for Customers -->
 {% if user.is_authenticated and user.customer %}
-<a href="{% url 'view_cart' %}" class="fab-customer">
+<a href="{% url 'cart_view' %}" class="fab-customer">
     <i class="fas fa-shopping-cart"></i>
     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="cart-count">
         0
