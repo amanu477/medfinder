@@ -41,73 +41,87 @@
             </div>
         </div>
         
-        <!-- Stats -->
-        <div class="row dashboard-stats">
-            <div class="col-md-3 mb-4 pharmacy-animate">
-                <div class="pharmacy-stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-pills"></i>
-                    </div>
-                    <div class="stat-number">{{ total_medicines }}</div>
-                    <div class="stat-label">Total Medicines</div>
+        <!-- Dashboard Statistics -->
+        <div class="row mb-5">
+            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+                <div class="stats-card">
+                    <i class="fas fa-pills"></i>
+                    <h3>{{ total_medicines|default:"0" }}</h3>
+                    <p>Total Medicines</p>
                 </div>
             </div>
-            <div class="col-md-3 mb-4 pharmacy-animate animate-delay-1">
-                <div class="pharmacy-stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <div class="stat-number">{{ total_orders }}</div>
-                    <div class="stat-label">Total Orders</div>
+            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+                <div class="stats-card">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>{{ total_orders|default:"0" }}</h3>
+                    <p>Total Orders</p>
                 </div>
             </div>
-            <div class="col-md-3 mb-4 pharmacy-animate animate-delay-2">
-                <div class="pharmacy-stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-number">{{ available_medicines }}</div>
-                    <div class="stat-label">Available Medicines</div>
+            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+                <div class="stats-card">
+                    <i class="fas fa-file-prescription"></i>
+                    <h3>{{ pending_count|default:"0" }}</h3>
+                    <p>Pending Prescriptions</p>
                 </div>
             </div>
-            <div class="col-md-3 mb-4 pharmacy-animate animate-delay-3">
-                <div class="pharmacy-stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-value">{{ expiring_soon }}</div>
-                    <div class="stat-label">Expiring Soon</div>
+            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+                <div class="stats-card">
+                    <i class="fas fa-check-circle"></i>
+                    <h3>{{ available_medicines|default:"0" }}</h3>
+                    <p>Available Medicines</p>
                 </div>
             </div>
-            <div class="col-md-3 mb-4">
-                <div class="stat-card">
-                    <div class="stat-icon text-gradient bg-gradient-danger">
-                        <i class="fas fa-file-prescription"></i>
-                    </div>
-                    <div class="stat-value">{{ pending_prescriptions }}</div>
-                    <div class="stat-label">Pending Prescriptions</div>
+        </div>
+
+        <!-- Additional Statistics Row -->
+        <div class="row mb-5">
+            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+                <div class="stats-card">
+                    <i class="fas fa-clock text-warning"></i>
+                    <h3>{{ expiring_medicines|length|default:"0" }}</h3>
+                    <p>Medicines Expiring Soon</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+                <div class="stats-card">
+                    <i class="fas fa-calendar-alt text-info"></i>
+                    <h3>{{ scheduled_orders_count|default:"0" }}</h3>
+                    <p>Scheduled Orders</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+                <div class="stats-card">
+                    <i class="fas fa-truck text-success"></i>
+                    <h3>{{ pending_deliveries|default:"0" }}</h3>
+                    <p>Pending Deliveries</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4 fade-in">
+                <div class="stats-card">
+                    <i class="fas fa-receipt text-primary"></i>
+                    <h3>{{ total_receipts|default:"0" }}</h3>
+                    <p>Total Receipts</p>
                 </div>
             </div>
         </div>
         
         <!-- Recent Prescriptions -->
-        <div class="card shadow-sm mb-5">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Recent Prescriptions</h5>
-                <a href="{% url 'prescription_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        <div class="pharmacy-card mb-5 fade-in">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="fas fa-file-prescription me-2 medical-icon"></i>Recent Prescriptions</h5>
+                <a href="{% url 'prescription_list' %}" class="btn btn-pharmacy-secondary btn-sm">View All</a>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Customer</th>
-                                <th>Contact</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Contact</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                         <tbody>
                             {% if recent_prescriptions %}
                                 {% for prescription in recent_prescriptions %}
@@ -131,7 +145,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <a href="{% url 'prescription_list' %}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{% url 'prescription_list' %}" class="btn btn-sm btn-pharmacy-secondary">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
@@ -145,28 +159,26 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
         </div>
         
         <!-- Expiring Medicines -->
-        <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Medicines Expiring Soon</h5>
-                <a href="{% url 'medicine_list' %}" class="btn btn-sm btn-outline-primary">View All Medicines</a>
+        <div class="pharmacy-card fade-in">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2 medical-icon text-warning"></i>Medicines Expiring Soon</h5>
+                <a href="{% url 'medicine_list' %}" class="btn btn-sm btn-pharmacy-secondary">View All Medicines</a>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Medicine</th>
-                                <th>Stock</th>
-                                <th>Price</th>
-                                <th>Expiry Date</th>
-                                <th>Remaining</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Medicine</th>
+                            <th>Stock</th>
+                            <th>Price</th>
+                            <th>Expiry Date</th>
+                            <th>Remaining</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                         <tbody>
                             {% if expiring_medicines %}
                                 {% for medicine in expiring_medicines %}
@@ -181,7 +193,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{% url 'edit_medicine' medicine.id %}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{% url 'edit_medicine' medicine.id %}" class="btn btn-sm btn-pharmacy-secondary">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                     </td>
@@ -195,30 +207,28 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
         </div>
         
         <!-- Recent Customer Orders -->
-        <div class="card shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Recent Customer Orders</h5>
-                <a href="{% url 'order_management' %}" class="btn btn-sm btn-outline-success">View All Orders</a>
+        <div class="pharmacy-card fade-in mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="fas fa-shopping-cart me-2 medical-icon"></i>Recent Customer Orders</h5>
+                <a href="{% url 'order_management' %}" class="btn btn-sm btn-pharmacy-success">View All Orders</a>
             </div>
-            <div class="card-body">
-                {% if orders %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Medicine</th>
-                                    <th>Amount</th>
-                                    <th>Date</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
+            {% if orders %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Medicine</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
                             <tbody>
                                 {% for order in orders %}
                                 <tr>
@@ -254,7 +264,7 @@
                                                 <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
                                                     {% csrf_token %}
                                                     <input type="hidden" name="status" value="approved">
-                                                    <button type="submit" class="btn btn-success btn-sm">
+                                                    <button type="submit" class="btn btn-pharmacy-success btn-sm">
                                                         <i class="fas fa-check"></i>
                                                     </button>
                                                 </form>
@@ -273,13 +283,12 @@
                             </tbody>
                         </table>
                     </div>
-                {% else %}
-                    <div class="text-center py-3">
-                        <i class="fas fa-shopping-cart fa-2x text-muted mb-2"></i>
-                        <p class="text-muted">No customer orders yet.</p>
-                    </div>
-                {% endif %}
-            </div>
+            {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No customer orders yet.</p>
+                </div>
+            {% endif %}
         </div>
     </div>
 </section>

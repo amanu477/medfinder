@@ -164,14 +164,35 @@ def dashboard(request):
         status='scheduled'
     ).count()
     
-    # Calculate totals
+    # Calculate totals and statistics
     total_medicines = medicines.count()
     total_orders = orders.count()
+    available_medicines = medicines.filter(stock_quantity__gt=0).count()
+    
+    # Calculate pending deliveries (if delivery system exists)
+    try:
+        from delivery.models import Delivery
+        pending_deliveries = Delivery.objects.filter(
+            order__pharmacy=pharmacy,
+            status__in=['assigned', 'picked_up', 'in_transit']
+        ).count()
+    except ImportError:
+        pending_deliveries = 0
+    
+    # Calculate total receipts (if receipts exist)
+    try:
+        from customer.models import Receipt
+        total_receipts = Receipt.objects.filter(
+            order__pharmacy=pharmacy
+        ).count()
+    except ImportError:
+        total_receipts = 0
     
     return render(request, 'pharmacy/dashboard.html', {
         'pharmacy': pharmacy,
         'medicines': medicines,
         'total_medicines': total_medicines,
+        'available_medicines': available_medicines,
         'expiring_medicines': expiring_medicines,
         'prescriptions': prescriptions,
         'pending_count': pending_count,
@@ -180,6 +201,8 @@ def dashboard(request):
         'pending_orders_count': pending_orders_count,
         'scheduled_orders_count': scheduled_orders_count,
         'total_orders': total_orders,
+        'pending_deliveries': pending_deliveries,
+        'total_receipts': total_receipts,
     })
 
 @login_required
