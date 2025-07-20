@@ -2,81 +2,265 @@
 
 {% block title %}Pharmacy Dashboard - MedFinder{% endblock %}
 
+{% block extra_css %}
+<style>
+/* Stunning Pharmacy Dashboard with Purple Medical Theme */
+.pharmacy-hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #8e44ad 50%, #9b59b6 75%, #ffffff 100%);
+    background-size: 300% 300%;
+    animation: pharmacyFlow 12s ease infinite;
+    padding: 3rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes pharmacyFlow {
+    0%, 100% { background-position: 0% 50%; }
+    33% { background-position: 100% 0%; }
+    66% { background-position: 100% 100%; }
+}
+
+.floating-medicines {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.floating-medicine {
+    position: absolute;
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.2);
+    animation: rotateMedicine 10s ease-in-out infinite;
+}
+
+.floating-medicine:nth-child(1) { top: 15%; left: 5%; animation-delay: 0s; }
+.floating-medicine:nth-child(2) { top: 70%; left: 85%; animation-delay: 2s; }
+.floating-medicine:nth-child(3) { top: 40%; left: 15%; animation-delay: 4s; }
+.floating-medicine:nth-child(4) { top: 80%; left: 70%; animation-delay: 6s; }
+.floating-medicine:nth-child(5) { top: 20%; left: 80%; animation-delay: 8s; }
+
+@keyframes rotateMedicine {
+    0%, 100% { 
+        transform: translateY(0) rotate(0deg) scale(1); 
+        opacity: 0.2;
+    }
+    25% { 
+        transform: translateY(-40px) rotate(90deg) scale(1.2); 
+        opacity: 0.4;
+    }
+    50% { 
+        transform: translateY(-80px) rotate(180deg) scale(1.5); 
+        opacity: 0.6;
+    }
+    75% { 
+        transform: translateY(-40px) rotate(270deg) scale(1.2); 
+        opacity: 0.4;
+    }
+}
+
+.pharmacy-dashboard-header {
+    background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+    color: white;
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.pharmacy-dashboard-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="cross" patternUnits="userSpaceOnUse" width="30" height="30"><path d="M10,10 L10,20 L20,20 L20,10 Z" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23cross)"/></svg>');
+    animation: movePattern 25s linear infinite;
+}
+
+@keyframes movePattern {
+    0% { background-position: 0 0; }
+    100% { background-position: 30px 30px; }
+}
+
+.btn-pharmacy-primary {
+    background: linear-gradient(45deg, #8e44ad, #9b59b6);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(142, 68, 173, 0.4);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-pharmacy-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(142, 68, 173, 0.6);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-pharmacy-secondary {
+    background: linear-gradient(45deg, #3498db, #74b9ff);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-pharmacy-secondary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(52, 152, 219, 0.6);
+    color: white;
+    text-decoration: none;
+}
+
+.hover-float:hover {
+    transform: translateY(-3px);
+    transition: all 0.3s ease;
+}
+
+.pharmacy-stat-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(45deg, #8e44ad, #9b59b6);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2.2rem;
+    animation: pharmacyPulse 4s infinite;
+}
+
+@keyframes pharmacyPulse {
+    0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 0 0 0 rgba(142, 68, 173, 0.4);
+    }
+    50% { 
+        transform: scale(1.1); 
+        box-shadow: 0 0 0 20px rgba(142, 68, 173, 0);
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<section class="py-5">
+<div class="pharmacy-dashboard-header">
+    <div class="floating-medicines">
+        <i class="fas fa-pills floating-medicine"></i>
+        <i class="fas fa-tablets floating-medicine"></i>
+        <i class="fas fa-prescription-bottle floating-medicine"></i>
+        <i class="fas fa-capsules floating-medicine"></i>
+        <i class="fas fa-syringe floating-medicine"></i>
+    </div>
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="h3 mb-0">Pharmacy Dashboard</h1>
+        <div class="d-flex justify-content-between align-items-center">
             <div>
-                <a href="{% url 'order_management' %}" class="btn btn-outline-success me-2">
+                <h1 class="mb-2">Pharmacy Management</h1>
+                <p class="mb-0 opacity-75">{{ pharmacy.name }} - Manage inventory and orders</p>
+            </div>
+            <div class="pharmacy-stat-icon">
+                <i class="fas fa-store"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="py-4">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4 animate-fadeInUp">
+            <h2 class="h4 mb-0">Quick Actions</h2>
+            <div>
+                <a href="{% url 'order_management' %}" class="btn btn-pharmacy-primary me-2 hover-float">
                     <i class="fas fa-shopping-cart me-2"></i> Manage Orders
                     {% if pending_orders_count > 0 %}
                         <span class="badge bg-warning text-dark">{{ pending_orders_count }}</span>
                     {% endif %}
                 </a>
-                <a href="{% url 'scheduled_orders' %}" class="btn btn-outline-info me-2">
+                <a href="{% url 'scheduled_orders' %}" class="btn btn-pharmacy-primary me-2 hover-float">
                     <i class="fas fa-calendar-alt me-2"></i> Scheduled Orders
                     {% if scheduled_orders_count > 0 %}
-                        <span class="badge bg-info text-white">{{ scheduled_orders_count }}</span>
+                        <span class="badge bg-warning text-dark">{{ scheduled_orders_count }}</span>
                     {% endif %}
                 </a>
-                <a href="{% url 'prescription_list' %}" class="btn btn-outline-info me-2">
+                <a href="{% url 'prescription_list' %}" class="btn btn-pharmacy-primary me-2 hover-float">
                     <i class="fas fa-prescription-bottle me-2"></i> Prescriptions
                     {% if pending_count > 0 %}
                         <span class="badge bg-warning text-dark">{{ pending_count }}</span>
                     {% endif %}
                 </a>
-                <a href="{% url 'medicine_list' %}" class="btn btn-outline-primary me-2">
+                <a href="{% url 'medicine_list' %}" class="btn btn-pharmacy-primary me-2 hover-float">
                     <i class="fas fa-pills me-2"></i> Manage Medicines
                 </a>
-                <a href="{% url 'pharmacy_receipts' %}" class="btn btn-outline-warning me-2">
+                <a href="{% url 'pharmacy_receipts' %}" class="btn btn-pharmacy-primary me-2 hover-float">
                     <i class="fas fa-receipt me-2"></i> Receipts
                 </a>
-                <a href="{% url 'delivery_management' %}" class="btn btn-outline-success me-2">
+                <a href="{% url 'delivery_management' %}" class="btn btn-pharmacy-primary me-2 hover-float">
                     <i class="fas fa-truck me-2"></i> Deliveries
                 </a>
-                <a href="{% url 'add_medicine' %}" class="btn btn-primary">
+                <a href="{% url 'add_medicine' %}" class="btn btn-pharmacy-secondary hover-float">
                     <i class="fas fa-plus me-2"></i> Add Medicine
                 </a>
             </div>
         </div>
         
         <!-- Stats -->
-        <div class="row dashboard-stats">
-            <div class="col-md-3 mb-4 pharmacy-animate">
+        <div class="row mb-4">
+            <div class="col-md-3 mb-4 animate-fadeInUp">
                 <div class="pharmacy-stat-card">
-                    <div class="stat-icon">
+                    <div class="pharmacy-stat-icon">
                         <i class="fas fa-pills"></i>
                     </div>
-                    <div class="stat-number">{{ total_medicines }}</div>
-                    <div class="stat-label">Total Medicines</div>
+                    <h3>{{ total_medicines }}</h3>
+                    <p>Total Medicines</p>
                 </div>
             </div>
-            <div class="col-md-3 mb-4 pharmacy-animate animate-delay-1">
+            <div class="col-md-3 mb-4 animate-fadeInUp animate-delay-1">
                 <div class="pharmacy-stat-card">
-                    <div class="stat-icon">
+                    <div class="pharmacy-stat-icon">
                         <i class="fas fa-shopping-cart"></i>
                     </div>
-                    <div class="stat-number">{{ total_orders }}</div>
-                    <div class="stat-label">Total Orders</div>
+                    <h3>{{ total_orders }}</h3>
+                    <p>Total Orders</p>
                 </div>
             </div>
-            <div class="col-md-3 mb-4 pharmacy-animate animate-delay-2">
+            <div class="col-md-3 mb-4 animate-fadeInUp animate-delay-2">
                 <div class="pharmacy-stat-card">
-                    <div class="stat-icon">
+                    <div class="pharmacy-stat-icon">
                         <i class="fas fa-check-circle"></i>
                     </div>
-                    <div class="stat-number">{{ available_medicines }}</div>
-                    <div class="stat-label">Available Medicines</div>
+                    <h3>{{ medicines.count }}</h3>
+                    <p>Available Medicines</p>
                 </div>
             </div>
-            <div class="col-md-3 mb-4 pharmacy-animate animate-delay-3">
+            <div class="col-md-3 mb-4 animate-fadeInUp animate-delay-3">
                 <div class="pharmacy-stat-card">
-                    <div class="stat-icon">
+                    <div class="pharmacy-stat-icon">
                         <i class="fas fa-clock"></i>
                     </div>
-                    <div class="stat-value">{{ expiring_soon }}</div>
-                    <div class="stat-label">Expiring Soon</div>
+                    <h3>{{ expiring_medicines.count }}</h3>
+                    <p>Expiring Soon</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4 animate-fadeInUp animate-delay-4">
+                <div class="pharmacy-stat-card">
+                    <div class="pharmacy-stat-icon">
+                        <i class="fas fa-file-prescription"></i>
+                    </div>
+                    <h3>{{ pending_count }}</h3>
+                    <p>Pending Prescriptions</p>
                 </div>
             </div>
             <div class="col-md-3 mb-4">
@@ -91,23 +275,27 @@
         </div>
         
         <!-- Recent Prescriptions -->
-        <div class="card shadow-sm mb-5">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Recent Prescriptions</h5>
-                <a href="{% url 'prescription_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        <div class="pharmacy-card mb-5 animate-fadeInUp">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="pharmacy-stat-icon me-3" style="width: 50px; height: 50px;">
+                        <i class="fas fa-prescription-bottle"></i>
+                    </div>
+                    <h5 class="mb-0">Recent Prescriptions</h5>
+                </div>
+                <a href="{% url 'prescription_list' %}" class="btn btn-sm btn-pharmacy-primary">View All</a>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Customer</th>
-                                <th>Contact</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="pharmacy-table-header">
+                        <tr>
+                            <th>Customer</th>
+                            <th>Contact</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
                         <tbody>
                             {% if recent_prescriptions %}
                                 {% for prescription in recent_prescriptions %}

@@ -1,8 +1,12 @@
-{% extends 'base.html' %}
-
-{% block title %}MedFinder - Find Medicines Instantly{% endblock %}
-
-{% block extra_css %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethiopian Pharmacy Platform - Stunning Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
 <style>
 /* Stunning Medical Hero Section with Blue & White Theme */
 .medical-hero {
@@ -209,6 +213,7 @@
     box-shadow: 0 8px 20px rgba(41, 128, 185, 0.4);
     position: relative;
     overflow: hidden;
+    display: inline-block;
 }
 
 .cta-btn::before {
@@ -318,6 +323,86 @@
     opacity: 0.9;
 }
 
+/* Dashboard Preview Cards */
+.dashboard-preview {
+    padding: 4rem 0;
+    background: #f8f9fa;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    transition: all 0.3s ease;
+    animation: slideInFromBottom 0.8s ease-out both;
+    position: relative;
+    overflow: hidden;
+}
+
+.customer-card {
+    border-top: 4px solid #4facfe;
+}
+
+.customer-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(79, 172, 254, 0.05) 25%, transparent 25%), 
+                linear-gradient(-45deg, rgba(0, 242, 254, 0.05) 25%, transparent 25%);
+    background-size: 20px 20px;
+    animation: moveBackground 10s linear infinite;
+    z-index: 0;
+}
+
+.pharmacy-card {
+    border-top: 4px solid #8e44ad;
+}
+
+.pharmacy-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="cross" patternUnits="userSpaceOnUse" width="20" height="20"><path d="M8,8 L8,12 L12,12 L12,8 Z" fill="rgba(142,68,173,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23cross)"/></svg>');
+    animation: movePattern 15s linear infinite;
+    z-index: 0;
+}
+
+.delivery-card {
+    border-top: 4px solid #27ae60;
+}
+
+.admin-card {
+    border-top: 4px solid #34495e;
+}
+
+@keyframes moveBackground {
+    0% { background-position: 0 0; }
+    100% { background-position: 20px 20px; }
+}
+
+@keyframes movePattern {
+    0% { background-position: 0 0; }
+    100% { background-position: 20px 20px; }
+}
+
+.dashboard-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-card .card-content {
+    position: relative;
+    z-index: 1;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .hero-title {
@@ -355,9 +440,9 @@
     transform: translateY(0);
 }
 </style>
-{% endblock %}
+</head>
 
-{% block content %}
+<body>
 <!-- Hero Section with Floating Medical Icons -->
 <section class="medical-hero">
     <div class="floating-medical-icons">
@@ -374,7 +459,7 @@
         <p class="hero-subtitle">Find medicines instantly • Upload prescriptions • Connect with verified pharmacies</p>
         
         <div class="medical-search-container">
-            <form method="get" action="{% url 'search_medicines' %}" class="search-form">
+            <form class="search-form">
                 <div class="search-input-group">
                     <input type="text" 
                            name="query" 
@@ -388,31 +473,15 @@
             </form>
             
             <div class="cta-buttons">
-                {% if user.is_authenticated %}
-                    {% if user.is_customer %}
-                        <a href="{% url 'customer:dashboard' %}" class="cta-btn">
-                            <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
-                        </a>
-                    {% elif user.is_pharmacy %}
-                        <a href="{% url 'pharmacy:dashboard' %}" class="cta-btn">
-                            <i class="fas fa-store me-2"></i>Pharmacy Dashboard
-                        </a>
-                    {% elif user.is_delivery_person %}
-                        <a href="{% url 'delivery:dashboard' %}" class="cta-btn">
-                            <i class="fas fa-truck me-2"></i>Delivery Dashboard
-                        </a>
-                    {% endif %}
-                    <a href="{% url 'customer:cart' %}" class="cta-btn">
-                        <i class="fas fa-shopping-cart me-2"></i>My Cart
-                    </a>
-                {% else %}
-                    <a href="{% url 'customer:register' %}" class="cta-btn">
-                        <i class="fas fa-user-plus me-2"></i>Register as Customer
-                    </a>
-                    <a href="{% url 'pharmacy:register' %}" class="cta-btn">
-                        <i class="fas fa-store me-2"></i>Register Pharmacy
-                    </a>
-                {% endif %}
+                <a href="#" class="cta-btn">
+                    <i class="fas fa-user-plus me-2"></i>Register as Customer
+                </a>
+                <a href="#" class="cta-btn">
+                    <i class="fas fa-store me-2"></i>Register Pharmacy
+                </a>
+                <a href="#" class="cta-btn">
+                    <i class="fas fa-truck me-2"></i>Join Delivery Team
+                </a>
             </div>
         </div>
     </div>
@@ -472,6 +541,92 @@
     </div>
 </section>
 
+<!-- Dashboard Preview Section -->
+<section class="dashboard-preview">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-4 font-weight-bold text-primary mb-3">
+                    Stunning Dashboard Interfaces
+                </h2>
+                <p class="lead text-muted">
+                    Each user type gets their own beautifully animated interface with moving elements
+                </p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="dashboard-card customer-card">
+                    <div class="card-content">
+                        <h4 class="text-primary mb-3">
+                            <i class="fas fa-user me-2"></i>Customer Dashboard
+                        </h4>
+                        <p class="mb-3">Blue theme with floating pills and moving background patterns</p>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Animated gradient flows</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Floating pill animations</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Interactive hover effects</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Dynamic card animations</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="dashboard-card pharmacy-card">
+                    <div class="card-content">
+                        <h4 class="text-purple mb-3" style="color: #8e44ad;">
+                            <i class="fas fa-store me-2"></i>Pharmacy Dashboard
+                        </h4>
+                        <p class="mb-3">Purple theme with rotating medicine icons and medical cross patterns</p>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Rotating medicine icons</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Medical cross backgrounds</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Purple gradient themes</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Smooth transitions</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="dashboard-card delivery-card">
+                    <div class="card-content">
+                        <h4 class="text-success mb-3">
+                            <i class="fas fa-truck me-2"></i>Delivery Dashboard
+                        </h4>
+                        <p class="mb-3">Green theme optimized for mobile with dynamic tracking elements</p>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Mobile-first design</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Real-time animations</li>
+                            <li><i class="fas fa-check text-success me-2"></i>GPS tracking visuals</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Status indicators</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="dashboard-card admin-card">
+                    <div class="card-content">
+                        <h4 class="text-dark mb-3">
+                            <i class="fas fa-cogs me-2"></i>Admin Dashboard
+                        </h4>
+                        <p class="mb-3">Professional dark theme with clean statistics and management tools</p>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Dark professional theme</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Animated statistics</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Clean data tables</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Management widgets</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Stats Section -->
 <section class="stats-section">
     <div class="container">
@@ -504,6 +659,7 @@
     </div>
 </section>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // Scroll animations
 function isElementInViewport(el) {
@@ -558,5 +714,15 @@ const observer = new IntersectionObserver((entries) => {
 });
 
 observer.observe(statsSection);
+
+// Interactive search functionality
+document.querySelector('.search-input').addEventListener('focus', function() {
+    this.placeholder = "Try: Aspirin, Paracetamol, or upload prescription...";
+});
+
+document.querySelector('.search-input').addEventListener('blur', function() {
+    this.placeholder = "Search for medicines, pharmacies, or treatments...";
+});
 </script>
-{% endblock %}
+</body>
+</html>

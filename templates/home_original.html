@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}MedFinder - Find Medicines Near You{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Hero Section -->
+    <div class="row bg-primary text-white py-5">
+        <div class="col-12 text-center">
+            <h1 class="display-4 mb-3">🏥 Find Medicines Near You</h1>
+            <p class="lead mb-4">Connect with verified pharmacies across Ethiopia</p>
+            
+            <!-- Search Form -->
+            <form method="get" action="{% url 'search_medicines' %}" class="mb-4">
+                <div class="input-group input-group-lg mx-auto" style="max-width: 600px;">
+                    <input type="text" 
+                           name="query" 
+                           class="form-control" 
+                           placeholder="Search for medicines..."
+                           required>
+                    <button class="btn btn-success" type="submit">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </form>
+            
+            {% if not user.is_authenticated %}
+            <!-- Registration Buttons -->
+            <div class="mt-4">
+                <a href="#" class="btn btn-light btn-lg me-3">
+                    <i class="fas fa-user-plus"></i> Register as Customer
+                </a>
+                <a href="#" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-store"></i> Register as Pharmacy
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Features Section -->
+    <div class="row py-5">
+        <div class="col-md-4 text-center mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Smart Search</h5>
+                    <p class="card-text">Find medicines quickly across verified pharmacies</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 text-center mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-camera fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Prescription Upload</h5>
+                    <p class="card-text">Upload prescription images for validation</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 text-center mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-truck fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Fast Delivery</h5>
+                    <p class="card-text">Quick delivery with real-time tracking</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

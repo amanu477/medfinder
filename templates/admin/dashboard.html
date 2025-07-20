@@ -3,108 +3,103 @@
 {% block title %}Admin Dashboard - MedFinder{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h2>
-                <div class="d-flex gap-2">
-                    <a href="{% url 'platform_admin:admin_pharmacy_list' %}" class="btn btn-primary">
-                        <i class="fas fa-store me-1"></i>Manage Pharmacies
-                    </a>
-                    <a href="{% url 'home' %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-home me-1"></i>Back to Site
-                    </a>
-                </div>
+<div class="admin-dashboard-header animate-fadeInDown">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-2"><i class="fas fa-user-shield me-2"></i>Admin Dashboard</h1>
+                <p class="mb-0 opacity-75">Platform administration and management</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'platform_admin:admin_pharmacy_list' %}" class="btn btn-admin-primary">
+                    <i class="fas fa-store me-1"></i>Manage Pharmacies
+                </a>
+                <a href="{% url 'home' %}" class="btn btn-admin-secondary">
+                    <i class="fas fa-home me-1"></i>Back to Site
+                </a>
             </div>
         </div>
     </div>
+</div>
+
+<div class="container-fluid mt-4">
 
     <!-- Statistics Cards -->
     <div class="row mb-4">
-        <div class="col-md-3 mb-3 admin-animate">
-            <div class="stat-card-admin">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label">Total Pharmacies</div>
-                        <div class="stat-number">{{ stats.total_pharmacies }}</div>
-                    </div>
-                    <i class="fas fa-store fa-3x opacity-75"></i>
+        <div class="col-md-3 mb-3 animate-fadeInUp">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-store"></i>
                 </div>
+                <h3>{{ stats.total_pharmacies }}</h3>
+                <p>Total Pharmacies</p>
             </div>
         </div>
-        <div class="col-md-3 mb-3 admin-animate animate-delay-1">
-            <div class="stat-card-admin" style="background: linear-gradient(135deg, #d97706, #f59e0b);">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label">Pending Verifications</div>
-                        <div class="stat-number">{{ stats.pending_verifications }}</div>
-                    </div>
-                    <i class="fas fa-clock fa-3x opacity-75"></i>
+        <div class="col-md-3 mb-3 animate-fadeInUp animate-delay-1">
+            <div class="admin-stat-card admin-warning">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-clock"></i>
                 </div>
+                <h3>{{ stats.pending_verifications }}</h3>
+                <p>Pending Verifications</p>
             </div>
         </div>
-        <div class="col-md-3 mb-3 admin-animate animate-delay-2">
-            <div class="stat-card-admin" style="background: linear-gradient(135deg, #059669, #10b981);">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label">Verified Pharmacies</div>
-                        <div class="stat-number">{{ stats.verified_pharmacies }}</div>
-                    </div>
-                    <i class="fas fa-check-circle fa-3x opacity-75"></i>
+        <div class="col-md-3 mb-3 animate-fadeInUp animate-delay-2">
+            <div class="admin-stat-card admin-success">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-check-circle"></i>
                 </div>
+                <h3>{{ stats.verified_pharmacies }}</h3>
+                <p>Verified Pharmacies</p>
             </div>
         </div>
-        <div class="col-md-3 mb-3 admin-animate animate-delay-3">
-            <div class="stat-card-admin" style="background: linear-gradient(135deg, #0284c7, #0ea5e9);">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="stat-label">Total Customers</div>
-                        <div class="stat-number">{{ stats.total_customers }}</div>
-                    </div>
-                    <i class="fas fa-users fa-3x opacity-75"></i>
+        <div class="col-md-3 mb-3 animate-fadeInUp animate-delay-3">
+            <div class="admin-stat-card admin-info">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-users"></i>
                 </div>
+                <h3>{{ stats.total_customers }}</h3>
+                <p>Total Customers</p>
             </div>
         </div>
     </div>
 
     <!-- Additional Stats -->
     <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-pills text-primary fa-2x mb-2"></i>
-                    <h5>Total Medicines</h5>
-                    <h3 class="text-primary">{{ stats.total_medicines }}</h3>
+        <div class="col-md-3 mb-3 animate-fadeInUp animate-delay-4">
+            <div class="admin-stat-card">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-pills"></i>
                 </div>
+                <h3>{{ stats.total_medicines }}</h3>
+                <p>Total Medicines</p>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-shopping-cart text-success fa-2x mb-2"></i>
-                    <h5>Total Orders</h5>
-                    <h3 class="text-success">{{ stats.total_orders }}</h3>
+        <div class="col-md-3 mb-3 animate-fadeInUp animate-delay-5">
+            <div class="admin-stat-card admin-success">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-shopping-cart"></i>
                 </div>
+                <h3>{{ stats.total_orders }}</h3>
+                <p>Total Orders</p>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-file-prescription text-warning fa-2x mb-2"></i>
-                    <h5>Total Prescriptions</h5>
-                    <h3 class="text-warning">{{ stats.total_prescriptions }}</h3>
+        <div class="col-md-3 mb-3 animate-fadeInUp animate-delay-4">
+            <div class="admin-stat-card admin-warning">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-file-prescription"></i>
                 </div>
+                <h3>{{ stats.total_prescriptions }}</h3>
+                <p>Total Prescriptions</p>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card">
-                <div class="card-body text-center">
-                    <i class="fas fa-exclamation-circle text-danger fa-2x mb-2"></i>
-                    <h5>Pending Orders</h5>
-                    <h3 class="text-danger">{{ stats.pending_orders }}</h3>
+        <div class="col-md-3 mb-3 animate-fadeInUp animate-delay-5">
+            <div class="admin-stat-card admin-danger">
+                <div class="admin-stat-icon">
+                    <i class="fas fa-exclamation-circle"></i>
                 </div>
+                <h3>{{ stats.pending_orders }}</h3>
+                <p>Pending Orders</p>
             </div>
         </div>
     </div>
@@ -112,17 +107,19 @@
     <!-- Quick Actions -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Quick Actions</h5>
+            <div class="admin-card animate-fadeInUp">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="admin-stat-icon me-3" style="width: 50px; height: 50px;">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <h5 class="mb-0">Quick Actions</h5>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-2 mb-2">
-                            <a href="{% url 'platform_admin:admin_pharmacy_list' %}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-store d-block mb-1"></i>Pharmacies
-                            </a>
-                        </div>
+                <div class="row">
+                    <div class="col-md-2 mb-2">
+                        <a href="{% url 'platform_admin:admin_pharmacy_list' %}" class="btn btn-admin-primary w-100 hover-float">
+                            <i class="fas fa-store d-block mb-1"></i>Pharmacies
+                        </a>
+                    </div>
                         <div class="col-md-2 mb-2">
                             <a href="{% url 'platform_admin:admin_customer_list' %}" class="btn btn-outline-info w-100">
                                 <i class="fas fa-users d-block mb-1"></i>Customers

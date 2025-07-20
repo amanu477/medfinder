@@ -1,6 +1,7 @@
-{% extends 'base.html' %}
+{% extends "base_minimal.html" %}
+{% load static %}
 
-{% block title %}MedFinder - Find Medicines Instantly{% endblock %}
+{% block title %}Ethiopian Pharmacy Platform{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -209,6 +210,7 @@
     box-shadow: 0 8px 20px rgba(41, 128, 185, 0.4);
     position: relative;
     overflow: hidden;
+    display: inline-block;
 }
 
 .cta-btn::before {
@@ -288,72 +290,6 @@
     text-align: center;
     font-size: 1.1rem;
 }
-
-/* Stats Section */
-.stats-section {
-    padding: 4rem 0;
-    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-    color: white;
-}
-
-.stat-item {
-    text-align: center;
-    animation: slideInFromBottom 0.8s ease-out both;
-}
-
-.stat-item:nth-child(1) { animation-delay: 0.2s; }
-.stat-item:nth-child(2) { animation-delay: 0.4s; }
-.stat-item:nth-child(3) { animation-delay: 0.6s; }
-.stat-item:nth-child(4) { animation-delay: 0.8s; }
-
-.stat-number {
-    font-size: 3rem;
-    font-weight: 900;
-    margin-bottom: 0.5rem;
-    animation: bounce 2s infinite;
-}
-
-.stat-label {
-    font-size: 1.2rem;
-    opacity: 0.9;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .hero-title {
-        font-size: 2.5rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 1.2rem;
-    }
-    
-    .medical-search-container {
-        margin: 1rem;
-        padding: 2rem;
-    }
-    
-    .cta-buttons {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .feature-card {
-        margin-bottom: 2rem;
-    }
-}
-
-/* Scrolling animations */
-.fade-in-on-scroll {
-    opacity: 0;
-    transform: translateY(50px);
-    transition: all 0.8s ease-out;
-}
-
-.fade-in-on-scroll.visible {
-    opacity: 1;
-    transform: translateY(0);
-}
 </style>
 {% endblock %}
 
@@ -374,7 +310,7 @@
         <p class="hero-subtitle">Find medicines instantly • Upload prescriptions • Connect with verified pharmacies</p>
         
         <div class="medical-search-container">
-            <form method="get" action="{% url 'search_medicines' %}" class="search-form">
+            <form method="get" action="#" class="search-form">
                 <div class="search-input-group">
                     <input type="text" 
                            name="query" 
@@ -388,31 +324,15 @@
             </form>
             
             <div class="cta-buttons">
-                {% if user.is_authenticated %}
-                    {% if user.is_customer %}
-                        <a href="{% url 'customer:dashboard' %}" class="cta-btn">
-                            <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
-                        </a>
-                    {% elif user.is_pharmacy %}
-                        <a href="{% url 'pharmacy:dashboard' %}" class="cta-btn">
-                            <i class="fas fa-store me-2"></i>Pharmacy Dashboard
-                        </a>
-                    {% elif user.is_delivery_person %}
-                        <a href="{% url 'delivery:dashboard' %}" class="cta-btn">
-                            <i class="fas fa-truck me-2"></i>Delivery Dashboard
-                        </a>
-                    {% endif %}
-                    <a href="{% url 'customer:cart' %}" class="cta-btn">
-                        <i class="fas fa-shopping-cart me-2"></i>My Cart
-                    </a>
-                {% else %}
-                    <a href="{% url 'customer:register' %}" class="cta-btn">
-                        <i class="fas fa-user-plus me-2"></i>Register as Customer
-                    </a>
-                    <a href="{% url 'pharmacy:register' %}" class="cta-btn">
-                        <i class="fas fa-store me-2"></i>Register Pharmacy
-                    </a>
-                {% endif %}
+                <a href="#" class="cta-btn">
+                    <i class="fas fa-user-plus me-2"></i>Register as Customer
+                </a>
+                <a href="#" class="cta-btn">
+                    <i class="fas fa-store me-2"></i>Register Pharmacy
+                </a>
+                <a href="#" class="cta-btn">
+                    <i class="fas fa-truck me-2"></i>Join Delivery Team
+                </a>
             </div>
         </div>
     </div>
@@ -423,10 +343,10 @@
     <div class="container">
         <div class="row text-center mb-5">
             <div class="col-12">
-                <h2 class="display-4 font-weight-bold text-primary mb-3 fade-in-on-scroll">
+                <h2 class="display-4 font-weight-bold text-primary mb-3">
                     Why Choose Our Platform?
                 </h2>
-                <p class="lead text-muted fade-in-on-scroll">
+                <p class="lead text-muted">
                     Revolutionary healthcare technology connecting you with Ethiopia's best pharmacies
                 </p>
             </div>
@@ -471,92 +391,4 @@
         </div>
     </div>
 </section>
-
-<!-- Stats Section -->
-<section class="stats-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-item">
-                    <div class="stat-number">500+</div>
-                    <div class="stat-label">Verified Pharmacies</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-item">
-                    <div class="stat-number">10K+</div>
-                    <div class="stat-label">Medicines Available</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-item">
-                    <div class="stat-number">25K+</div>
-                    <div class="stat-label">Orders Delivered</div>
-                </div>
-            </div>
-            <div class="col-md-3 col-6 mb-3">
-                <div class="stat-item">
-                    <div class="stat-number">99%</div>
-                    <div class="stat-label">Customer Satisfaction</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<script>
-// Scroll animations
-function isElementInViewport(el) {
-    const rect = el.getBoundingClientRect();
-    return (
-        rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-        rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-    );
-}
-
-function handleScrollAnimation() {
-    const elements = document.querySelectorAll('.fade-in-on-scroll');
-    elements.forEach(element => {
-        if (isElementInViewport(element)) {
-            element.classList.add('visible');
-        }
-    });
-}
-
-window.addEventListener('scroll', handleScrollAnimation);
-window.addEventListener('load', handleScrollAnimation);
-
-// Counter animation
-function animateCounters() {
-    const counters = document.querySelectorAll('.stat-number');
-    counters.forEach(counter => {
-        const target = parseInt(counter.textContent.replace(/[^0-9]/g, ''));
-        const increment = target / 100;
-        let current = 0;
-        
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-                counter.textContent = counter.textContent.replace(/[0-9]+/, target);
-                clearInterval(timer);
-            } else {
-                counter.textContent = counter.textContent.replace(/[0-9]+/, Math.floor(current));
-            }
-        }, 20);
-    });
-}
-
-// Trigger counter animation when stats section is visible
-const statsSection = document.querySelector('.stats-section');
-const observer = new IntersectionObserver((entries) => {
-    if (entries[0].isIntersecting) {
-        animateCounters();
-        observer.unobserve(statsSection);
-    }
-});
-
-observer.observe(statsSection);
-</script>
 {% endblock %}
