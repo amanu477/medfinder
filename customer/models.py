@@ -276,7 +276,8 @@ class CartItem(models.Model):
             return False
         
         confidence = self.validation_data.get('confidence', 0)
-        return confidence < 100 and confidence > 0
+        # Require pharmacy review if confidence is less than 100% (including 0% when medicine not found)
+        return confidence < 100
     
     def get_ocr_confidence(self):
         """Get OCR confidence percentage"""
