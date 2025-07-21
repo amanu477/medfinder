@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Main entry point for the Ethiopian Pharmacy Connection Platform
-This file provides a simple WSGI interface for the Django application
+Pure Django WSGI application interface
 """
 
 import os
@@ -20,10 +20,10 @@ django.setup()
 # Import Django WSGI application
 from pharmacy_finder.wsgi import application
 
-# For Gunicorn compatibility, expose the Django app
+# Pure Django app - no Flask dependencies
 app = application
 
 if __name__ == '__main__':
-    # For development, use Django's built-in server
+    # Use Django's built-in development server
     from django.core.management import execute_from_command_line
     execute_from_command_line([sys.argv[0], 'runserver', '0.0.0.0:5000'])
