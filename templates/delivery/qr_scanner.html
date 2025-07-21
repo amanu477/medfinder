@@ -12,6 +12,7 @@
                     <p class="mb-0">Scan the customer's QR code to verify payment details</p>
                 </div>
                 <div class="card-body">
+                    {% csrf_token %}
                     <!-- Scanner Section -->
                     <div class="row">
                         <div class="col-md-6">
@@ -84,9 +85,8 @@
                                     <div class="mb-3">
                                         <label for="delivery-code-input" class="form-label">Enter Delivery Confirmation Code</label>
                                         <input type="text" id="delivery-code-input" class="form-control" 
-                                               placeholder="Enter delivery confirmation code" 
-                                               value="DEL{{ delivery.created_at|date:'Ymd' }}{{ delivery.created_at|date:'His' }}{{ delivery.id|stringformat:'x' }}">
-                                        <small class="text-muted">Use this method if QR scanner is not working</small>
+                                               placeholder="Enter delivery confirmation code (get from customer)">
+                                        <small class="text-muted">Get the delivery code from customer if QR scanner is not working</small>
                                     </div>
                                     <button id="confirm-delivery" class="btn btn-success">
                                         <i class="fas fa-check-circle"></i> Confirm Delivery
@@ -508,6 +508,22 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Generate test QR button not found!');
     }
 
+    // Get CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     // Auto-start scanner on page load
     setTimeout(() => {
         initScanner();
@@ -634,9 +650,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Stop scanner completely
             stopScanner();
 
-            // Check for delivery code format (DEL + date + time + delivery_id)
-            if (qrData.includes('DEL{{ delivery.created_at|date:'Ymd' }}{{ delivery.created_at|date:'His' }}{{ delivery.id|stringformat:'x' }}') || 
-                qrData.match(/^DEL\d{8}\d{6}[a-f0-9]+$/)) {
+            // First priority: Check for delivery code format in QR data
+            if (qrData.match(/^DEL\d{8}\d{6}[a-f0-9]+$/)) {
                 console.log('Detected delivery QR code format, proceeding automatically');
                 updateStatus('Delivery QR code detected! Automatically confirming order...', 'success');
                 
@@ -678,7 +693,7 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify({
                 auto_confirm: true,
