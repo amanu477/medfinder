@@ -300,7 +300,35 @@ class PharmacyProfileForm(forms.ModelForm):
             'business_license': 'Upload your business license (PDF, JPG, PNG)',
             'pharmacist_certificate': 'Upload pharmacist certification (PDF, JPG, PNG)',
             'verification_documents': 'Upload any additional verification documents (Optional)',
+            'is_24_hour': 'Check if your pharmacy operates 24 hours a day',
+            'is_active': 'Uncheck to temporarily close your pharmacy',
         }
+    
+    def clean(self):
+        """Custom validation for 24-hour pharmacies"""
+        cleaned_data = super().clean()
+        opening_time = cleaned_data.get('opening_time')
+        closing_time = cleaned_data.get('closing_time')
+        is_24_hour = cleaned_data.get('is_24_hour')
+        
+        if is_24_hour:
+            # For 24-hour pharmacies, opening and closing times are not required
+            # Set to None to clear any existing values
+            cleaned_data['opening_time'] = None
+            cleaned_data['closing_time'] = None
+        else:
+            # For non-24-hour pharmacies, both times are required
+            if not opening_time:
+                raise forms.ValidationError("Opening time is required for non-24-hour pharmacies.")
+            if not closing_time:
+                raise forms.ValidationError("Closing time is required for non-24-hour pharmacies.")
+            
+            # Validate that closing time is after opening time (unless overnight)
+            if opening_time and closing_time:
+                if closing_time <= opening_time:
+                    raise forms.ValidationError("Closing time must be after opening time, or check '24/7 Pharmacy' if your pharmacy operates around the clock.")
+        
+        return cleaned_data
 
 class MedicineForm(forms.ModelForm):
     """Form for medicine CRUD operations"""

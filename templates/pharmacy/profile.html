@@ -361,25 +361,25 @@
                                         <div class="form-text">Uncheck to temporarily close your pharmacy</div>
                                     </div>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.opening_time.id_for_label }}" class="form-label">Opening Time <span class="text-danger">*</span></label>
+                                <div class="col-md-6 mb-3" id="opening-time-section">
+                                    <label for="{{ form.opening_time.id_for_label }}" class="form-label">Opening Time <span class="text-danger required-indicator">*</span></label>
                                     {{ form.opening_time }}
                                     {% if form.opening_time.errors %}
                                     <div class="invalid-feedback d-block">
                                         {{ form.opening_time.errors }}
                                     </div>
                                     {% endif %}
-                                    <div class="form-text">Leave blank if 24/7 pharmacy</div>
+                                    <div class="form-text">Not required if 24/7 pharmacy</div>
                                 </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="{{ form.closing_time.id_for_label }}" class="form-label">Closing Time <span class="text-danger">*</span></label>
+                                <div class="col-md-6 mb-3" id="closing-time-section">
+                                    <label for="{{ form.closing_time.id_for_label }}" class="form-label">Closing Time <span class="text-danger required-indicator">*</span></label>
                                     {{ form.closing_time }}
                                     {% if form.closing_time.errors %}
                                     <div class="invalid-feedback d-block">
                                         {{ form.closing_time.errors }}
                                     </div>
                                     {% endif %}
-                                    <div class="form-text">Leave blank if 24/7 pharmacy</div>
+                                    <div class="form-text">Not required if 24/7 pharmacy</div>
                                 </div>
                             </div>
                             
@@ -526,21 +526,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const is24HourCheckbox = document.getElementById('{{ form.is_24_hour.id_for_label }}');
     const openingTimeInput = document.getElementById('{{ form.opening_time.id_for_label }}');
     const closingTimeInput = document.getElementById('{{ form.closing_time.id_for_label }}');
+    const openingTimeSection = document.getElementById('opening-time-section');
+    const closingTimeSection = document.getElementById('closing-time-section');
+    const requiredIndicators = document.querySelectorAll('.required-indicator');
     
     if (is24HourCheckbox && openingTimeInput && closingTimeInput) {
         function toggle24HourMode() {
             const is24Hour = is24HourCheckbox.checked;
-            openingTimeInput.disabled = is24Hour;
-            closingTimeInput.disabled = is24Hour;
             
             if (is24Hour) {
+                // Disable and clear time inputs for 24-hour pharmacies
+                openingTimeInput.disabled = true;
+                closingTimeInput.disabled = true;
                 openingTimeInput.value = '';
                 closingTimeInput.value = '';
-                openingTimeInput.parentElement.style.opacity = '0.6';
-                closingTimeInput.parentElement.style.opacity = '0.6';
+                openingTimeSection.style.opacity = '0.6';
+                closingTimeSection.style.opacity = '0.6';
+                
+                // Hide required indicators
+                requiredIndicators.forEach(indicator => {
+                    indicator.style.display = 'none';
+                });
             } else {
-                openingTimeInput.parentElement.style.opacity = '1';
-                closingTimeInput.parentElement.style.opacity = '1';
+                // Enable time inputs for non-24-hour pharmacies
+                openingTimeInput.disabled = false;
+                closingTimeInput.disabled = false;
+                openingTimeSection.style.opacity = '1';
+                closingTimeSection.style.opacity = '1';
+                
+                // Show required indicators
+                requiredIndicators.forEach(indicator => {
+                    indicator.style.display = 'inline';
+                });
             }
         }
         
