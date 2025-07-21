@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('customer', '0017_remove_securityalert_investigated_by_and_more'),
+        ('customer', '0016_add_cartitem_validation_data'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 

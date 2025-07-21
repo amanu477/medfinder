@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('customer', '0002_add_scheduled_order_fields'),
+        ('customer', '0002_order_orderitem'),
         ('customer', '0014_auto_20250711_1437'),
     ]
 

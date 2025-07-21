@@ -1,7 +1,7 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-from .views_ocr_summary import ocr_validation_summary
+
 
 urlpatterns = [
     # Customer authentication
@@ -48,7 +48,6 @@ urlpatterns = [
     path('cart/clear/', views.clear_cart, name='clear_cart'),
     path('cart/checkout/', views.checkout_cart, name='checkout_cart'),
     path('cart/bulk-ocr/', views.bulk_ocr_verification, name='bulk_ocr_verification'),
-    path('cart/ocr-summary/', ocr_validation_summary, name='ocr_validation_summary'),
     
     # Location update
     path('update-location/', views.update_customer_location, name='update_customer_location'),
