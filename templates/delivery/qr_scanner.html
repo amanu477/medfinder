@@ -708,6 +708,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => {
                     window.location.href = '/delivery/dashboard/';
                 }, 3000);
+            } else if (data.error === 'cash_payment_required') {
+                // Show cash payment confirmation dialog
+                showCashPaymentDialog(data.message, data.amount, data.currency, confirmCode);
             } else {
                 showError('Failed to confirm order: ' + data.error);
             }
@@ -791,6 +794,114 @@ document.addEventListener('DOMContentLoaded', function() {
             video.srcObject.getTracks().forEach(track => track.stop());
         }
     });
+    
+    // Show cash payment confirmation dialog
+    function showCashPaymentDialog(message, amount, currency, deliveryCode) {
+        const dialogHtml = `
+            <div class="modal fade" id="cashPaymentModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning text-white">
+                            <h5 class="modal-title">
+                                <i class="fas fa-money-bill-wave"></i> Cash Payment Required
+                            </h5>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-info">
+                                <strong>Customer chose "Pay on Cash"</strong>
+                            </div>
+                            <p>${message}</p>
+                            <div class="text-center">
+                                <h4 class="text-success">
+                                    <i class="fas fa-money-bill"></i> ${amount} ${currency}
+                                </h4>
+                            </div>
+                            <hr>
+                            <p><strong>Instructions:</strong></p>
+                            <ol>
+                                <li>Collect <strong>${amount} ${currency}</strong> from the customer</li>
+                                <li>Confirm you have received the money</li>
+                                <li>Complete the delivery</li>
+                            </ol>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeCashPaymentDialog()">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            <button type="button" class="btn btn-success" onclick="confirmCashCollected('${deliveryCode}')">
+                                <i class="fas fa-check"></i> I collected ${amount} ${currency}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('cashPaymentModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to page
+        document.body.insertAdjacentHTML('beforeend', dialogHtml);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('cashPaymentModal'));
+        modal.show();
+    }
+    
+    // Close cash payment dialog
+    function closeCashPaymentDialog() {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('cashPaymentModal'));
+        if (modal) {
+            modal.hide();
+        }
+        updateStatus('Delivery completion cancelled. Please collect cash payment to continue.', 'warning');
+    }
+    
+    // Confirm cash collected and complete delivery
+    function confirmCashCollected(deliveryCode) {
+        const deliveryId = {{ delivery.id }};
+        
+        updateStatus('Confirming cash collection and completing delivery...', 'info');
+        
+        // Close modal first
+        const modal = bootstrap.Modal.getInstance(document.getElementById('cashPaymentModal'));
+        if (modal) {
+            modal.hide();
+        }
+        
+        // Submit confirmation with cash confirmed flag
+        fetch(`/delivery/delivery/${deliveryId}/confirm/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                auto_confirm: true,
+                delivery_code: deliveryCode,
+                cash_confirmed: true
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateStatus('Cash payment collected and delivery completed successfully!', 'success');
+                // Redirect to delivery dashboard after 3 seconds
+                setTimeout(() => {
+                    window.location.href = '/delivery/dashboard/';
+                }, 3000);
+            } else {
+                showError('Failed to complete delivery: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Cash confirmation error:', error);
+            showError('Failed to confirm cash collection. Please try again.');
+        });
+    }
 });
 
 // Confirm cash payment

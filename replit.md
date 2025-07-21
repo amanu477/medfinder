@@ -65,6 +65,7 @@ Preferred communication style: Simple, everyday language.
 - **Prescription Image Fix**: Fixed prescription review interface to display prescription images from linked orders when cart items don't have direct images
 - **Delivery Time Validation**: Fixed validation to prevent pharmacies from selecting past dates when assigning delivery man arrival times, allowing current and future dates
 - **Dual QR System**: QR scanner maintains priority scanning with manual delivery code fallback
+- **Cash Payment Collection**: Enhanced delivery confirmation to require cash collection confirmation when customer chose "pay on cash" - delivery person must confirm they collected money before completing order
 - **Login Credentials**: Pharmacy "Good health pharmacy" - Username: goodhealth, Password: testpass123
 
 ## Recent Changes

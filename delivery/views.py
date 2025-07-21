@@ -824,6 +824,22 @@ def delivery_confirm_with_code(request, delivery_id):
             return JsonResponse({'success': False, 'error': 'Delivery must be in transit or arrived'})
         
         order = delivery.order
+        payment = order.payment if hasattr(order, 'payment') else None
+        
+        # Check if this is a cash on delivery order that needs payment collection
+        if payment and payment.payment_type == 'cash_on_delivery':
+            # For cash orders, need to confirm cash collection first
+            cash_confirmed = data.get('cash_confirmed', False)
+            
+            if not cash_confirmed:
+                # Return special response indicating cash payment is required
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'cash_payment_required',
+                    'message': f'This order requires cash payment of {payment.amount} ETB. Please collect the money from the customer before completing delivery.',
+                    'amount': str(payment.amount),
+                    'currency': payment.currency
+                })
         
         # Complete delivery
         delivery.status = 'delivered'
@@ -836,13 +852,21 @@ def delivery_confirm_with_code(request, delivery_id):
         order.status = 'delivered'
         order.save()
         
+        # If this was a cash payment, confirm payment receipt
+        if payment and payment.payment_type == 'cash_on_delivery':
+            payment.confirm_cash_payment(delivery_person.user)
+        
         # Create tracking entry
+        tracking_notes = f'Delivery confirmed with code: {delivery_code}'
+        if payment and payment.payment_type == 'cash_on_delivery':
+            tracking_notes += f' - Cash payment of {payment.amount} ETB collected'
+        
         DeliveryTracking.objects.create(
             delivery=delivery,
             latitude=delivery_person.current_location_lat or 9.03,
             longitude=delivery_person.current_location_lon or 38.76,
             status='delivered',
-            notes=f'Delivery confirmed with code: {delivery_code}'
+            notes=tracking_notes
         )
         
         # Create notification for customer
