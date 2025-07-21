@@ -62,6 +62,7 @@ Preferred communication style: Simple, everyday language.
 - **Template Logic**: Confirmed OCR confidence display template works correctly with color-coded badges
 - **Test Results**: Order #35 (85% OCR), Order #37 (75% OCR), Order #38 now display correctly in pharmacy interface
 - **Cart Management**: After order placement, customer cart properly shows 0 items while preserving OCR data for pharmacy
+- **Prescription Image Fix**: Fixed prescription review interface to display prescription images from linked orders when cart items don't have direct images
 - **Dual QR System**: QR scanner maintains priority scanning with manual delivery code fallback
 - **Login Credentials**: Pharmacy "Good health pharmacy" - Username: goodhealth, Password: testpass123
 

@@ -800,12 +800,25 @@ def prescription_review_detail(request, cart_item_id):
     else:
         form = PrescriptionReviewForm(instance=cart_item)
     
+    # Get prescription image from cart item or linked order
+    prescription_image = None
+    if cart_item.prescription_image:
+        prescription_image = cart_item.prescription_image
+    else:
+        # Check linked order for prescription image
+        linked_order_items = cart_item.orderitem_set.all()
+        if linked_order_items.exists():
+            order = linked_order_items.first().order
+            if order.prescription_image:
+                prescription_image = order.prescription_image
+    
     context = {
         'cart_item': cart_item,
         'form': form,
         'ocr_confidence': cart_item.get_ocr_confidence(),
         'ocr_best_match': cart_item.get_ocr_best_match(),
-        'validation_data': cart_item.validation_data
+        'validation_data': cart_item.validation_data,
+        'prescription_image': prescription_image
     }
     
     return render(request, 'pharmacy/prescription_review_detail.html', context)
