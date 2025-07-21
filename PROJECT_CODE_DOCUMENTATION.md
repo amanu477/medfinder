@@ -1,91 +1,667 @@
-# Ethiopian Pharmacy Platform - Complete Code Documentation
+# Ethiopian Pharmacy Platform - Line-by-Line Code Analysis
 
-## 🏥 Understanding Your Digital Pharmacy Code
+## 🔍 Complete Code Explanation
 
-This document explains every piece of code in your Ethiopian Pharmacy Platform with real examples from your actual codebase. Each section shows you exactly how the code works and why it's written that way.
-
----
-
-## 🏗️ Project Structure Overview
-
-```
-ethiopian-pharmacy/
-├── customer/          # Patient and customer functionality
-├── pharmacy/         # Pharmacy management system
-├── delivery/         # Delivery tracking and management
-├── moh/             # Ministry of Health verification
-├── platform_admin/  # System administration
-├── templates/       # HTML templates
-├── static/          # CSS, JavaScript, images
-└── pharmacy_finder/ # Main Django settings
-```
+This document explains EVERY SINGLE LINE of code in your Ethiopian Pharmacy Platform. Each line is broken down to show exactly what it does and why it exists.
 
 ---
 
-## 👥 CUSTOMER SECTION (`customer/`)
+## 📁 File Structure Analysis
 
-*"The heart of your platform - where patients find medicines and manage prescriptions"*
+```
+ethiopian-pharmacy/                 # Root project directory
+├── customer/                      # App handling patient functionality
+│   ├── models.py                  # Database tables for customers
+│   ├── views.py                   # Business logic for customer operations
+│   ├── forms.py                   # Web forms for customer input
+│   ├── urls.py                    # URL routing for customer pages
+│   └── templates/                 # HTML templates for customer pages
+├── pharmacy/                      # App handling pharmacy operations
+├── delivery/                      # App handling delivery operations
+├── moh/                          # Ministry of Health verification app
+├── platform_admin/              # System administration app
+└── manage.py                     # Django command-line utility
+```
 
-### 🗄️ Models (`customer/models.py`) - Data Structure
+---
 
-#### Customer Model
+## 👥 CUSTOMER SECTION - Complete Line Analysis (`customer/models.py`)
+
+### Line-by-Line Breakdown of customer/models.py:
+
 ```python
+# Line 1: Import Django's database models module
+from django.db import models
+```
+**What it does**: Brings in Django's Object-Relational Mapping (ORM) system that lets us create database tables using Python classes instead of raw SQL.
+
+```python
+# Line 2: Import Django's built-in User model for authentication
+from django.contrib.auth.models import User
+```
+**What it does**: Gets Django's pre-built User model that handles usernames, passwords, and basic authentication. We'll link our custom models to this.
+
+```python
+# Line 3: Import Django's timezone utilities
+from django.utils import timezone
+```
+**What it does**: Provides timezone-aware datetime functions. Essential for handling different time zones properly in a global application.
+
+```python
+# Line 4: Import Python's timedelta for date/time calculations
+from datetime import timedelta
+```
+**What it does**: Allows us to add or subtract time periods (like "15 minutes from now" for expiration checks).
+
+```python
+# Line 6: Start defining the Customer class that inherits from Model
 class Customer(models.Model):
-    """Customer model for storing customer information"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-    email = models.EmailField()
-    phone = models.CharField(max_length=20)
-    address = models.TextField()
-    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
-    longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    is_verified = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"{self.name} - {self.email}"
 ```
+**What it does**: Creates a new database table called "customer_customer" with Django's ORM. The `models.Model` gives us all database functionality.
 
-**Code Explanation:**
-- `OneToOneField(User)`: Links each customer to Django's built-in user authentication
-- `DecimalField` for coordinates: Stores precise GPS location for finding nearby pharmacies
-- `auto_now_add=True`: Automatically sets creation time when record is first saved
-- `auto_now=True`: Updates timestamp every time the record is modified
-- `is_verified`: Tracks email verification status for security
-
-#### Prescription Model
 ```python
-class Prescription(models.Model):
-    """Model for storing prescription information"""
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('completed', 'Completed'),
-    )
-    
-    customer_name = models.CharField(max_length=100)
-    customer_email = models.EmailField()
-    customer_phone = models.CharField(max_length=20)
-    prescription_image = models.ImageField(upload_to='prescriptions/')
-    pharmacy = models.ForeignKey('pharmacy.Pharmacy', on_delete=models.CASCADE, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"Prescription by {self.customer_name}"
+# Line 7: Documentation string describing this model
+"""Customer model for storing customer information"""
 ```
+**What it does**: Python docstring that explains what this model is for. Shows up in documentation and IDE help.
 
-**Code Explanation:**
-- `STATUS_CHOICES`: Defines valid status options as tuples (database_value, display_name)
-- `ImageField(upload_to='prescriptions/')`: Stores uploaded images in media/prescriptions/ folder
-- `ForeignKey('pharmacy.Pharmacy')`: Links to pharmacy model using string reference to avoid import issues
-- `class Meta`: Contains model metadata like default ordering (newest first with `-created_at`)
+```python
+# Line 8: Create relationship to Django's User model
+user = models.OneToOneField(User, on_delete=models.CASCADE)
+```
+**What it does**: 
+- `OneToOneField`: Each customer connects to exactly one User account
+- `on_delete=models.CASCADE`: If User is deleted, delete this Customer too
+- This links our custom customer info to Django's built-in login system
+
+```python
+# Line 9: Customer's full name field
+name = models.CharField(max_length=100)
+```
+**What it does**: 
+- `CharField`: Text field for short strings
+- `max_length=100`: Database will store maximum 100 characters
+- This stores the customer's full name like "Abebe Kebede"
+
+```python
+# Line 10: Customer's email address field
+email = models.EmailField()
+```
+**What it does**: 
+- `EmailField`: Special text field that validates email format
+- Django automatically checks if email looks like "user@domain.com"
+- Stored as text but validated for proper email format
+
+```python
+# Line 11: Customer's phone number field
+phone = models.CharField(max_length=20)
+```
+**What it does**: 
+- Stores phone numbers as text (not numbers) because phone numbers can have "+", "-", spaces
+- `max_length=20`: Handles Ethiopian numbers like "+251911234567"
+
+```python
+# Line 12: Customer's address field
+address = models.TextField()
+```
+**What it does**: 
+- `TextField`: For longer text without character limits
+- Stores full addresses like "Bole, Addis Ababa, Ethiopia"
+- Unlike CharField, can store paragraphs of text
+
+```python
+# Line 13: GPS latitude coordinate
+latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+```
+**What it does**: 
+- `DecimalField`: Stores precise decimal numbers (not floating point)
+- `max_digits=10`: Total of 10 digits (like 12.34567890)
+- `decimal_places=8`: 8 digits after decimal point for GPS precision
+- `null=True`: Database can store NULL (empty) values
+- `blank=True`: Forms can submit empty values
+- Stores precise GPS location like 9.03141269
+
+```python
+# Line 14: GPS longitude coordinate
+longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
+```
+**What it does**: 
+- Same as latitude but with 11 total digits (longitude can be -180 to +180)
+- Stores precise GPS location like 38.76151109
+- Both coordinates together pinpoint exact location on Earth
+
+```python
+# Line 15: When customer record was created
+created_at = models.DateTimeField(auto_now_add=True)
+```
+**What it does**: 
+- `DateTimeField`: Stores both date and time
+- `auto_now_add=True`: Django automatically sets this to current time when record is first created
+- Never changes after creation - permanent timestamp of when customer joined
+
+```python
+# Line 16: When customer record was last updated
+updated_at = models.DateTimeField(auto_now=True)
+```
+**What it does**: 
+- `auto_now=True`: Django automatically updates this to current time every time record is saved
+- Changes every time customer updates their profile
+- Tracks last modification time
+
+```python
+# Line 17: Email verification status with comment
+is_verified = models.BooleanField(default=False)  # Email verification status
+```
+**What it does**: 
+- `BooleanField`: Stores True or False only
+- `default=False`: New customers start as unverified
+- Security feature - customer must verify email before full access
+- Comment explains what this field tracks
+
+```python
+# Line 19-20: String representation method
+def __str__(self):
+    return f"{self.name} - {self.email}"
+```
+**What it does**: 
+- `__str__`: Special Python method that returns human-readable text representation
+- `f"{self.name} - {self.email}"`: F-string formatting to combine name and email
+- When you print a Customer object, it shows "John Doe - john@example.com"
+- Used in Django admin interface and debugging
+
+### EmailVerification Model - Line by Line:
+
+```python
+# Line 22: Start EmailVerification class
+class EmailVerification(models.Model):
+```
+**What it does**: Creates database table for storing email verification codes sent to users.
+
+```python
+# Line 23: Documentation for verification model
+"""Model for storing email verification codes"""
+```
+**What it does**: Explains this model handles email verification system.
+
+```python
+# Line 24: Email address to be verified
+email = models.EmailField()
+```
+**What it does**: Stores email that needs verification, validates email format.
+
+```python
+# Line 25: 6-digit verification code
+verification_code = models.CharField(max_length=6)
+```
+**What it does**: Stores random 6-digit code like "123456" sent to user's email.
+
+```python
+# Line 26-29: User type choices
+user_type = models.CharField(max_length=20, choices=[
+    ('customer', 'Customer'),
+    ('pharmacy', 'Pharmacy')
+])
+```
+**What it does**: 
+- Tracks whether verification is for customer or pharmacy registration
+- `choices=[...]`: Database stores 'customer' or 'pharmacy', forms show 'Customer' or 'Pharmacy'
+
+```python
+# Line 30: When verification code was created
+created_at = models.DateTimeField(auto_now_add=True)
+```
+**What it does**: Records when verification code was generated - used for expiration.
+
+```python
+# Line 31: Whether code has been used
+used = models.BooleanField(default=False)
+```
+**What it does**: Tracks if verification code was already used - prevents reuse.
+
+```python
+# Line 33-34: Metadata class
+class Meta:
+    ordering = ['-created_at']
+```
+**What it does**: 
+- `ordering = ['-created_at']`: Shows newest verification codes first
+- Minus sign means descending order (newest to oldest)
+
+```python
+# Line 36-37: String representation
+def __str__(self):
+    return f"Verification for {self.email} - {self.verification_code}"
+```
+**What it does**: Shows "Verification for john@email.com - 123456" when printing object.
+
+```python
+# Line 39-41: Expiration check method
+def is_expired(self):
+    """Check if verification code has expired (15 minutes)"""
+    return timezone.now() > self.created_at + timedelta(minutes=15)
+```
+**What it does**: 
+- Custom method to check if code is older than 15 minutes
+- `timezone.now()`: Current time
+- `self.created_at + timedelta(minutes=15)`: Code creation time plus 15 minutes
+- Returns True if current time is past expiration time
+
+```python
+# Line 43-45: Validity check method
+def is_valid(self):
+    """Check if verification code is valid"""
+    return not self.used and not self.is_expired()
+```
+**What it does**: 
+- Checks if code can still be used
+- `not self.used`: Code hasn't been used yet
+- `not self.is_expired()`: Code hasn't expired
+- Returns True only if both conditions are met
+
+### Prescription Model - Line by Line:
+
+```python
+# Line 48: Start Prescription class
+class Prescription(models.Model):
+```
+**What it does**: Creates table for storing prescription uploads from customers.
+
+```python
+# Line 49: Documentation
+"""Model for storing prescription information"""
+```
+**What it does**: Explains this model handles prescription image uploads.
+
+```python
+# Line 50-55: Status choices tuple
+STATUS_CHOICES = (
+    ('pending', 'Pending'),
+    ('approved', 'Approved'),
+    ('rejected', 'Rejected'),
+    ('completed', 'Completed'),
+)
+```
+**What it does**: 
+- Defines all possible prescription statuses
+- Tuple format: (database_value, human_readable_display)
+- Database stores 'pending', users see 'Pending'
+
+```python
+# Line 57: Customer name field
+customer_name = models.CharField(max_length=100)
+```
+**What it does**: Stores full name of person submitting prescription.
+
+```python
+# Line 58: Customer email field
+customer_email = models.EmailField()
+```
+**What it does**: Email of person submitting prescription - for notifications.
+
+```python
+# Line 59: Customer phone field
+customer_phone = models.CharField(max_length=20)
+```
+**What it does**: Phone number for prescription-related communication.
+
+```python
+# Line 60: Prescription image upload
+prescription_image = models.ImageField(upload_to='prescriptions/')
+```
+**What it does**: 
+- `ImageField`: Special field for image uploads
+- `upload_to='prescriptions/'`: Saves images to media/prescriptions/ folder
+- Handles image validation and storage automatically
+
+```python
+# Line 61: Link to pharmacy
+pharmacy = models.ForeignKey('pharmacy.Pharmacy', on_delete=models.CASCADE, null=True, blank=True)
+```
+**What it does**: 
+- `ForeignKey`: Links prescription to pharmacy that will process it
+- `'pharmacy.Pharmacy'`: String reference to avoid import problems
+- `on_delete=models.CASCADE`: Delete prescription if pharmacy is deleted
+- `null=True, blank=True`: Prescription can exist without assigned pharmacy initially
+
+```python
+# Line 62: Status field with choices
+status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+```
+**What it does**: 
+- Uses STATUS_CHOICES from above
+- `default='pending'`: New prescriptions start as pending
+- Creates dropdown in forms with defined choices
+
+```python
+# Line 63-64: Timestamp fields
+created_at = models.DateTimeField(auto_now_add=True)
+updated_at = models.DateTimeField(auto_now=True)
+```
+**What it does**: Same as Customer model - tracks creation and modification times.
+
+```python
+# Line 66-67: Metadata
+class Meta:
+    ordering = ['-created_at']
+```
+**What it does**: Show newest prescriptions first in lists.
+
+```python
+# Line 69-70: String representation
+def __str__(self):
+    return f"Prescription by {self.customer_name}"
+```
+**What it does**: Shows "Prescription by John Doe" when printing object.
+
+---
+
+## 👥 CUSTOMER VIEWS - Complete Line Analysis (`customer/views.py`)
+
+### Import Section - Line by Line:
+
+```python
+# Line 1: Import Django shortcuts for common operations
+from django.shortcuts import render, redirect, get_object_or_404
+```
+**What it does**:
+- `render`: Combines template with data to create HTML response
+- `redirect`: Sends user to different URL/page
+- `get_object_or_404`: Gets database object or shows 404 error if not found
+
+```python
+# Line 2: Import HTTP response classes
+from django.http import JsonResponse, HttpResponse
+```
+**What it does**:
+- `JsonResponse`: Returns JSON data (for AJAX/API responses)
+- `HttpResponse`: Returns basic HTTP response with custom content
+
+```python
+# Line 3: Import database query tools
+from django.db.models import Q
+```
+**What it does**:
+- `Q`: Builds complex database queries with AND, OR conditions
+- Example: `Q(name__contains='medicine') | Q(description__contains='medicine')`
+
+```python
+# Line 4: Import timezone utilities
+from django.utils import timezone
+```
+**What it does**: Get current time with proper timezone handling for timestamps.
+
+```python
+# Line 5: Import messaging system
+from django.contrib import messages
+```
+**What it does**: Show success/error/info messages to users after form submissions.
+
+```python
+# Line 6: Import authentication functions
+from django.contrib.auth import login, authenticate, logout
+```
+**What it does**:
+- `login`: Log user into Django session
+- `authenticate`: Check username/password validity
+- `logout`: Remove user from session
+
+```python
+# Line 7: Import login requirement decorator
+from django.contrib.auth.decorators import login_required
+```
+**What it does**: `@login_required` decorator forces users to login before accessing views.
+
+```python
+# Line 8: Import User model
+from django.contrib.auth.models import User
+```
+**What it does**: Django's built-in User model for authentication system.
+
+```python
+# Line 9: Import database transaction handling
+from django.db import transaction
+```
+**What it does**: Wrap multiple database operations to ensure all succeed or all fail together.
+
+```python
+# Line 10-11: Import security decorators
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+```
+**What it does**:
+- `csrf_exempt`: Disable CSRF protection for specific views (dangerous, use carefully)
+- `require_http_methods`: Restrict view to specific HTTP methods (GET, POST, etc.)
+
+```python
+# Line 12: Import JSON handling
+import json
+```
+**What it does**: Parse and generate JSON data for API responses.
+
+```python
+# Line 13: Import all customer models
+from .models import Customer, Prescription, Order, OrderItem, Cart, CartItem, IncidentReport, AdminNotification, Payment
+```
+**What it does**: Import all database models from customer app - the dot means "from this same app".
+
+```python
+# Line 14-16: Import custom services
+from .chapa_service import ChapaService
+from .ocr_service import PrescriptionOCRService
+from .qr_utils import generate_qr_code_image, generate_payment_qr_data
+```
+**What it does**:
+- `ChapaService`: Ethiopian payment processing
+- `PrescriptionOCRService`: AI text extraction from prescription images
+- QR utilities: Generate QR codes for deliveries and payments
+
+```python
+# Line 17-18: Import models from other apps
+from pharmacy.models import Pharmacy, Medicine
+from moh.models import MoHOfficer
+```
+**What it does**: Import models from pharmacy and Ministry of Health apps.
+
+```python
+# Line 19: Import forms
+from .forms import PrescriptionForm, CustomerRegistrationForm, OrderForm, QuickIncidentForm
+```
+**What it does**: Import HTML forms for user input validation.
+
+```python
+# Line 20-23: Import system utilities
+import tempfile
+import os
+import base64
+import logging
+```
+**What it does**:
+- `tempfile`: Create temporary files for image processing
+- `os`: Operating system operations like file paths
+- `base64`: Encode binary data (images) for web transmission
+- `logging`: Record errors and debug information
+
+```python
+# Line 25-26: Configure logging
+logger = logging.getLogger(__name__)
+```
+**What it does**: Create logger instance for this specific file to record errors and debug info.
+
+### Home View - Line by Line:
+
+```python
+# Line 28-29: Define home page function
+def home(request):
+    """Home page view with search functionality"""
+```
+**What it does**: Function that handles requests to the home page, includes docstring explaining purpose.
+
+```python
+# Line 30-31: Check if user is logged in
+if request.user.is_authenticated:
+```
+**What it does**: 
+- `request.user`: Current user making the request
+- `is_authenticated`: True if user is logged in, False if anonymous
+- Only execute following code block if user is logged in
+
+```python
+# Line 32-35: Try to find delivery person
+try:
+    from delivery.models import DeliveryPerson
+    delivery_person = DeliveryPerson.objects.get(user=request.user, is_active=True)
+    return redirect('delivery_dashboard')
+```
+**What it does**:
+- `try:`: Start error handling block
+- Import DeliveryPerson model only when needed (avoids circular imports)
+- `DeliveryPerson.objects.get()`: Find delivery person record for current user
+- `is_active=True`: Only active delivery personnel
+- `redirect('delivery_dashboard')`: Send delivery people directly to work dashboard
+
+```python
+# Line 36-37: Handle case where user is not delivery person
+except DeliveryPerson.DoesNotExist:
+    pass
+```
+**What it does**:
+- `except DeliveryPerson.DoesNotExist:`: Catch error when user is not a delivery person
+- `pass`: Do nothing - continue to regular home page
+
+```python
+# Line 39-42: Prepare template context
+context = {
+    'suppress_moh_notifications': True,
+}
+```
+**What it does**:
+- `context`: Dictionary of data passed to HTML template
+- `'suppress_moh_notifications': True`: Tell template not to show government notifications on home page
+
+```python
+# Line 43: Render home page template
+return render(request, 'home.html', context)
+```
+**What it does**:
+- `render()`: Combine 'home.html' template with context data
+- Returns HTML response to user's browser
+
+### Medicine Search View - Line by Line:
+
+```python
+# Line 49-53: Get search parameters
+def search_medicines(request):
+    """Search medicines and return results sorted by proximity"""
+    query = request.GET.get('query', '')
+    user_lat = request.GET.get('lat')
+    user_lon = request.GET.get('lon')
+```
+**What it does**:
+- `request.GET.get('query', '')`: Get search term from URL, default to empty string
+- `user_lat`, `user_lon`: Get GPS coordinates from URL parameters
+- These come from the search form and location detection JavaScript
+
+```python
+# Line 55-56: Handle empty search
+if not query:
+    return render(request, 'search_results.html', {'query': query, 'medicines': []})
+```
+**What it does**:
+- `if not query:`: Check if search term is empty
+- Return empty results page if no search term provided
+
+```python
+# Line 58-65: Build database query
+medicines = Medicine.objects.filter(
+    Q(name__icontains=query) | Q(description__icontains=query),
+    is_available=True,
+    pharmacy__is_active=True,
+    stock_quantity__gt=0,
+    expiry_date__gt=timezone.now().date()
+).select_related('pharmacy')
+```
+**What it does**:
+- `Medicine.objects.filter()`: Query medicine database table
+- `Q(name__icontains=query) | Q(description__icontains=query)`: Search in name OR description
+- `__icontains`: Case-insensitive partial match (finds "Para" in "Paracetamol")
+- `|`: OR operator for combining conditions
+- `is_available=True`: Only medicines marked as available
+- `pharmacy__is_active=True`: Only from active pharmacies (double underscore accesses related model)
+- `stock_quantity__gt=0`: Only medicines with stock greater than 0
+- `expiry_date__gt=timezone.now().date()`: Only non-expired medicines
+- `select_related('pharmacy')`: Join pharmacy data to avoid extra database queries
+
+```python
+# Line 67-68: Check if user provided location
+if user_lat and user_lon:
+```
+**What it does**: Only calculate distances if user shared their GPS location.
+
+```python
+# Line 69-75: Import distance calculator and set up logging
+try:
+    from .utils import haversine_distance
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    user_lat = float(user_lat)
+    user_lon = float(user_lon)
+```
+**What it does**:
+- Import haversine distance formula (calculates distance between GPS points)
+- Convert GPS coordinates from text to numbers with `float()`
+- Set up error logging
+
+```python
+# Line 77-91: Calculate distances to each pharmacy
+medicines_with_distance = []
+for medicine in medicines:
+    pharmacy = medicine.pharmacy
+    if pharmacy.latitude and pharmacy.longitude:
+        distance = haversine_distance(
+            user_lat, user_lon,
+            float(pharmacy.latitude), float(pharmacy.longitude)
+        )
+        medicine.distance = round(distance, 1)
+        medicines_with_distance.append((medicine, distance))
+        logger.info(f"Medicine: {medicine.name}, Pharmacy: {pharmacy.name}, Distance: {distance:.2f} km")
+    else:
+        medicine.distance = None
+        medicines_with_distance.append((medicine, float('inf')))
+```
+**What it does**:
+- `medicines_with_distance = []`: Empty list to store results
+- `for medicine in medicines:`: Loop through each medicine found
+- `pharmacy = medicine.pharmacy`: Get pharmacy for this medicine
+- `if pharmacy.latitude and pharmacy.longitude:`: Only calculate if pharmacy has GPS coordinates
+- `haversine_distance()`: Calculate real-world distance using GPS coordinates
+- `round(distance, 1)`: Round to 1 decimal place (like 2.3 km)
+- `medicine.distance = ...`: Add distance property to medicine object
+- `medicines_with_distance.append((medicine, distance))`: Store medicine and its distance as tuple
+- `logger.info()`: Record calculation in log file for debugging
+- `float('inf')`: Assign infinite distance to pharmacies without GPS coordinates
+
+```python
+# Line 93-95: Sort by distance
+medicines_with_distance.sort(key=lambda x: x[1])
+medicines = [medicine for medicine, distance in medicines_with_distance]
+```
+**What it does**:
+- `sort(key=lambda x: x[1])`: Sort tuples by second element (distance)
+- `lambda x: x[1]`: Anonymous function that returns distance from tuple
+- List comprehension extracts just the medicine objects in distance order
+
+```python
+# Line 97-100: Handle errors in distance calculation
+except (ValueError, TypeError) as e:
+    logger.error(f"Error calculating distances: {e}")
+    # Continue without distance sorting
+    pass
+```
+**What it does**:
+- `except (ValueError, TypeError)`: Catch errors from invalid GPS coordinates
+- `logger.error()`: Record error in log file
+- `pass`: Continue without distance sorting if GPS calculation fails
 
 ```python
 class Order(models.Model):
