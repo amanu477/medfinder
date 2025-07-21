@@ -71,6 +71,7 @@ Preferred communication style: Simple, everyday language.
 - **CRITICAL SAFETY FIX**: Fixed pharmacy approval bypass when OCR confidence < 100% - system now properly sets pharmacy_review_required=True and blocks approval until manual prescription verification is completed
 - **Cash Payment Button Fix**: Fixed "I collected" button not responding by making confirmCashCollected and closeCashPaymentDialog functions globally accessible outside DOMContentLoaded scope
 - **Payment Confirmation Method Fix**: Added missing confirm_cash_payment method to Payment model to handle cash payment confirmation by delivery personnel
+- **Delivery Theme Color Update**: Changed delivery person theme from green to orange color scheme across all pages while maintaining white navbar consistency
 - **Login Credentials**: Pharmacy "Good health pharmacy" - Username: goodhealth, Password: testpass123
 
 ## Recent Changes
