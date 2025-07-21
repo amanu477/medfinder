@@ -334,6 +334,34 @@
                             <h6 class="mb-3 text-muted">Business Hours</h6>
                             <div class="row mb-4">
                                 <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        {{ form.is_24_hour }}
+                                        <label for="{{ form.is_24_hour.id_for_label }}" class="form-check-label">
+                                            24/7 Pharmacy (Open 24 hours)
+                                        </label>
+                                        {% if form.is_24_hour.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.is_24_hour.errors }}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">Check this if your pharmacy operates 24 hours a day, 7 days a week</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="form-check">
+                                        {{ form.is_active }}
+                                        <label for="{{ form.is_active.id_for_label }}" class="form-check-label">
+                                            Pharmacy is Active
+                                        </label>
+                                        {% if form.is_active.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ form.is_active.errors }}
+                                        </div>
+                                        {% endif %}
+                                        <div class="form-text">Uncheck to temporarily close your pharmacy</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
                                     <label for="{{ form.opening_time.id_for_label }}" class="form-label">Opening Time <span class="text-danger">*</span></label>
                                     {{ form.opening_time }}
                                     {% if form.opening_time.errors %}
@@ -341,6 +369,7 @@
                                         {{ form.opening_time.errors }}
                                     </div>
                                     {% endif %}
+                                    <div class="form-text">Leave blank if 24/7 pharmacy</div>
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="{{ form.closing_time.id_for_label }}" class="form-label">Closing Time <span class="text-danger">*</span></label>
@@ -350,6 +379,7 @@
                                         {{ form.closing_time.errors }}
                                     </div>
                                     {% endif %}
+                                    <div class="form-text">Leave blank if 24/7 pharmacy</div>
                                 </div>
                             </div>
                             
@@ -490,6 +520,35 @@ document.addEventListener('DOMContentLoaded', function() {
             manualLatInput.value = currentLat;
             manualLngInput.value = currentLng;
         }
+    }
+    
+    // Handle 24-hour checkbox toggle
+    const is24HourCheckbox = document.getElementById('{{ form.is_24_hour.id_for_label }}');
+    const openingTimeInput = document.getElementById('{{ form.opening_time.id_for_label }}');
+    const closingTimeInput = document.getElementById('{{ form.closing_time.id_for_label }}');
+    
+    if (is24HourCheckbox && openingTimeInput && closingTimeInput) {
+        function toggle24HourMode() {
+            const is24Hour = is24HourCheckbox.checked;
+            openingTimeInput.disabled = is24Hour;
+            closingTimeInput.disabled = is24Hour;
+            
+            if (is24Hour) {
+                openingTimeInput.value = '';
+                closingTimeInput.value = '';
+                openingTimeInput.parentElement.style.opacity = '0.6';
+                closingTimeInput.parentElement.style.opacity = '0.6';
+            } else {
+                openingTimeInput.parentElement.style.opacity = '1';
+                closingTimeInput.parentElement.style.opacity = '1';
+            }
+        }
+        
+        // Initial state
+        toggle24HourMode();
+        
+        // Listen for changes
+        is24HourCheckbox.addEventListener('change', toggle24HourMode);
     }
 });
 </script>
