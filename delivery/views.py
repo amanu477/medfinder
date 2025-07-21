@@ -791,3 +791,79 @@ def qr_scanner(request, delivery_id):
     }
     
     return render(request, 'delivery/qr_scanner.html', context)
+
+
+@csrf_exempt
+@login_required
+def delivery_confirm_with_code(request, delivery_id):
+    """Confirm delivery using specific delivery code"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Only POST method allowed'})
+    
+    try:
+        delivery_person = request.user.deliveryperson
+        delivery = get_object_or_404(Delivery, id=delivery_id, delivery_person=delivery_person)
+        
+        # Parse JSON data
+        data = json.loads(request.body)
+        delivery_code = data.get('delivery_code')
+        
+        if not delivery_code:
+            return JsonResponse({'success': False, 'error': 'Delivery code required'})
+        
+        # Generate expected delivery code format: DEL + YYYYMMDD + HHMMSS + hex(delivery_id)
+        import re
+        expected_code = f"DEL{delivery.created_at.strftime('%Y%m%d%H%M%S')}{delivery.id:x}"
+        
+        # Validate delivery code
+        if delivery_code != expected_code and not re.match(r'^DEL\d{8}\d{6}[a-f0-9]+$', delivery_code):
+            return JsonResponse({'success': False, 'error': 'Invalid delivery code format'})
+        
+        # Check if delivery is ready for confirmation
+        if delivery.status not in ['in_transit', 'arrived']:
+            return JsonResponse({'success': False, 'error': 'Delivery must be in transit or arrived'})
+        
+        order = delivery.order
+        
+        # Complete delivery
+        delivery.status = 'delivered'
+        delivery.delivery_time = timezone.now()
+        delivery_person.total_deliveries += 1
+        delivery_person.save()
+        delivery.save()
+        
+        # Update order status
+        order.status = 'delivered'
+        order.save()
+        
+        # Create tracking entry
+        DeliveryTracking.objects.create(
+            delivery=delivery,
+            latitude=delivery_person.current_location_lat or 9.03,
+            longitude=delivery_person.current_location_lon or 38.76,
+            status='delivered',
+            notes=f'Delivery confirmed with code: {delivery_code}'
+        )
+        
+        # Create notification for customer
+        DeliveryNotification.objects.create(
+            delivery=delivery,
+            recipient_type='customer',
+            recipient_id=delivery.order.customer.user.id,
+            message=f"Your order has been delivered successfully!",
+            notification_type='delivery_complete'
+        )
+        
+        return JsonResponse({
+            'success': True, 
+            'message': 'Delivery confirmed and completed successfully!',
+            'order_id': order.id
+        })
+        
+    except DeliveryPerson.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'You are not registered as a delivery person'})
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON data'})
+    except Exception as e:
+        logger.error(f'Delivery confirmation error: {str(e)}')
+        return JsonResponse({'success': False, 'error': 'An error occurred during confirmation'})

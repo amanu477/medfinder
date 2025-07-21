@@ -85,7 +85,7 @@
                                         <label for="delivery-code-input" class="form-label">Enter Delivery Confirmation Code</label>
                                         <input type="text" id="delivery-code-input" class="form-control" 
                                                placeholder="Enter delivery confirmation code" 
-                                               value="DEL20250721051241a9ee1f">
+                                               value="DEL{{ delivery.created_at|date:'Ymd' }}{{ delivery.created_at|date:'His' }}{{ delivery.id|stringformat:'x' }}">
                                         <small class="text-muted">Use this method if QR scanner is not working</small>
                                     </div>
                                     <button id="confirm-delivery" class="btn btn-success">
@@ -534,6 +534,30 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Retry button not found!');
     }
 
+    // Delivery confirmation button
+    const confirmDeliveryBtn = document.getElementById('confirm-delivery');
+    if (confirmDeliveryBtn) {
+        confirmDeliveryBtn.addEventListener('click', () => {
+            console.log('Delivery confirmation button clicked');
+            const deliveryCode = document.getElementById('delivery-code-input').value.trim();
+            console.log('Delivery code entered:', deliveryCode);
+            
+            if (deliveryCode) {
+                // Check if it matches the expected format
+                if (deliveryCode.match(/^DEL\d{8}\d{6}[a-f0-9]+$/)) {
+                    updateStatus('Processing delivery confirmation...', 'info');
+                    autoConfirmOrder(deliveryCode);
+                } else {
+                    showError('Invalid delivery code format. Please check and try again.');
+                }
+            } else {
+                showError('Please enter a delivery confirmation code.');
+            }
+        });
+    } else {
+        console.error('Delivery confirmation button not found!');
+    }
+
     // Stop scanner
     function stopScanner() {
         console.log('Stopping scanner...');
@@ -610,14 +634,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Stop scanner completely
             stopScanner();
 
-            // Check for specific delivery format first
-            if (qrData.includes('DEL20250721051241a9ee1f')) {
-                console.log('Detected specific delivery QR code format, proceeding automatically');
+            // Check for delivery code format (DEL + date + time + delivery_id)
+            if (qrData.includes('DEL{{ delivery.created_at|date:'Ymd' }}{{ delivery.created_at|date:'His' }}{{ delivery.id|stringformat:'x' }}') || 
+                qrData.match(/^DEL\d{8}\d{6}[a-f0-9]+$/)) {
+                console.log('Detected delivery QR code format, proceeding automatically');
                 updateStatus('Delivery QR code detected! Automatically confirming order...', 'success');
                 
                 // Auto-confirm after 2 seconds
                 setTimeout(() => {
-                    autoConfirmOrder();
+                    autoConfirmOrder(qrData);
                 }, 2000);
                 return;
             }
@@ -640,10 +665,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Auto-confirm order for specific delivery format
-    function autoConfirmOrder() {
+    // Auto-confirm order for delivery format
+    function autoConfirmOrder(deliveryCode = null) {
         const deliveryId = {{ delivery.id }};
-        console.log('Auto-confirming delivery:', deliveryId);
+        const confirmCode = deliveryCode || 'DEL{{ delivery.created_at|date:'Ymd' }}{{ delivery.created_at|date:'His' }}{{ delivery.id|stringformat:'x' }}';
+        console.log('Auto-confirming delivery:', deliveryId, 'with code:', confirmCode);
         
         updateStatus('Confirming delivery and completing order...', 'info');
         
@@ -656,7 +682,7 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             body: JSON.stringify({
                 auto_confirm: true,
-                delivery_code: 'DEL20250721051241a9ee1f'
+                delivery_code: confirmCode
             })
         })
         .then(response => response.json())
