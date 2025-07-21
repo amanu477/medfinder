@@ -238,11 +238,11 @@ class Cart(models.Model):
 
     def get_total_items(self):
         """Get total number of items in cart"""
-        return sum(item.quantity for item in self.cartitem_set.all())
+        return sum(item.quantity for item in self.cartitem_set.filter(quantity__gt=0))
 
     def get_total_amount(self):
         """Get total amount of all items in cart"""
-        return sum(item.get_total_price() for item in self.cartitem_set.all())
+        return sum(item.get_total_price() for item in self.cartitem_set.filter(quantity__gt=0))
 
     def clear(self):
         """Clear all items from cart"""

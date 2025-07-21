@@ -1104,6 +1104,12 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
             medicine.stock_quantity -= quantity
             medicine.save()
             
+            # Clear the cart item since order is placed (but keep OCR data linked via OrderItem)
+            # Note: We don't delete the cart_item itself as it's linked to the OrderItem for OCR data
+            # But we mark it as ordered to prevent it showing in active cart
+            cart_item.quantity = 0  # Set to 0 to hide from cart view
+            cart_item.save()
+            
             # Clear session data
             if 'prescription_validation' in request.session:
                 del request.session['prescription_validation']
@@ -1266,7 +1272,7 @@ def cart_view(request):
         return redirect('home')
     
     cart, created = Cart.objects.get_or_create(customer=customer)
-    cart_items = cart.cartitem_set.all().select_related('medicine', 'medicine__pharmacy')
+    cart_items = cart.cartitem_set.filter(quantity__gt=0).select_related('medicine', 'medicine__pharmacy')
     
     # Group cart items by pharmacy
     pharmacy_groups = {}
