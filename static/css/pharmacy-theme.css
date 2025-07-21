@@ -477,6 +477,58 @@
     margin-top: 2rem;
 }
 
+/* Registration Information Styles */
+.pharmacy-theme .registration-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid var(--pharmacy-border);
+}
+
+.pharmacy-theme .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
+    border-bottom: 1px dotted #dee2e6;
+}
+
+.pharmacy-theme .info-row:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+.pharmacy-theme .info-label {
+    font-weight: 600;
+    color: var(--pharmacy-text);
+    min-width: 120px;
+    font-size: 0.9rem;
+}
+
+.pharmacy-theme .info-value {
+    color: var(--pharmacy-text-light);
+    text-align: right;
+    font-size: 0.9rem;
+    word-break: break-word;
+    max-width: 60%;
+}
+
+.pharmacy-theme .info-value .badge {
+    font-size: 0.8rem;
+}
+
+/* Profile Section Headers */
+.pharmacy-theme h6.text-muted {
+    color: var(--pharmacy-text) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--pharmacy-border);
+    padding-bottom: 0.5rem;
+}
+
 .pharmacy-theme .clean-divider {
     border: none;
     height: 2px;

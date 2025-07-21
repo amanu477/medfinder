@@ -152,6 +152,17 @@ Preferred communication style: Simple, everyday language.
 - **Home Page Enhancement**: Updated home page with adaptive theming, personalized content, and animated call-to-action sections
 - **Mobile Responsive**: All themes include responsive design with mobile-optimized layouts and touch-friendly interactions
 
+### Pharmacy Profile Registration Data Display (July 21, 2025)
+- **Completed**: Enhanced pharmacy profile page to display comprehensive registration information based on registration data
+- **Registration Summary**: Added detailed left sidebar showing complete pharmacy registration information including basic details, location, operating hours, verification status, and document status
+- **Two-Column Layout**: Split profile page into registration summary (left) and edit form (right) for better organization
+- **White Theme Integration**: Applied pharmacy white theme styling throughout profile page with proper CSS classes and animations
+- **Information Display**: Shows pharmacy name, license number, type, contact details, address, coordinates, operating hours, verification status with badges, and document upload status
+- **Visual Status Indicators**: Added color-coded badges and icons for verification status (verified, pending, rejected) and document upload status (uploaded, missing, optional)
+- **Professional Styling**: Used registration-info CSS classes with proper spacing, borders, and responsive design
+- **Enhanced Form**: Updated edit form with white theme styling, proper section headers, and pharmacy-themed buttons
+- **Mobile Responsive**: Added responsive design for registration information display on mobile devices
+
 ### Customer Blue and White Theme Enhancement (July 20, 2025)
 - **Completed**: Redesigned complete customer theme to use consistent blue and white color scheme across all customer pages
 - **Blue Gradient Design**: Updated customer theme with blue gradients (#2563eb to #3b82f6) and white backgrounds for clean, medical appearance

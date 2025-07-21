@@ -1,40 +1,228 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Pharmacy Profile - MedFinder{% endblock %}
+{% block title %}Pharmacy Profile - Ethiopian Pharmacy Platform{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pharmacy-theme.css' %}">
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
+{% endblock %}
 
 {% block content %}
-<section class="py-5">
+<section class="py-5 pharmacy-theme">
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card shadow">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Pharmacy Profile</h4>
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="pharmacy-card fade-in">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-1"><i class="fas fa-store me-2 medical-icon"></i>{{ pharmacy.name }}</h2>
+                            <p class="text-muted mb-0">
+                                License: {{ pharmacy.license_number }} | 
+                                Status: 
+                                <span class="{% if pharmacy.verification_status == 'verified' %}text-success{% elif pharmacy.verification_status == 'rejected' %}text-danger{% else %}text-warning{% endif %}">
+                                    {{ pharmacy.get_verification_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
                     </div>
-                    <div class="card-body p-4">
-                        {% if messages %}
-                        <div class="mb-4">
-                            {% for message in messages %}
-                            <div class="alert alert-{{ message.tags }}">
-                                {{ message }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Registration Information Display -->
+            <div class="col-lg-4 mb-4">
+                <div class="pharmacy-card fade-in">
+                    <h5 class="mb-3"><i class="fas fa-info-circle me-2 medical-icon"></i>Registration Summary</h5>
+                    
+                    <!-- Basic Details -->
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Basic Information</h6>
+                        <div class="registration-info">
+                            <div class="info-row">
+                                <span class="info-label">Pharmacy Name:</span>
+                                <span class="info-value">{{ pharmacy.name }}</span>
                             </div>
+                            <div class="info-row">
+                                <span class="info-label">License Number:</span>
+                                <span class="info-value">{{ pharmacy.license_number }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">License Type:</span>
+                                <span class="info-value">{{ pharmacy.get_license_type_display|default:"Not specified" }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value">{{ pharmacy.email }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Phone:</span>
+                                <span class="info-value">{{ pharmacy.phone }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Location Details -->
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Location</h6>
+                        <div class="registration-info">
+                            <div class="info-row">
+                                <span class="info-label">Address:</span>
+                                <span class="info-value">{{ pharmacy.address }}</span>
+                            </div>
+                            {% if pharmacy.latitude and pharmacy.longitude %}
+                            <div class="info-row">
+                                <span class="info-label">Coordinates:</span>
+                                <span class="info-value">{{ pharmacy.latitude|floatformat:4 }}, {{ pharmacy.longitude|floatformat:4 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Operating Hours -->
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Operating Hours</h6>
+                        <div class="registration-info">
+                            {% if pharmacy.is_24_hour %}
+                            <div class="info-row">
+                                <span class="info-label">Hours:</span>
+                                <span class="info-value text-success">24/7 Service</span>
+                            </div>
+                            {% else %}
+                            <div class="info-row">
+                                <span class="info-label">Opening:</span>
+                                <span class="info-value">{{ pharmacy.opening_time|time:"H:i" }}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Closing:</span>
+                                <span class="info-value">{{ pharmacy.closing_time|time:"H:i" }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="info-row">
+                                <span class="info-label">Current Status:</span>
+                                <span class="info-value">
+                                    {% if pharmacy.is_open_now %}
+                                        <span class="text-success">Open Now</span>
+                                    {% else %}
+                                        <span class="text-danger">Closed</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Registration Status -->
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Verification Status</h6>
+                        <div class="registration-info">
+                            <div class="info-row">
+                                <span class="info-label">Status:</span>
+                                <span class="info-value">
+                                    {% if pharmacy.verification_status == 'verified' %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check-circle me-1"></i>Verified
+                                        </span>
+                                    {% elif pharmacy.verification_status == 'rejected' %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle me-1"></i>Rejected
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock me-1"></i>Pending
+                                        </span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Registered:</span>
+                                <span class="info-value">{{ pharmacy.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            {% if pharmacy.verified_at %}
+                            <div class="info-row">
+                                <span class="info-label">Verified:</span>
+                                <span class="info-value">{{ pharmacy.verified_at|date:"M d, Y" }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Documents Status -->
+                    <div class="mb-3">
+                        <h6 class="text-muted mb-2">Documents</h6>
+                        <div class="registration-info">
+                            <div class="info-row">
+                                <span class="info-label">Business License:</span>
+                                <span class="info-value">
+                                    {% if pharmacy.business_license %}
+                                        <span class="text-success"><i class="fas fa-check me-1"></i>Uploaded</span>
+                                    {% else %}
+                                        <span class="text-warning"><i class="fas fa-exclamation me-1"></i>Missing</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Pharmacist Certificate:</span>
+                                <span class="info-value">
+                                    {% if pharmacy.pharmacist_certificate %}
+                                        <span class="text-success"><i class="fas fa-check me-1"></i>Uploaded</span>
+                                    {% else %}
+                                        <span class="text-warning"><i class="fas fa-exclamation me-1"></i>Missing</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Additional Docs:</span>
+                                <span class="info-value">
+                                    {% if pharmacy.verification_documents %}
+                                        <span class="text-success"><i class="fas fa-check me-1"></i>Uploaded</span>
+                                    {% else %}
+                                        <span class="text-muted"><i class="fas fa-minus me-1"></i>Optional</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Edit Form -->
+            <div class="col-lg-8">
+                <div class="pharmacy-card fade-in">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0"><i class="fas fa-edit me-2 medical-icon"></i>Edit Profile Information</h5>
+                    </div>
+                    
+                    {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
                             {% endfor %}
                         </div>
                         {% endif %}
                         
-                        <form method="post" enctype="multipart/form-data">
-                            {% csrf_token %}
-                            
-                            {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
-                            </div>
-                            {% endif %}
-                            
-                            <!-- Basic Information -->
-                            <h5 class="mb-3">Basic Information</h5>
+                        <!-- Basic Information -->
+                        <h6 class="mb-3 text-muted">Basic Information</h6>
                             <div class="row mb-4">
                                 <div class="col-md-6 mb-3">
                                     <label for="{{ form.name.id_for_label }}" class="form-label">Pharmacy Name <span class="text-danger">*</span></label>
@@ -96,12 +284,12 @@
                             </div>
                             
                             <!-- Location Information -->
-                            <h5 class="mb-3">Location Information</h5>
+                            <h6 class="mb-3 text-muted">Location Information</h6>
                             <div class="mb-4">
                                 <p class="mb-3">Your pharmacy's location is used to help customers find medicines near them.</p>
                                 
                                 <div class="d-grid mb-3">
-                                    <button type="button" class="btn btn-outline-primary get-location-btn">
+                                    <button type="button" class="btn btn-pharmacy-success get-location-btn">
                                         <i class="fas fa-map-marker-alt me-2"></i> Get Current Location
                                     </button>
                                 </div>
@@ -143,7 +331,7 @@
                             </div>
                             
                             <!-- Business Hours -->
-                            <h5 class="mb-3">Business Hours</h5>
+                            <h6 class="mb-3 text-muted">Business Hours</h6>
                             <div class="row mb-4">
                                 <div class="col-md-6 mb-3">
                                     <label for="{{ form.opening_time.id_for_label }}" class="form-label">Opening Time <span class="text-danger">*</span></label>
@@ -166,7 +354,7 @@
                             </div>
                             
                             <!-- Verification Documents -->
-                            <h5 class="mb-3">Verification Documents</h5>
+                            <h6 class="mb-3 text-muted">Verification Documents</h6>
                             <div class="mb-4">
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
@@ -218,48 +406,20 @@
                                         <div class="form-text">{{ form.verification_documents.help_text }}</div>
                                     </div>
                                 </div>
-                                
-                                <!-- Verification Status Display -->
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="alert {% if pharmacy.verification_status == 'verified' %}alert-success{% elif pharmacy.verification_status == 'rejected' %}alert-danger{% else %}alert-warning{% endif %}">
-                                            <strong>Verification Status:</strong>
-                                            {% if pharmacy.verification_status == 'verified' %}
-                                                <i class="fas fa-check-circle me-1"></i> Verified
-                                            {% elif pharmacy.verification_status == 'rejected' %}
-                                                <i class="fas fa-times-circle me-1"></i> Rejected
-                                                {% if pharmacy.rejection_reason %}
-                                                    <br><small>Reason: {{ pharmacy.rejection_reason }}</small>
-                                                {% endif %}
-                                            {% else %}
-                                                <i class="fas fa-clock me-1"></i> Pending Verification
-                                            {% endif %}
-                                        </div>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-arrow-left me-2"></i>Cancel
+                                        </a>
+                                        <button type="submit" class="btn btn-pharmacy-success">
+                                            <i class="fas fa-save me-2"></i>Update Profile
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <!-- Pharmacy Status -->
-                            <h5 class="mb-3">Pharmacy Status</h5>
-                            <div class="mb-4">
-                                <div class="form-check form-switch">
-                                    {{ form.is_active }}
-                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                        Pharmacy is active and available for customers
-                                    </label>
-                                </div>
-                                <div class="form-text">
-                                    When inactive, your pharmacy will not appear in search results and customers won't be able to upload prescriptions to you.
-                                </div>
-                            </div>
-                            
-                            <div class="d-flex justify-content-between">
-                                <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-outline-secondary">
-                                    <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
-                                </a>
-                                <button type="submit" class="btn btn-primary">
-                                    <i class="fas fa-save me-2"></i> Save Changes
-                                </button>
                             </div>
                         </form>
                     </div>
@@ -268,151 +428,72 @@
         </div>
     </div>
 </section>
-{% endblock %}
 
-{% block extra_js %}
+<!-- Location JavaScript -->
+<script src="{% static 'js/location.js' %}"></script>
 <script>
-// Pharmacy profile location functionality
-(function() {
-    var userLocation = null;
+document.addEventListener('DOMContentLoaded', function() {
+    // Manual location toggle
+    const manualToggle = document.getElementById('manual-location-toggle');
+    const manualSection = document.getElementById('manual-location-section');
     
-    function getUserLocation() {
-        return new Promise((resolve, reject) => {
-            if (!navigator.geolocation) {
-                reject(new Error('Geolocation is not supported by this browser'));
-                return;
+    if (manualToggle && manualSection) {
+        manualToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (manualSection.style.display === 'none') {
+                manualSection.style.display = 'block';
+                this.textContent = 'Hide Manual Entry';
+            } else {
+                manualSection.style.display = 'none';
+                this.textContent = 'Enter Coordinates Manually';
             }
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    userLocation = {
-                        lat: position.coords.latitude,
-                        lon: position.coords.longitude
-                    };
-                    resolve(userLocation);
-                },
-                (error) => {
-                    let errorMsg = 'Unknown error occurred';
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMsg = 'Location access denied by user';
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMsg = 'Location information unavailable';
-                            break;
-                        case error.TIMEOUT:
-                            errorMsg = 'Location request timeout';
-                            break;
-                    }
-                    reject(new Error(errorMsg));
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 300000
-                }
-            );
         });
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const latField = document.getElementById('user-latitude');
-        const lngField = document.getElementById('user-longitude');
+    
+    // Manual coordinates input
+    const manualLatInput = document.getElementById('manual-latitude');
+    const manualLngInput = document.getElementById('manual-longitude');
+    const hiddenLatInput = document.getElementById('user-latitude');
+    const hiddenLngInput = document.getElementById('user-longitude');
+    
+    function updateHiddenInputs() {
+        if (manualLatInput.value && manualLngInput.value) {
+            hiddenLatInput.value = manualLatInput.value;
+            hiddenLngInput.value = manualLngInput.value;
+            updateLocationStatus(`Location set manually: ${manualLatInput.value}, ${manualLngInput.value}`, 'success');
+        }
+    }
+    
+    if (manualLatInput && manualLngInput) {
+        manualLatInput.addEventListener('input', updateHiddenInputs);
+        manualLngInput.addEventListener('input', updateHiddenInputs);
+    }
+    
+    function updateLocationStatus(message, type = 'info') {
         const locationStatus = document.getElementById('location-status');
         const locationMessage = document.getElementById('location-message');
-        const locationBtn = document.querySelector('.get-location-btn');
-        const manualToggleBtn = document.getElementById('manual-location-toggle');
-        const manualSection = document.getElementById('manual-location-section');
-        const manualLatInput = document.getElementById('manual-latitude');
-        const manualLonInput = document.getElementById('manual-longitude');
         
-        // Show current location status if coordinates exist
-        if (latField && lngField && latField.value && lngField.value) {
-            locationStatus.classList.remove('d-none', 'alert-info');
-            locationStatus.classList.add('alert-success');
-            locationMessage.textContent = `Current location: ${parseFloat(latField.value).toFixed(6)}, ${parseFloat(lngField.value).toFixed(6)}`;
+        if (locationStatus && locationMessage) {
+            locationStatus.className = `alert alert-${type}`;
+            locationStatus.classList.remove('d-none');
+            locationMessage.textContent = message;
         }
-        
-        // Handle automatic location button
-        if (locationBtn) {
-            locationBtn.addEventListener('click', function() {
-                locationBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Getting Location...';
-                locationBtn.disabled = true;
-                
-                locationStatus.classList.remove('d-none', 'alert-success', 'alert-danger');
-                locationStatus.classList.add('alert-info');
-                locationMessage.textContent = 'Getting your current location...';
-                
-                getUserLocation()
-                    .then(location => {
-                        latField.value = location.lat;
-                        lngField.value = location.lon;
-                        
-                        locationStatus.classList.remove('alert-info');
-                        locationStatus.classList.add('alert-success');
-                        locationMessage.textContent = `Location updated: ${location.lat.toFixed(6)}, ${location.lon.toFixed(6)}`;
-                        
-                        locationBtn.innerHTML = '<i class="fas fa-check me-2"></i> Location Updated';
-                        locationBtn.className = 'btn btn-success';
-                        
-                        // Reset manual inputs if they exist
-                        if (manualLatInput) manualLatInput.value = '';
-                        if (manualLonInput) manualLonInput.value = '';
-                    })
-                    .catch(error => {
-                        locationStatus.classList.remove('alert-info');
-                        locationStatus.classList.add('alert-danger');
-                        locationMessage.textContent = error.message;
-                        
-                        locationBtn.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i> Try Again';
-                        locationBtn.className = 'btn btn-warning';
-                        locationBtn.disabled = false;
-                    });
-            });
+    }
+    
+    // Initialize with existing coordinates if available
+    const currentLat = hiddenLatInput?.value;
+    const currentLng = hiddenLngInput?.value;
+    
+    if (currentLat && currentLng) {
+        updateLocationStatus(`Current location: ${currentLat}, ${currentLng}`, 'success');
+        if (manualLatInput && manualLngInput) {
+            manualLatInput.value = currentLat;
+            manualLngInput.value = currentLng;
         }
-        
-        // Handle manual location toggle
-        if (manualToggleBtn && manualSection) {
-            manualToggleBtn.addEventListener('click', function() {
-                const isHidden = manualSection.style.display === 'none';
-                manualSection.style.display = isHidden ? 'block' : 'none';
-                manualToggleBtn.textContent = isHidden ? 'Hide Manual Entry' : 'Enter Coordinates Manually';
-            });
-        }
-        
-        // Handle manual coordinate inputs
-        if (manualLatInput && manualLonInput) {
-            function validateAndUpdateLocation() {
-                const lat = parseFloat(manualLatInput.value);
-                const lon = parseFloat(manualLonInput.value);
-                
-                if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
-                    latField.value = lat;
-                    lngField.value = lon;
-                    
-                    locationStatus.classList.remove('d-none', 'alert-info', 'alert-danger');
-                    locationStatus.classList.add('alert-success');
-                    locationMessage.textContent = `Manual location set: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-                    
-                    // Reset automatic button
-                    if (locationBtn) {
-                        locationBtn.innerHTML = '<i class="fas fa-map-marker-alt me-2"></i> Get Current Location';
-                        locationBtn.className = 'btn btn-outline-primary';
-                        locationBtn.disabled = false;
-                    }
-                } else if (manualLatInput.value !== '' || manualLonInput.value !== '') {
-                    locationStatus.classList.remove('d-none', 'alert-success', 'alert-info');
-                    locationStatus.classList.add('alert-warning');
-                    locationMessage.textContent = 'Please enter valid coordinates (Latitude: -90 to 90, Longitude: -180 to 180)';
-                }
-            }
-            
-            manualLatInput.addEventListener('input', validateAndUpdateLocation);
-            manualLonInput.addEventListener('input', validateAndUpdateLocation);
-            manualLatInput.addEventListener('change', validateAndUpdateLocation);
-            manualLonInput.addEventListener('change', validateAndUpdateLocation);
-        }
-    });
-})();
+    }
+});
 </script>
 {% endblock %}
+                            </div>
+                            
+                            <!-- Pharmacy Status -->
