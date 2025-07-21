@@ -61,6 +61,11 @@
                             <a class="nav-link" href="{% url 'prescription_list' %}">Prescriptions</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="{% url 'prescription_review_list' %}">
+                                <i class="fas fa-clipboard-check me-1"></i>Reviews
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'pharmacy_delivery_dashboard' %}">Delivery</a>
                         </li>
                         {% elif user.deliveryperson %}

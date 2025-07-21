@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Prescription Reviews - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pharmacy-theme.css' %}">
+<link rel="stylesheet" href="{% static 'css/animations.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="pharmacy-card animate-fade-in">
+                <div class="pharmacy-card-header">
+                    <h2 class="h4 mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        Prescription Reviews
+                    </h2>
+                    <span class="badge bg-warning ms-2">{{ review_count }} Pending</span>
+                </div>
+                
+                <div class="pharmacy-card-body">
+                    {% if pending_reviews %}
+                        <div class="alert alert-info animate-slide-down">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>OCR Verification Required:</strong> The following prescriptions have OCR confidence below 100% and require manual verification.
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>Medicine</th>
+                                        <th>Quantity</th>
+                                        <th>OCR Confidence</th>
+                                        <th>Best Match</th>
+                                        <th>Added</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in pending_reviews %}
+                                    <tr class="animate-slide-up" style="animation-delay: {{ forloop.counter0|mul:0.1 }}s;">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">
+                                                    <i class="fas fa-user text-white"></i>
+                                                </div>
+                                                <div>
+                                                    <strong>{{ item.cart.customer.name }}</strong><br>
+                                                    <small class="text-muted">{{ item.cart.customer.phone }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <strong>{{ item.medicine.name }}</strong><br>
+                                            <small class="text-muted">{{ item.medicine.description|truncatechars:30 }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ item.quantity }}</span>
+                                        </td>
+                                        <td>
+                                            {% with confidence=item.get_ocr_confidence %}
+                                                {% if confidence >= 80 %}
+                                                    <span class="badge bg-warning">{{ confidence }}%</span>
+                                                {% elif confidence >= 60 %}
+                                                    <span class="badge bg-warning">{{ confidence }}%</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">{{ confidence }}%</span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
+                                        <td>
+                                            <span class="text-muted">{{ item.get_ocr_best_match|default:"None" }}</span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ item.added_at|date:"M d, Y H:i" }}</small>
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'prescription_review_detail' item.id %}" 
+                                               class="btn btn-outline-primary btn-sm animate-hover-scale">
+                                                <i class="fas fa-eye me-1"></i>Review
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                    {% else %}
+                        <div class="text-center py-5 animate-fade-in">
+                            <i class="fas fa-check-circle text-success mb-3" style="font-size: 3rem;"></i>
+                            <h4 class="text-muted">No Prescription Reviews Pending</h4>
+                            <p class="text-muted">All prescriptions have been reviewed or have high OCR confidence.</p>
+                            <a href="{% url 'pharmacy_dashboard' %}" class="btn btn-primary mt-3 animate-hover-scale">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-sm {
+    width: 40px;
+    height: 40px;
+    font-size: 0.875rem;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.badge {
+    font-size: 0.75rem;
+}
+
+.pharmacy-card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border-radius: 0.5rem;
+}
+
+.pharmacy-card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    padding: 1.25rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pharmacy-card-body {
+    padding: 1.25rem;
+}
+</style>
+{% endblock %}

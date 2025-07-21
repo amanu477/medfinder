@@ -10,8 +10,8 @@ from django.views.decorators.http import require_http_methods
 import json
 
 from .models import Pharmacy, Medicine
-from .forms import PharmacyRegistrationForm, PharmacyUserForm, MedicineForm, PharmacyProfileForm, PharmacyVerificationForm
-from customer.models import Prescription, Order, OrderItem
+from .forms import PharmacyRegistrationForm, PharmacyUserForm, MedicineForm, PharmacyProfileForm, PharmacyVerificationForm, PrescriptionReviewForm
+from customer.models import Prescription, Order, OrderItem, CartItem
 from .license_validation import LicenseValidationService
 # Email verification imports removed - only verification codes for registration
 
@@ -639,3 +639,69 @@ def pharmacy_logout(request):
     logout(request)
     messages.success(request, 'You have been logged out successfully.')
     return redirect('home')
+
+@login_required
+def prescription_review_list(request):
+    """List prescription images that require pharmacy review"""
+    try:
+        pharmacy = request.user.pharmacy
+    except Pharmacy.DoesNotExist:
+        messages.error(request, 'Pharmacy profile not found.')
+        return redirect('pharmacy_dashboard')
+    
+    # Get cart items that require pharmacy review for this pharmacy's medicines
+    pending_reviews = CartItem.objects.filter(
+        medicine__pharmacy=pharmacy,
+        pharmacy_review_required=True,
+        pharmacy_review_status='pending'
+    ).select_related('cart__customer', 'medicine').order_by('-added_at')
+    
+    context = {
+        'pending_reviews': pending_reviews,
+        'review_count': pending_reviews.count()
+    }
+    
+    return render(request, 'pharmacy/prescription_review_list.html', context)
+
+@login_required
+def prescription_review_detail(request, cart_item_id):
+    """Review individual prescription image and validate medicine"""
+    try:
+        pharmacy = request.user.pharmacy
+    except Pharmacy.DoesNotExist:
+        messages.error(request, 'Pharmacy profile not found.')
+        return redirect('pharmacy_dashboard')
+    
+    # Get cart item for this pharmacy's medicine
+    cart_item = get_object_or_404(
+        CartItem,
+        id=cart_item_id,
+        medicine__pharmacy=pharmacy,
+        pharmacy_review_required=True
+    )
+    
+    if request.method == 'POST':
+        form = PrescriptionReviewForm(request.POST, instance=cart_item)
+        if form.is_valid():
+            # Update cart item with pharmacy review
+            cart_item = form.save(commit=False)
+            cart_item.reviewed_by = request.user
+            cart_item.reviewed_at = timezone.now()
+            cart_item.save()
+            
+            status_text = "approved" if cart_item.pharmacy_review_status == 'approved' else "rejected"
+            messages.success(request, f'Prescription review completed. Medicine {cart_item.medicine.name} has been {status_text}.')
+            
+            return redirect('prescription_review_list')
+    else:
+        form = PrescriptionReviewForm(instance=cart_item)
+    
+    context = {
+        'cart_item': cart_item,
+        'form': form,
+        'ocr_confidence': cart_item.get_ocr_confidence(),
+        'ocr_best_match': cart_item.get_ocr_best_match(),
+        'validation_data': cart_item.validation_data
+    }
+    
+    return render(request, 'pharmacy/prescription_review_detail.html', context)

@@ -1,5 +1,14 @@
 # Ethiopian Pharmacy Connection Platform
 
+## Recent OCR Enhancement (July 21, 2025)
+- **Completed**: Enhanced OCR validation system to require pharmacy verification when OCR confidence is below 100%
+- **Database Updates**: Added pharmacy review fields to CartItem model (pharmacy_review_required, pharmacy_review_status, pharmacy_review_notes, reviewed_by, reviewed_at)
+- **Workflow**: When OCR confidence < 100% → Cart item marked for pharmacy review → Pharmacy receives notification → Manual verification required → Approval/rejection with notes
+- **Pharmacy Interface**: Added prescription review dashboard showing pending reviews with OCR analysis results
+- **Review Process**: Pharmacies can view prescription images, OCR data, and manually verify if medicine matches prescription
+- **Status Tracking**: Tracks review status (pending, approved, rejected) with reviewer information and timestamps
+- **User Experience**: Customers cannot proceed with orders containing rejected prescription validations
+
 ## Overview
 
 This is a comprehensive digital pharmacy ecosystem for Ethiopian users that revolutionizes medicine procurement and healthcare access. The platform creates a seamless connection between customers seeking medications and pharmacies providing them, with integrated Ministry of Health verification and platform administration systems.

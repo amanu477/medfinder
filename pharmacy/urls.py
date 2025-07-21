@@ -40,4 +40,7 @@ urlpatterns = [
     # Receipts
     path('receipts/', views.pharmacy_receipts, name='pharmacy_receipts'),
     path('receipts/<int:receipt_id>/', views.pharmacy_receipt_detail, name='pharmacy_receipt_detail'),
+    # Prescription review URLs
+    path('prescription-reviews/', views.prescription_review_list, name='prescription_review_list'),
+    path('prescription-review/<int:cart_item_id>/', views.prescription_review_detail, name='prescription_review_detail'),
 ]

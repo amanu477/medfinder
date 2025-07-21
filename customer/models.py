@@ -248,6 +248,16 @@ class CartItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     prescription_image = models.ImageField(upload_to='cart_prescriptions/', blank=True, null=True)
     validation_data = models.JSONField(blank=True, null=True)
+    pharmacy_review_required = models.BooleanField(default=False, help_text="True if OCR confidence is below 100%")
+    pharmacy_review_status = models.CharField(max_length=20, choices=[
+        ('pending', 'Pending Review'),
+        ('approved', 'Approved by Pharmacy'),
+        ('rejected', 'Rejected by Pharmacy'),
+        ('not_required', 'Review Not Required')
+    ], default='not_required')
+    pharmacy_review_notes = models.TextField(blank=True, null=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_prescriptions')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -259,6 +269,26 @@ class CartItem(models.Model):
     def get_total_price(self):
         """Get total price for this cart item"""
         return self.quantity * self.medicine.price
+    
+    def requires_pharmacy_review(self):
+        """Check if this item requires pharmacy review based on OCR confidence"""
+        if not self.validation_data:
+            return False
+        
+        confidence = self.validation_data.get('confidence', 0)
+        return confidence < 100 and confidence > 0
+    
+    def get_ocr_confidence(self):
+        """Get OCR confidence percentage"""
+        if not self.validation_data:
+            return 0
+        return self.validation_data.get('confidence', 0)
+    
+    def get_ocr_best_match(self):
+        """Get best OCR match from validation data"""
+        if not self.validation_data:
+            return None
+        return self.validation_data.get('best_match', None)
 
 class Receipt(models.Model):
     """Model for storing receipt information"""

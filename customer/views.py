@@ -1570,6 +1570,16 @@ def bulk_ocr_verification(request):
                         # Update cart item with OCR result
                         cart_item.prescription_image = prescription_image
                         cart_item.validation_data = ocr_result
+                        
+                        # Check if pharmacy review is required (OCR confidence < 100%)
+                        confidence = ocr_result.get('confidence', 0)
+                        if confidence < 100 and confidence > 0:
+                            cart_item.pharmacy_review_required = True
+                            cart_item.pharmacy_review_status = 'pending'
+                        else:
+                            cart_item.pharmacy_review_required = False
+                            cart_item.pharmacy_review_status = 'not_required'
+                        
                         cart_item.save()
                         
                         # Store the prescription image path for later use in order creation
