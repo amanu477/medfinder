@@ -116,8 +116,8 @@ class Pharmacy(models.Model):
     longitude = models.FloatField(null=True, blank=True)
     phone = models.CharField(max_length=20)
     email = models.EmailField(max_length=100)
-    opening_time = models.TimeField()
-    closing_time = models.TimeField()
+    opening_time = models.TimeField(null=True, blank=True, help_text="Not required for 24-hour pharmacies")
+    closing_time = models.TimeField(null=True, blank=True, help_text="Not required for 24-hour pharmacies")
     is_24_hour = models.BooleanField(default=False, help_text="Check if pharmacy operates 24/7")
     is_active = models.BooleanField(default=True)
     verification_status = models.CharField(max_length=20, choices=VERIFICATION_STATUS_CHOICES, default='pending')
@@ -139,6 +139,10 @@ class Pharmacy(models.Model):
         ethiopian_time = utc_now + timedelta(hours=3)
         current_time = ethiopian_time.time()
         
+        # Return False if times are not set for non-24-hour pharmacies
+        if not self.opening_time or not self.closing_time:
+            return False
+            
         # Handle case where pharmacy operates past midnight
         if self.opening_time <= self.closing_time:
             # Normal hours (e.g., 8:00 AM to 10:00 PM)
@@ -175,6 +179,10 @@ class Pharmacy(models.Model):
         ethiopian_time = utc_now + timedelta(hours=3)
         current_time = ethiopian_time.time()
         
+        # Return message if times are not set for non-24-hour pharmacies
+        if not self.opening_time or not self.closing_time:
+            return "Hours not set"
+            
         # Handle normal hours (opening_time <= closing_time)
         if self.opening_time <= self.closing_time:
             # If today's opening time hasn't passed yet

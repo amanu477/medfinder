@@ -293,6 +293,11 @@ def pharmacy_profile(request):
             updated_pharmacy.save()
             messages.success(request, 'Profile updated successfully!')
             return redirect('pharmacy_dashboard')
+        else:
+            # Show form errors for debugging
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = PharmacyProfileForm(instance=pharmacy)
     
