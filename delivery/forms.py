@@ -28,6 +28,20 @@ class DeliveryPersonCreationForm(UserCreationForm):
         # Add Bootstrap classes
         for field in self.fields.values():
             field.widget.attrs['class'] = 'form-control'
+    
+    def clean_national_id(self):
+        """Validate that national_id is unique"""
+        national_id = self.cleaned_data.get('national_id')
+        if national_id and DeliveryPerson.objects.filter(national_id=national_id).exists():
+            raise forms.ValidationError(f'A delivery person with National ID {national_id} already exists. Please use a different National ID.')
+        return national_id
+    
+    def clean_email(self):
+        """Validate that email is unique"""
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email=email).exists():
+            raise forms.ValidationError(f'A user with email {email} already exists. Please use a different email address.')
+        return email
 
 
 class DeliveryPersonForm(forms.ModelForm):

@@ -164,26 +164,40 @@ def create_delivery_person(request):
     if request.method == 'POST':
         form = DeliveryPersonCreationForm(request.POST)
         if form.is_valid():
-            # Create user
-            user = form.save()
-            user.first_name = form.cleaned_data['first_name']
-            user.last_name = form.cleaned_data['last_name']
-            user.email = form.cleaned_data['email']
-            user.save()
+            # Check for duplicate national_id before creating
+            national_id = form.cleaned_data['national_id']
+            if DeliveryPerson.objects.filter(national_id=national_id).exists():
+                messages.error(request, f'A delivery person with National ID {national_id} already exists. Please use a different National ID.')
+                return render(request, 'delivery/create_delivery_person.html', {'form': form})
             
-            # Create delivery person profile
-            delivery_person = DeliveryPerson.objects.create(
-                user=user,
-                pharmacy=pharmacy,
-                employee_id=f"DEL{timezone.now().strftime('%Y%m%d%H%M%S')}",
-                phone=form.cleaned_data['phone'],
-                national_id=form.cleaned_data['national_id'],
-                vehicle_type=form.cleaned_data['vehicle_type'],
-                vehicle_plate=form.cleaned_data.get('vehicle_plate', ''),
-            )
-            
-            messages.success(request, f'Delivery person {user.get_full_name()} created successfully.')
-            return redirect('pharmacy_delivery_dashboard')
+            try:
+                # Create user
+                user = form.save()
+                user.first_name = form.cleaned_data['first_name']
+                user.last_name = form.cleaned_data['last_name']
+                user.email = form.cleaned_data['email']
+                user.save()
+                
+                # Create delivery person profile
+                delivery_person = DeliveryPerson.objects.create(
+                    user=user,
+                    pharmacy=pharmacy,
+                    employee_id=f"DEL{timezone.now().strftime('%Y%m%d%H%M%S')}",
+                    phone=form.cleaned_data['phone'],
+                    national_id=national_id,
+                    vehicle_type=form.cleaned_data['vehicle_type'],
+                    vehicle_plate=form.cleaned_data.get('vehicle_plate', ''),
+                )
+                
+                messages.success(request, f'Delivery person {user.get_full_name()} created successfully.')
+                return redirect('pharmacy_delivery_dashboard')
+                
+            except Exception as e:
+                # If user was created but delivery person creation failed, clean up
+                if 'user' in locals():
+                    user.delete()
+                messages.error(request, f'Error creating delivery person: {str(e)}')
+                return render(request, 'delivery/create_delivery_person.html', {'form': form})
     else:
         form = DeliveryPersonCreationForm()
     
