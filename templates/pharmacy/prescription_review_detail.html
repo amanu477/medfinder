@@ -141,38 +141,117 @@
                     </div>
                     
                     <!-- Review Instructions -->
-                    <div class="alert alert-warning animate-slide-up" style="animation-delay: 0.2s;">
+                    <div class="alert alert-danger animate-slide-up" style="animation-delay: 0.2s;">
                         <h6 class="fw-bold mb-2">
-                            <i class="fas fa-exclamation-triangle me-2"></i>Review Instructions
+                            <i class="fas fa-shield-alt me-2"></i>MANDATORY VERIFICATION STEPS
                         </h6>
                         <ul class="mb-0 ps-3">
-                            <li>Carefully examine the prescription image</li>
-                            <li>Verify if <strong>"{{ cart_item.medicine.name }}"</strong> appears in the prescription</li>
-                            <li>Check quantity and dosage if specified</li>
-                            <li>Approve only if the medicine clearly matches the prescription</li>
+                            <li><strong>STEP 1:</strong> Carefully examine the prescription image above</li>
+                            <li><strong>STEP 2:</strong> Look specifically for <strong>"{{ cart_item.medicine.name }}"</strong> in the prescription</li>
+                            <li><strong>STEP 3:</strong> Verify dosage and quantity if specified</li>
+                            <li><strong>STEP 4:</strong> Complete ALL verification questions below</li>
+                            <li><strong>CRITICAL:</strong> Only approve if medicine is clearly visible and matches prescription</li>
                         </ul>
                     </div>
                     
                     <!-- Review Form -->
-                    <form method="post" class="animate-slide-up" style="animation-delay: 0.3s;">
+                    <form method="post" id="prescriptionReviewForm" class="animate-slide-up" style="animation-delay: 0.3s;">
                         {% csrf_token %}
                         
-                        <div class="mb-4">
+                        <!-- Step 1: Confirmation of image review -->
+                        <div class="verification-step mb-4 p-3 border rounded bg-light">
+                            <h6 class="fw-bold mb-3 text-primary">
+                                <i class="fas fa-eye me-2"></i>STEP 1: Prescription Image Review
+                            </h6>
+                            <div class="form-check">
+                                {{ form.prescription_image_reviewed }}
+                                <label for="{{ form.prescription_image_reviewed.id_for_label }}" class="form-check-label fw-bold">
+                                    {{ form.prescription_image_reviewed.label }}
+                                </label>
+                            </div>
+                            {% if form.prescription_image_reviewed.errors %}
+                                <div class="text-danger mt-2">
+                                    {% for error in form.prescription_image_reviewed.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Step 2: Medicine visibility assessment -->
+                        <div class="verification-step mb-4 p-3 border rounded bg-light">
+                            <h6 class="fw-bold mb-3 text-primary">
+                                <i class="fas fa-search me-2"></i>STEP 2: Medicine Visibility Assessment
+                            </h6>
+                            <label for="{{ form.medicine_clearly_visible.id_for_label }}" class="form-label fw-bold">
+                                {{ form.medicine_clearly_visible.label }}
+                            </label>
+                            {{ form.medicine_clearly_visible }}
+                            {% if form.medicine_clearly_visible.errors %}
+                                <div class="text-danger mt-2">
+                                    {% for error in form.medicine_clearly_visible.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Step 3: Confidence assessment -->
+                        <div class="verification-step mb-4 p-3 border rounded bg-light">
+                            <h6 class="fw-bold mb-3 text-primary">
+                                <i class="fas fa-percent me-2"></i>STEP 3: Verification Confidence
+                            </h6>
+                            <label for="{{ form.verification_confidence.id_for_label }}" class="form-label fw-bold">
+                                {{ form.verification_confidence.label }}
+                            </label>
+                            {{ form.verification_confidence }}
+                            {% if form.verification_confidence.errors %}
+                                <div class="text-danger mt-2">
+                                    {% for error in form.verification_confidence.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Step 4: Final decision -->
+                        <div class="verification-step mb-4 p-3 border rounded" style="background-color: #fff3cd;">
+                            <h6 class="fw-bold mb-3 text-warning">
+                                <i class="fas fa-gavel me-2"></i>STEP 4: Final Decision
+                            </h6>
                             <label for="{{ form.pharmacy_review_status.id_for_label }}" class="form-label fw-bold">
                                 <i class="fas fa-check-circle me-2"></i>Review Decision
                             </label>
                             {{ form.pharmacy_review_status }}
+                            {% if form.pharmacy_review_status.errors %}
+                                <div class="text-danger mt-2">
+                                    {% for error in form.pharmacy_review_status.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                         
-                        <div class="mb-4">
+                        <!-- Step 5: Detailed notes -->
+                        <div class="verification-step mb-4 p-3 border rounded bg-light">
+                            <h6 class="fw-bold mb-3 text-primary">
+                                <i class="fas fa-file-alt me-2"></i>STEP 5: Detailed Verification Notes
+                            </h6>
                             <label for="{{ form.pharmacy_review_notes.id_for_label }}" class="form-label fw-bold">
-                                <i class="fas fa-sticky-note me-2"></i>Review Notes
+                                <i class="fas fa-sticky-note me-2"></i>Detailed Review Notes (Required)
                             </label>
                             {{ form.pharmacy_review_notes }}
                             <div class="form-text">
-                                Provide detailed notes about your verification decision.
-                                Required for rejections.
+                                <strong>Required:</strong> Provide detailed notes (minimum 20 characters) explaining your verification findings and decision.
+                                Include specific details about what you observed in the prescription image.
                             </div>
+                            {% if form.pharmacy_review_notes.errors %}
+                                <div class="text-danger mt-2">
+                                    {% for error in form.pharmacy_review_notes.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
                         </div>
                         
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
@@ -212,23 +291,155 @@ function openImageModal(imageSrc) {
     new bootstrap.Modal(document.getElementById('imageModal')).show();
 }
 
-// Form validation
+// Enhanced form validation for prescription review
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
+    const form = document.getElementById('prescriptionReviewForm');
+    const imageReviewedCheckbox = document.getElementById('{{ form.prescription_image_reviewed.id_for_label }}');
+    const medicineVisibleSelect = document.getElementById('{{ form.medicine_clearly_visible.id_for_label }}');
+    const confidenceSelect = document.getElementById('{{ form.verification_confidence.id_for_label }}');
     const statusSelect = document.getElementById('{{ form.pharmacy_review_status.id_for_label }}');
     const notesTextarea = document.getElementById('{{ form.pharmacy_review_notes.id_for_label }}');
     
-    statusSelect.addEventListener('change', function() {
-        if (this.value === 'rejected') {
-            notesTextarea.required = true;
-            notesTextarea.parentElement.querySelector('.form-text').innerHTML = 
-                '<strong class="text-danger">Notes are required when rejecting a prescription.</strong>';
+    // Function to validate completion of all steps
+    function validateAllSteps() {
+        const imageReviewed = imageReviewedCheckbox.checked;
+        const medicineVisible = medicineVisibleSelect.value;
+        const confidence = confidenceSelect.value;
+        const status = statusSelect.value;
+        const notes = notesTextarea.value.trim();
+        
+        // Enable/disable status dropdown based on previous steps
+        if (imageReviewed && medicineVisible && confidence) {
+            statusSelect.disabled = false;
+            statusSelect.parentElement.classList.remove('opacity-50');
         } else {
-            notesTextarea.required = false;
-            notesTextarea.parentElement.querySelector('.form-text').innerHTML = 
-                'Provide detailed notes about your verification decision. Required for rejections.';
+            statusSelect.disabled = true;
+            statusSelect.value = '';
+            statusSelect.parentElement.classList.add('opacity-50');
+        }
+        
+        // Update form styling based on completion
+        updateStepStyling();
+    }
+    
+    // Function to update visual styling of steps
+    function updateStepStyling() {
+        const steps = document.querySelectorAll('.verification-step');
+        
+        // Step 1 styling
+        if (imageReviewedCheckbox.checked) {
+            steps[0].classList.add('border-success', 'bg-success');
+            steps[0].classList.remove('bg-light');
+            steps[0].style.backgroundColor = '#d1edff';
+        } else {
+            steps[0].classList.remove('border-success', 'bg-success');
+            steps[0].classList.add('bg-light');
+            steps[0].style.backgroundColor = '';
+        }
+        
+        // Step 2 styling
+        if (medicineVisibleSelect.value) {
+            steps[1].classList.add('border-success');
+            steps[1].style.backgroundColor = '#d1edff';
+        } else {
+            steps[1].classList.remove('border-success');
+            steps[1].style.backgroundColor = '';
+        }
+        
+        // Step 3 styling
+        if (confidenceSelect.value) {
+            steps[2].classList.add('border-success');
+            steps[2].style.backgroundColor = '#d1edff';
+        } else {
+            steps[2].classList.remove('border-success');
+            steps[2].style.backgroundColor = '';
+        }
+        
+        // Step 4 styling (decision)
+        if (statusSelect.value) {
+            steps[3].classList.add('border-success');
+        } else {
+            steps[3].classList.remove('border-success');
+        }
+        
+        // Step 5 styling (notes)
+        if (notesTextarea.value.trim().length >= 20) {
+            steps[4].classList.add('border-success');
+            steps[4].style.backgroundColor = '#d1edff';
+        } else {
+            steps[4].classList.remove('border-success');
+            steps[4].style.backgroundColor = '';
+        }
+    }
+    
+    // Real-time validation as user completes steps
+    imageReviewedCheckbox.addEventListener('change', validateAllSteps);
+    medicineVisibleSelect.addEventListener('change', validateAllSteps);
+    confidenceSelect.addEventListener('change', validateAllSteps);
+    statusSelect.addEventListener('change', updateStepStyling);
+    notesTextarea.addEventListener('input', updateStepStyling);
+    
+    // Form submission validation
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        let errorMessage = '';
+        
+        // Check all required fields
+        if (!imageReviewedCheckbox.checked) {
+            isValid = false;
+            errorMessage += '• You must confirm that you have examined the prescription image\n';
+        }
+        
+        if (!medicineVisibleSelect.value) {
+            isValid = false;
+            errorMessage += '• You must assess whether the medicine is visible in the prescription\n';
+        }
+        
+        if (!confidenceSelect.value) {
+            isValid = false;
+            errorMessage += '• You must indicate your confidence level\n';
+        }
+        
+        if (!statusSelect.value) {
+            isValid = false;
+            errorMessage += '• You must make a decision to approve or reject\n';
+        }
+        
+        if (notesTextarea.value.trim().length < 20) {
+            isValid = false;
+            errorMessage += '• You must provide detailed notes (minimum 20 characters)\n';
+        }
+        
+        // Logic validation
+        if (statusSelect.value === 'approved' && medicineVisibleSelect.value === 'no') {
+            isValid = false;
+            errorMessage += '• Cannot approve if medicine is not visible in prescription\n';
+        }
+        
+        if (statusSelect.value === 'approved' && confidenceSelect.value === 'low') {
+            isValid = false;
+            errorMessage += '• Cannot approve with low confidence\n';
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Please complete all verification steps:\n\n' + errorMessage);
+            return false;
+        }
+        
+        // Final confirmation
+        const confirmMessage = statusSelect.value === 'approved' 
+            ? 'Are you certain you want to APPROVE this prescription? This will allow the customer to proceed with their order.'
+            : 'Are you certain you want to REJECT this prescription? This will block the customer from ordering this medicine.';
+        
+        if (!confirm(confirmMessage)) {
+            e.preventDefault();
+            return false;
         }
     });
+    
+    // Initialize form state
+    validateAllSteps();
 });
 </script>
 

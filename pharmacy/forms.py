@@ -293,6 +293,37 @@ class MedicineForm(forms.ModelForm):
 class PrescriptionReviewForm(forms.ModelForm):
     """Form for pharmacy to review prescription images and validate medicines"""
     
+    # Additional fields for enhanced verification
+    prescription_image_reviewed = forms.BooleanField(
+        required=True,
+        label="I have carefully examined the prescription image",
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    
+    medicine_clearly_visible = forms.ChoiceField(
+        required=True,
+        label="Is the requested medicine clearly visible in the prescription?",
+        choices=[
+            ('', 'Please select...'),
+            ('yes', 'Yes - Medicine name is clearly visible'),
+            ('no', 'No - Medicine name is not visible/unclear'),
+            ('partial', 'Partially visible - Some uncertainty')
+        ],
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
+    verification_confidence = forms.ChoiceField(
+        required=True,
+        label="How confident are you in your verification?",
+        choices=[
+            ('', 'Please select...'),
+            ('high', 'High confidence - 100% certain'),
+            ('medium', 'Medium confidence - 75-99% certain'),
+            ('low', 'Low confidence - Below 75% certain')
+        ],
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    
     class Meta:
         model = CartItem
         fields = ['pharmacy_review_status', 'pharmacy_review_notes']
@@ -301,7 +332,7 @@ class PrescriptionReviewForm(forms.ModelForm):
             'pharmacy_review_notes': forms.Textarea(attrs={
                 'class': 'form-control', 
                 'rows': 4,
-                'placeholder': 'Add notes about the prescription verification...'
+                'placeholder': 'Provide detailed notes about your prescription verification including specific findings...'
             }),
         }
 
@@ -310,21 +341,66 @@ class PrescriptionReviewForm(forms.ModelForm):
         
         # Limit status choices to pharmacy review options
         self.fields['pharmacy_review_status'].choices = [
-            ('approved', 'Approved - Medicine matches prescription'),
-            ('rejected', 'Rejected - Medicine does not match prescription')
+            ('', 'Select your decision...'),
+            ('approved', 'APPROVED - Medicine matches prescription'),
+            ('rejected', 'REJECTED - Medicine does not match prescription')
         ]
         
-        # Make notes required for rejected items
-        self.fields['pharmacy_review_notes'].required = False
+        # Make all fields required for proper verification
+        self.fields['pharmacy_review_notes'].required = True
+        self.fields['pharmacy_review_status'].required = True
 
     def clean(self):
-        """Validate form data"""
+        """Enhanced validation for proper prescription verification"""
         cleaned_data = super().clean()
         status = cleaned_data.get('pharmacy_review_status')
         notes = cleaned_data.get('pharmacy_review_notes')
+        prescription_reviewed = cleaned_data.get('prescription_image_reviewed')
+        medicine_visible = cleaned_data.get('medicine_clearly_visible')
+        confidence = cleaned_data.get('verification_confidence')
         
-        # Require notes for rejected items
-        if status == 'rejected' and not notes:
-            self.add_error('pharmacy_review_notes', 'Notes are required when rejecting a prescription.')
+        # Ensure prescription image has been reviewed
+        if not prescription_reviewed:
+            self.add_error('prescription_image_reviewed', 
+                          'You must confirm that you have examined the prescription image.')
+        
+        # Validate medicine visibility assessment
+        if not medicine_visible:
+            self.add_error('medicine_clearly_visible', 
+                          'You must assess whether the medicine is visible in the prescription.')
+        
+        # Validate verification confidence
+        if not confidence:
+            self.add_error('verification_confidence', 
+                          'You must indicate your confidence level in the verification.')
+        
+        # Validate decision and notes
+        if not status:
+            self.add_error('pharmacy_review_status', 
+                          'You must make a decision to approve or reject.')
+        
+        if not notes or len(notes.strip()) < 20:
+            self.add_error('pharmacy_review_notes', 
+                          'Detailed notes (minimum 20 characters) are required explaining your verification findings.')
+        
+        # Logic validation: ensure consistency between assessments and decision
+        if status == 'approved':
+            if medicine_visible == 'no':
+                self.add_error('pharmacy_review_status', 
+                              'Cannot approve if medicine is not visible in prescription.')
+            if confidence == 'low':
+                self.add_error('pharmacy_review_status', 
+                              'Cannot approve with low confidence. Consider rejection or request clearer prescription.')
+        
+        if status == 'rejected':
+            if medicine_visible == 'yes' and confidence == 'high':
+                self.add_error('pharmacy_review_status', 
+                              'Inconsistent: Cannot reject if medicine is clearly visible with high confidence.')
+        
+        # Additional safety check for approval
+        if status == 'approved' and (medicine_visible != 'yes' or confidence != 'high'):
+            if 'clear justification' not in notes.lower() and 'certain' not in notes.lower():
+                self.add_error('pharmacy_review_notes', 
+                              'For approvals with medium/partial visibility, provide clear justification in notes.')
         
         return cleaned_data

@@ -717,14 +717,41 @@ def prescription_review_detail(request, cart_item_id):
     if request.method == 'POST':
         form = PrescriptionReviewForm(request.POST, instance=cart_item)
         if form.is_valid():
+            # Get additional verification data from form
+            prescription_reviewed = form.cleaned_data.get('prescription_image_reviewed')
+            medicine_visible = form.cleaned_data.get('medicine_clearly_visible')
+            verification_confidence = form.cleaned_data.get('verification_confidence')
+            
             # Update cart item with pharmacy review
             cart_item = form.save(commit=False)
             cart_item.reviewed_by = request.user
             cart_item.reviewed_at = timezone.now()
+            
+            # Store enhanced verification data in validation_data
+            if not cart_item.validation_data:
+                cart_item.validation_data = {}
+            
+            cart_item.validation_data.update({
+                'pharmacy_verification': {
+                    'prescription_image_reviewed': prescription_reviewed,
+                    'medicine_clearly_visible': medicine_visible,
+                    'verification_confidence': verification_confidence,
+                    'reviewed_by': request.user.username,
+                    'reviewed_at': timezone.now().isoformat(),
+                    'pharmacy_name': request.user.pharmacy.name
+                }
+            })
+            
             cart_item.save()
             
             status_text = "approved" if cart_item.pharmacy_review_status == 'approved' else "rejected"
-            messages.success(request, f'Prescription review completed. Medicine {cart_item.medicine.name} has been {status_text}.')
+            
+            # Enhanced success message with verification details
+            verification_details = f"Medicine visibility: {medicine_visible.title()}, Confidence: {verification_confidence.title()}"
+            messages.success(request, 
+                f'Prescription review completed with enhanced verification. '
+                f'Medicine {cart_item.medicine.name} has been {status_text}. '
+                f'Verification details: {verification_details}')
             
             return redirect('prescription_review_list')
     else:
