@@ -568,6 +568,15 @@ def unified_login(request):
                 except Pharmacy.DoesNotExist:
                     pass
                 
+                # Try to get delivery person
+                try:
+                    from delivery.models import DeliveryPerson
+                    delivery_person = DeliveryPerson.objects.get(user=user, is_active=True)
+                    messages.success(request, f'Welcome back, {delivery_person.user.get_full_name()}!')
+                    return redirect('delivery_dashboard')
+                except DeliveryPerson.DoesNotExist:
+                    pass
+                
                 # Try to get MoH officer
                 try:
                     moh_officer = MoHOfficer.objects.get(user=user, is_active=True)
