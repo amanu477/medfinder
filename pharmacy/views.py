@@ -401,22 +401,56 @@ def order_detail_pharmacy(request, order_id):
     order = get_object_or_404(Order, id=order_id, pharmacy=pharmacy)
     order_items = OrderItem.objects.filter(order=order)
     
+    # Check for pending prescription reviews that block order approval
+    from customer.models import CartItem
+    pending_prescription_reviews = CartItem.objects.filter(
+        cart__customer=order.customer,
+        medicine__pharmacy=pharmacy,
+        pharmacy_review_required=True
+    ).exclude(pharmacy_review_status='approved')
+    
     return render(request, 'pharmacy/order_detail.html', {
         'order': order,
         'order_items': order_items,
-        'pharmacy': pharmacy
+        'pharmacy': pharmacy,
+        'pending_prescription_reviews': pending_prescription_reviews
     })
 
 
 @login_required
 def update_order_status(request, order_id):
-    """Update order status"""
+    """Update order status with mandatory prescription verification for OCR < 100%"""
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
     order = get_object_or_404(Order, id=order_id, pharmacy=pharmacy)
     
     if request.method == 'POST':
         new_status = request.POST.get('status')
         status_message = request.POST.get('status_message', '')
+        
+        # Check if order can be approved - require prescription verification for OCR < 100%
+        if new_status == 'approved':
+            from customer.models import CartItem
+            
+            # Check if any cart items from this order require prescription verification
+            unresolved_prescription_reviews = CartItem.objects.filter(
+                cart__customer=order.customer,
+                medicine__pharmacy=pharmacy,
+                pharmacy_review_required=True
+            ).exclude(pharmacy_review_status='approved')
+            
+            if unresolved_prescription_reviews.exists():
+                pending_count = unresolved_prescription_reviews.filter(pharmacy_review_status='pending').count()
+                rejected_count = unresolved_prescription_reviews.filter(pharmacy_review_status='rejected').count()
+                
+                error_msg = f'Cannot approve order! '
+                if pending_count > 0:
+                    error_msg += f'{pending_count} prescription(s) require manual verification. '
+                if rejected_count > 0:
+                    error_msg += f'{rejected_count} prescription(s) were rejected. '
+                error_msg += 'Please review prescriptions first in Prescription Reviews section.'
+                
+                messages.error(request, error_msg)
+                return redirect('order_detail_pharmacy', order_id=order_id)
         
         if new_status in [s[0] for s in Order.STATUS_CHOICES]:
             old_status = order.status

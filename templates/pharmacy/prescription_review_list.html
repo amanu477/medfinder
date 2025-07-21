@@ -43,7 +43,7 @@
                                 </thead>
                                 <tbody>
                                     {% for item in pending_reviews %}
-                                    <tr class="animate-slide-up" style="animation-delay: {{ forloop.counter0|mul:0.1 }}s;">
+                                    <tr class="animate-slide-up" style="animation-delay: {% widthratio forloop.counter0 10 1 %}s;">
                                         <td>
                                             <div class="d-flex align-items-center">
                                                 <div class="avatar-sm bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center">

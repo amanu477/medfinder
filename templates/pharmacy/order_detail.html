@@ -130,6 +130,22 @@
 
             <!-- Actions Sidebar -->
             <div class="col-md-4">
+                <!-- Prescription Verification Warning -->
+                {% if pending_prescription_reviews %}
+                <div class="alert alert-danger mb-3">
+                    <h6><i class="fas fa-exclamation-triangle"></i> Prescription Verification Required</h6>
+                    <p class="mb-2">This order cannot be approved until prescription verification is completed:</p>
+                    <ul class="mb-2">
+                        {% for item in pending_prescription_reviews %}
+                        <li>{{ item.medicine.name }} ({{ item.get_ocr_confidence }}% confidence)</li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{% url 'prescription_review_list' %}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-clipboard-check"></i> Review Prescriptions
+                    </a>
+                </div>
+                {% endif %}
+                
                 <div class="card shadow-sm">
                     <div class="card-header">
                         <h5 class="mb-0">Order Actions</h5>
