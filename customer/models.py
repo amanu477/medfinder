@@ -226,6 +226,20 @@ class Payment(models.Model):
         self.qr_code_data = json.dumps(qr_data)
         self.save()
         return qr_data
+    
+    def confirm_cash_payment(self, confirmed_by_user, notes="Cash payment confirmed by delivery person"):
+        """Confirm that cash payment has been received"""
+        from django.utils import timezone
+        
+        if self.payment_type == 'cash_on_delivery':
+            self.cash_received_by = confirmed_by_user
+            self.cash_received_at = timezone.now()
+            self.cash_confirmation_notes = notes
+            self.status = 'cash_paid'
+            self.paid_at = timezone.now()
+            self.save()
+            return True
+        return False
 
 class Cart(models.Model):
     """Shopping cart model"""
