@@ -1,55 +1,91 @@
 # Ethiopian Pharmacy Platform - Complete Code Documentation
 
-## 🏥 Welcome to Your Digital Pharmacy Empire!
+## 🏥 Understanding Your Digital Pharmacy Code
 
-This document breaks down every section of your Ethiopian Pharmacy Platform in simple, enjoyable terms. Think of it as a guided tour through your digital healthcare marketplace!
+This document explains every piece of code in your Ethiopian Pharmacy Platform with real examples from your actual codebase. Each section shows you exactly how the code works and why it's written that way.
 
 ---
 
-## 🏗️ Project Architecture Overview
+## 🏗️ Project Structure Overview
 
-Your platform is built like a modern city with different districts, each serving specific residents:
-
-- **Customer District** - Where patients find medicines and upload prescriptions
-- **Pharmacy District** - Where pharmacies manage inventory and process orders
-- **Delivery District** - Where delivery heroes track and complete deliveries
-- **Ministry of Health District** - Where government officials monitor and verify
-- **Platform Admin District** - Where system administrators manage everything
+```
+ethiopian-pharmacy/
+├── customer/          # Patient and customer functionality
+├── pharmacy/         # Pharmacy management system
+├── delivery/         # Delivery tracking and management
+├── moh/             # Ministry of Health verification
+├── platform_admin/  # System administration
+├── templates/       # HTML templates
+├── static/          # CSS, JavaScript, images
+└── pharmacy_finder/ # Main Django settings
+```
 
 ---
 
 ## 👥 CUSTOMER SECTION (`customer/`)
 
-*"The heart of your platform - where patients become digital health seekers!"*
+*"The heart of your platform - where patients find medicines and manage prescriptions"*
 
-### 🏠 Models (`customer/models.py`)
-Your customer data architecture:
+### 🗄️ Models (`customer/models.py`) - Data Structure
 
+#### Customer Model
 ```python
 class Customer(models.Model):
-    # The digital identity of each patient
-    user = OneToOneField(User)  # Links to Django's built-in user system
-    name = CharField(max_length=100)  # Patient's full name
-    phone = CharField(max_length=15)  # Ethiopian phone number
-    address = TextField()  # Where they live
-    date_of_birth = DateField()  # Age verification
-    created_at = DateTimeField(auto_now_add=True)  # When they joined
+    """Customer model for storing customer information"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    phone = models.CharField(max_length=20)
+    address = models.TextField()
+    latitude = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_verified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.name} - {self.email}"
 ```
 
-**What it does**: Creates a complete profile for each patient, storing their personal information safely.
+**Code Explanation:**
+- `OneToOneField(User)`: Links each customer to Django's built-in user authentication
+- `DecimalField` for coordinates: Stores precise GPS location for finding nearby pharmacies
+- `auto_now_add=True`: Automatically sets creation time when record is first saved
+- `auto_now=True`: Updates timestamp every time the record is modified
+- `is_verified`: Tracks email verification status for security
 
+#### Prescription Model
 ```python
 class Prescription(models.Model):
-    # Digital prescription storage
-    customer = ForeignKey(Customer)  # Who owns this prescription
-    pharmacy = ForeignKey('pharmacy.Pharmacy')  # Which pharmacy to send to
-    image = ImageField()  # The prescription photo
-    status = CharField()  # pending, approved, rejected, completed
-    ocr_text = TextField()  # What our AI read from the image
-    ocr_confidence = DecimalField()  # How confident the AI is (0-100%)
+    """Model for storing prescription information"""
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
+    )
+    
+    customer_name = models.CharField(max_length=100)
+    customer_email = models.EmailField()
+    customer_phone = models.CharField(max_length=20)
+    prescription_image = models.ImageField(upload_to='prescriptions/')
+    pharmacy = models.ForeignKey('pharmacy.Pharmacy', on_delete=models.CASCADE, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Prescription by {self.customer_name}"
 ```
 
-**What it does**: Transforms paper prescriptions into digital format with AI-powered text extraction.
+**Code Explanation:**
+- `STATUS_CHOICES`: Defines valid status options as tuples (database_value, display_name)
+- `ImageField(upload_to='prescriptions/')`: Stores uploaded images in media/prescriptions/ folder
+- `ForeignKey('pharmacy.Pharmacy')`: Links to pharmacy model using string reference to avoid import issues
+- `class Meta`: Contains model metadata like default ordering (newest first with `-created_at`)
 
 ```python
 class Order(models.Model):
@@ -65,46 +101,94 @@ class Order(models.Model):
 
 **What it does**: Manages the entire purchase journey from cart to delivery.
 
-### 🎯 Views (`customer/views.py`)
-The brain operations that make everything work:
+### 🎯 Views (`customer/views.py`) - Business Logic
 
-#### Home Page Magic
+#### Home Page Logic
 ```python
 def home(request):
-    # Redirect delivery personnel to their dashboard
+    """Home page view with search functionality"""
+    # Redirect delivery personnel directly to their dashboard
     if request.user.is_authenticated:
         try:
-            delivery_person = DeliveryPerson.objects.get(user=request.user)
-            return redirect('delivery_dashboard')  # No home access for delivery
+            from delivery.models import DeliveryPerson
+            delivery_person = DeliveryPerson.objects.get(user=request.user, is_active=True)
+            return redirect('delivery_dashboard')
         except DeliveryPerson.DoesNotExist:
             pass
-    # Show beautiful homepage with medicine search
-    return render(request, 'home.html')
+    
+    # Ensure no MoH notifications appear on main homepage
+    context = {
+        'suppress_moh_notifications': True,
+    }
+    return render(request, 'home.html', context)
 ```
 
-**What it does**: Creates different experiences - delivery people go straight to work, everyone else sees the beautiful search page.
+**Code Explanation:**
+- `request.user.is_authenticated`: Checks if user is logged in
+- `try/except DeliveryPerson.DoesNotExist`: Safe way to check if user is delivery person
+- `redirect('delivery_dashboard')`: Sends delivery staff directly to work area
+- `context = {...}`: Passes data to template to control what displays
+- Import inside function: Avoids circular import issues between apps
 
-#### Medicine Search Intelligence
+#### Medicine Search System
 ```python
 def search_medicines(request):
+    """Search medicines and return results sorted by proximity"""
     query = request.GET.get('query', '')
-    user_lat = request.GET.get('lat')  # Customer's location
+    user_lat = request.GET.get('lat')
     user_lon = request.GET.get('lon')
     
-    # Find medicines matching the search
+    if not query:
+        return render(request, 'search_results.html', {'query': query, 'medicines': []})
+    
+    # Search for medicines that match the query and are available
     medicines = Medicine.objects.filter(
         Q(name__icontains=query) | Q(description__icontains=query),
-        is_available=True,  # Only available medicines
-        stock_quantity__gt=0,  # Only in-stock items
-        expiry_date__gt=timezone.now().date()  # Not expired
-    )
+        is_available=True,
+        pharmacy__is_active=True,
+        stock_quantity__gt=0,
+        expiry_date__gt=timezone.now().date()
+    ).select_related('pharmacy')
     
-    # Sort by distance if location provided
+    # If user location is provided, sort by proximity
     if user_lat and user_lon:
-        medicines = sort_by_distance(medicines, user_lat, user_lon)
+        try:
+            from .utils import haversine_distance
+            
+            user_lat = float(user_lat)
+            user_lon = float(user_lon)
+            
+            medicines_with_distance = []
+            for medicine in medicines:
+                pharmacy = medicine.pharmacy
+                if pharmacy.latitude and pharmacy.longitude:
+                    distance = haversine_distance(
+                        user_lat, user_lon,
+                        float(pharmacy.latitude), float(pharmacy.longitude)
+                    )
+                    medicine.distance = round(distance, 1)
+                    medicines_with_distance.append((medicine, distance))
+                else:
+                    medicine.distance = None
+                    medicines_with_distance.append((medicine, float('inf')))
+            
+            # Sort by distance (closest first)
+            medicines_with_distance.sort(key=lambda x: x[1])
+            medicines = [medicine for medicine, distance in medicines_with_distance]
+            
+        except (ValueError, TypeError) as e:
+            logger.error(f"Error calculating distances: {e}")
+            pass
 ```
 
-**What it does**: Smart search that finds medicines and shows the closest pharmacies first.
+**Code Explanation:**
+- `Q(name__icontains=query) | Q(description__icontains=query)`: Searches both name and description fields
+- `__icontains`: Case-insensitive search that matches partial strings
+- `stock_quantity__gt=0`: Only medicines with stock greater than 0
+- `select_related('pharmacy')`: Joins pharmacy data to avoid additional database queries
+- `haversine_distance()`: Calculates real-world distance between GPS coordinates
+- `float('inf')`: Assigns infinite distance to pharmacies without GPS coordinates
+- `lambda x: x[1]`: Sorts tuples by second element (distance)
 
 #### OCR Prescription Magic
 ```python
@@ -156,25 +240,66 @@ class PrescriptionOCRService:
 
 ## 🏪 PHARMACY SECTION (`pharmacy/`)
 
-*"The digital pharmacy counter - where medicine meets technology!"*
+*"The digital pharmacy management system - where medicine inventory meets technology"*
 
-### 🏠 Models (`pharmacy/models.py`)
+### 🗄️ Models (`pharmacy/models.py`) - Pharmacy Data Structure
 
+#### MoH Pharmacy Record (Government Registry)
 ```python
-class Pharmacy(models.Model):
-    # The digital pharmacy identity
-    user = OneToOneField(User)  # Pharmacy owner's account
-    name = CharField(max_length=200)  # "Bethel Pharmacy", "Hayat Pharmacy"
-    license_number = CharField(unique=True)  # Government license
-    phone = CharField(max_length=15)  # Ethiopian phone
-    address = TextField()  # Physical location
-    latitude = DecimalField()  # GPS coordinates for map
-    longitude = DecimalField()
-    is_active = BooleanField(default=False)  # MoH verification status
-    operating_hours = JSONField()  # When they're open
+class MoHPharmacyRecord(models.Model):
+    """Ministry of Health pharmacy registry - pre-registered legitimate pharmacies"""
+    REGION_CHOICES = [
+        ('addis_ababa', 'Addis Ababa'),
+        ('oromia', 'Oromia'),
+        ('amhara', 'Amhara'),
+        ('tigray', 'Tigray'),
+        # ... more Ethiopian regions
+    ]
+    
+    LICENSE_TYPE_CHOICES = [
+        ('retail', 'Retail Pharmacy'),
+        ('hospital', 'Hospital Pharmacy'),
+        ('wholesale', 'Wholesale Pharmacy'),
+        ('manufacturing', 'Manufacturing Pharmacy'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('suspended', 'Suspended'),
+        ('revoked', 'Revoked'),
+        ('expired', 'Expired'),
+    ]
+    
+    # Basic Information
+    pharmacy_name = models.CharField(max_length=200)
+    license_number = models.CharField(max_length=50, unique=True)
+    owner_name = models.CharField(max_length=100)
+    pharmacist_name = models.CharField(max_length=100)
+    pharmacist_license = models.CharField(max_length=50)
+    
+    # Location Information
+    region = models.CharField(max_length=20, choices=REGION_CHOICES)
+    city = models.CharField(max_length=100)
+    woreda = models.CharField(max_length=100)
+    kebele = models.CharField(max_length=100)
+    address_detail = models.TextField()
+    
+    # Document Uploads
+    business_license_document = models.FileField(upload_to='moh_documents/business_licenses/', blank=True, null=True)
+    pharmacist_certificate_document = models.FileField(upload_to='moh_documents/pharmacist_certificates/', blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-registration_date']
+        verbose_name = "Ministry of Health Pharmacy Record"
 ```
 
-**What it does**: Creates a complete digital identity for each pharmacy with location tracking.
+**Code Explanation:**
+- `choices=REGION_CHOICES`: Creates dropdown with predefined Ethiopian regions
+- `unique=True`: Ensures no duplicate license numbers in database
+- `FileField(upload_to='moh_documents/')`: Stores uploaded documents in organized folders
+- `blank=True, null=True`: Makes fields optional (can be empty)
+- `verbose_name`: Human-readable name for Django admin interface
+- `ordering = ['-registration_date']`: Default sort by newest registrations first
 
 ```python
 class Medicine(models.Model):
@@ -245,25 +370,59 @@ def prescription_review_detail(request, review_id):
 
 ## 🚚 DELIVERY SECTION (`delivery/`)
 
-*"The highway heroes - where logistics meets care!"*
+*"The delivery management system - where logistics meets real-time tracking"*
 
-### 🏠 Models (`delivery/models.py`)
+### 🗄️ Models (`delivery/models.py`) - Delivery System Structure
 
+#### DeliveryPerson Model
 ```python
 class DeliveryPerson(models.Model):
-    # The delivery hero profile
-    user = OneToOneField(User)  # Their login account
-    pharmacy = ForeignKey('pharmacy.Pharmacy')  # Which pharmacy they work for
-    phone = CharField(max_length=15)  # Contact number
-    license_number = CharField()  # Delivery license
-    vehicle_type = CharField()  # motorcycle, bicycle, car
-    is_available = BooleanField(default=True)  # Ready for deliveries?
-    current_latitude = DecimalField()  # Live GPS location
-    current_longitude = DecimalField()
-    last_location_update = DateTimeField()  # When location was updated
+    """Delivery personnel model"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    pharmacy = models.ForeignKey(Pharmacy, on_delete=models.CASCADE, related_name='delivery_staff')
+    employee_id = models.CharField(max_length=20, unique=True)
+    phone = models.CharField(max_length=15)
+    national_id = models.CharField(max_length=20, unique=True)
+    vehicle_type = models.CharField(max_length=50, choices=[
+        ('motorcycle', 'Motorcycle'),
+        ('bicycle', 'Bicycle'),
+        ('car', 'Car'),
+        ('on_foot', 'On Foot'),
+    ], default='motorcycle')
+    vehicle_plate = models.CharField(max_length=20, blank=True)
+    is_active = models.BooleanField(default=True)
+    is_available = models.BooleanField(default=True)
+    current_location_lat = models.DecimalField(max_digits=10, decimal_places=8, null=True, blank=True)
+    current_location_lon = models.DecimalField(max_digits=11, decimal_places=8, null=True, blank=True)
+    last_location_update = models.DateTimeField(null=True, blank=True)
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=5.00)
+    total_deliveries = models.IntegerField(default=0)
+
+    def update_location(self, lat, lon):
+        """Update delivery person's current location"""
+        self.current_location_lat = lat
+        self.current_location_lon = lon
+        self.last_location_update = timezone.now()
+        self.save()
+    
+    def has_active_deliveries(self):
+        """Check if delivery person has any active deliveries"""
+        active_statuses = ['assigned', 'picked_up', 'in_transit', 'arrived']
+        return self.delivery_set.filter(status__in=active_statuses).exists()
+    
+    def get_active_deliveries_count(self):
+        """Get count of active deliveries"""
+        active_statuses = ['assigned', 'picked_up', 'in_transit', 'arrived']
+        return self.delivery_set.filter(status__in=active_statuses).count()
 ```
 
-**What it does**: Creates profiles for delivery heroes with real-time location tracking.
+**Code Explanation:**
+- `related_name='delivery_staff'`: Allows pharmacy.delivery_staff.all() to get all delivery people
+- `max_digits=10, decimal_places=8`: High precision GPS coordinates (8 decimal places ≈ 1mm accuracy)
+- `default=5.00`: New delivery people start with perfect rating
+- Custom methods like `update_location()`: Encapsulate common operations
+- `self.delivery_set`: Django reverse relationship to access related deliveries
+- `filter(status__in=active_statuses)`: Filters by multiple status values at once
 
 ```python
 class Delivery(models.Model):
@@ -307,30 +466,67 @@ def delivery_dashboard(request):
 
 **What it does**: Creates a delivery command center showing all missions and performance.
 
-#### QR Code Scanner Magic
+#### QR Code Scanner System
 ```python
 def qr_scanner(request):
+    """QR code scanner for delivery confirmation"""
+    delivery_person = request.user.deliveryperson
+    
     if request.method == 'POST':
         action = request.POST.get('action')
         
-        if action == 'scan':
-            # Process QR code scanning
-            delivery_code = request.POST.get('delivery_code')
+        if action == 'scan_qr':
+            qr_data = request.POST.get('qr_data', '').strip()
             
-            # Priority: QR scanning over manual entry
-            if delivery_code:
-                order = Order.objects.filter(qr_code=delivery_code).first()
-                if order:
-                    # Automatically confirm delivery
-                    order.status = 'completed'
-                    order.save()
+            if qr_data:
+                try:
+                    # Try to find order by QR code (priority method)
+                    order = Order.objects.select_related('customer').get(qr_code=qr_data)
                     
-                    # For cash payments, confirm payment received
-                    if order.payment_method == 'cash_on_delivery':
-                        return confirm_cash_payment(request, order.id)
+                    if order.status in ['ready_for_pickup', 'picked_up', 'in_transit']:
+                        # Process delivery confirmation
+                        delivery = order.delivery
+                        if delivery.delivery_person == delivery_person:
+                            
+                            # For cash orders, redirect to payment confirmation
+                            if order.payment_method == 'cash_on_delivery' and order.status != 'completed':
+                                return redirect('confirm_cash_payment', order_id=order.id)
+                            
+                            # Complete the delivery
+                            order.status = 'completed'
+                            delivery.status = 'delivered'
+                            delivery.delivery_time = timezone.now()
+                            
+                            order.save()
+                            delivery.save()
+                            
+                            messages.success(request, f'✅ Delivery completed successfully! Order #{order.id}')
+                            return redirect('delivery_dashboard')
+                        else:
+                            messages.error(request, '❌ This delivery is assigned to another delivery person.')
+                    else:
+                        messages.error(request, f'❌ Invalid order status: {order.get_status_display()}')
+                        
+                except Order.DoesNotExist:
+                    messages.error(request, '❌ Invalid QR code. Order not found.')
+                except Exception as e:
+                    messages.error(request, f'❌ Error processing QR code: {str(e)}')
+            else:
+                messages.error(request, '❌ No QR code data provided.')
+        
+        elif action == 'manual_entry':
+            # Fallback manual code entry
+            delivery_code = request.POST.get('delivery_code', '').strip()
+            # ... similar logic for manual entry
 ```
 
-**What it does**: Enables instant delivery confirmation with QR codes and handles cash collection.
+**Code Explanation:**
+- `select_related('customer')`: Joins customer data to avoid extra database queries
+- `qr_data.strip()`: Removes whitespace from scanned QR codes
+- `order.get_status_display()`: Gets human-readable status text instead of database code
+- `timezone.now()`: Uses Django's timezone-aware datetime
+- Multiple try/except blocks: Handle different error scenarios gracefully
+- `redirect('delivery_dashboard')`: Sends user back to main dashboard after completion
 
 #### Cash Collection Workflow
 ```python
@@ -498,32 +694,116 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 **What it does**: Calculates real-world distances to show nearest pharmacies first.
 
-### 💰 Payment Integration (`customer/chapa_service.py`)
+### 💰 Ethiopian Payment Integration (`customer/chapa_service.py`)
+
 ```python
 class ChapaService:
+    """Chapa Payment Gateway Integration for Ethiopia"""
+    
     def __init__(self):
         self.secret_key = settings.CHAPA_SECRET_KEY
+        self.public_key = settings.CHAPA_PUBLIC_KEY
         self.base_url = "https://api.chapa.co/v1"
-    
-    def initialize_payment(self, order):
-        payload = {
-            'amount': str(order.total_amount),
-            'currency': 'ETB',
-            'email': order.customer.user.email,
-            'first_name': order.customer.name.split()[0],
-            'tx_ref': f'ORDER-{order.id}-{timezone.now().timestamp()}',
-            'callback_url': f"{settings.SITE_URL}/payment/callback/",
-            'return_url': f"{settings.SITE_URL}/payment/success/",
-        }
         
-        response = requests.post(
-            f"{self.base_url}/transaction/initialize",
-            json=payload,
-            headers={'Authorization': f'Bearer {self.secret_key}'}
-        )
+    def initialize_payment(self, order, return_url=None, callback_url=None):
+        """Initialize payment with Chapa"""
+        try:
+            # Create unique transaction reference
+            tx_ref = f"ORDER-{order.id}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+            
+            payload = {
+                'amount': str(order.total_amount),
+                'currency': 'ETB',
+                'email': order.customer.user.email,
+                'first_name': order.customer.name.split()[0] if order.customer.name else order.customer.user.first_name,
+                'last_name': order.customer.name.split()[-1] if len(order.customer.name.split()) > 1 else order.customer.user.last_name,
+                'phone_number': order.customer.phone,
+                'tx_ref': tx_ref,
+                'callback_url': callback_url or f"{settings.SITE_URL}/payment/callback/",
+                'return_url': return_url or f"{settings.SITE_URL}/payment/success/{order.id}/",
+                'description': f'Medicine order from {order.pharmacy.name}',
+            }
+            
+            headers = {
+                'Authorization': f'Bearer {self.secret_key}',
+                'Content-Type': 'application/json',
+            }
+            
+            response = requests.post(
+                f"{self.base_url}/transaction/initialize",
+                json=payload,
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get('status') == 'success':
+                    # Store transaction reference for verification
+                    order.transaction_ref = tx_ref
+                    order.save()
+                    
+                    return {
+                        'status': 'success',
+                        'checkout_url': result['data']['checkout_url'],
+                        'tx_ref': tx_ref
+                    }
+                else:
+                    return {
+                        'status': 'error',
+                        'message': result.get('message', 'Payment initialization failed')
+                    }
+            else:
+                return {
+                    'status': 'error',
+                    'message': f'HTTP {response.status_code}: {response.text}'
+                }
+                
+        except requests.RequestException as e:
+            logger.error(f"Chapa payment initialization error: {e}")
+            return {
+                'status': 'error',
+                'message': 'Network error occurred. Please try again.'
+            }
+        except Exception as e:
+            logger.error(f"Unexpected error in payment initialization: {e}")
+            return {
+                'status': 'error',
+                'message': 'An unexpected error occurred.'
+            }
+    
+    def verify_payment(self, tx_ref):
+        """Verify payment status with Chapa"""
+        try:
+            headers = {
+                'Authorization': f'Bearer {self.secret_key}',
+            }
+            
+            response = requests.get(
+                f"{self.base_url}/transaction/verify/{tx_ref}",
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                return result
+            else:
+                return {'status': 'error', 'message': 'Verification failed'}
+                
+        except Exception as e:
+            logger.error(f"Payment verification error: {e}")
+            return {'status': 'error', 'message': str(e)}
 ```
 
-**What it does**: Integrates with Ethiopian payment systems for secure online transactions.
+**Code Explanation:**
+- `timezone.now().strftime('%Y%m%d%H%M%S')`: Creates timestamp in YYYYMMDDHHMMSS format
+- `order.customer.name.split()[0]`: Extracts first name from full name string
+- `timeout=30`: Sets 30-second timeout for API requests to prevent hanging
+- `requests.RequestException`: Catches all network-related errors
+- `logger.error()`: Records errors for debugging without breaking user experience
+- `order.transaction_ref = tx_ref`: Stores reference for later verification
+- Ethiopian Birr (ETB) currency integration for local payment processing
 
 ### 📱 QR Code Generation (`customer/qr_utils.py`)
 ```python
