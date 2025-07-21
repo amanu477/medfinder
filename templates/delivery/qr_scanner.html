@@ -902,9 +902,13 @@ document.addEventListener('DOMContentLoaded', function() {
             showError('Failed to confirm cash collection. Please try again.');
         });
     }
+    
+    // Make functions globally accessible
+    window.confirmCashCollected = confirmCashCollected;
+    window.closeCashPaymentDialog = closeCashPaymentDialog;
 });
 
-// Confirm cash payment
+// Confirm cash payment (globally accessible)
 function confirmCashPayment(deliveryId, amount) {
     if (confirm(`Confirm that you received ${amount} ETB in cash from the customer?`)) {
         // Redirect to delivery confirmation page
@@ -912,7 +916,7 @@ function confirmCashPayment(deliveryId, amount) {
     }
 }
 
-// Confirm online payment
+// Confirm online payment (globally accessible)
 function confirmOnlinePayment(deliveryId) {
     if (confirm('Confirm that the online payment has been verified?')) {
         // Redirect to delivery confirmation page
@@ -920,7 +924,7 @@ function confirmOnlinePayment(deliveryId) {
     }
 }
 
-// Report payment issue
+// Report payment issue (globally accessible)
 function reportPaymentIssue(deliveryId) {
     const issue = prompt('Please describe the payment issue:');
     if (issue) {

@@ -69,6 +69,7 @@ Preferred communication style: Simple, everyday language.
 - **Logger Fix**: Fixed NameError in customer views by properly defining logger variable for error handling and debugging
 - **Cart Item UNIQUE Constraint Fix**: Fixed UNIQUE constraint error in cart item creation by using get_or_create pattern instead of create for duplicate cart_id/medicine_id combinations
 - **CRITICAL SAFETY FIX**: Fixed pharmacy approval bypass when OCR confidence < 100% - system now properly sets pharmacy_review_required=True and blocks approval until manual prescription verification is completed
+- **Cash Payment Button Fix**: Fixed "I collected" button not responding by making confirmCashCollected and closeCashPaymentDialog functions globally accessible outside DOMContentLoaded scope
 - **Login Credentials**: Pharmacy "Good health pharmacy" - Username: goodhealth, Password: testpass123
 
 ## Recent Changes
