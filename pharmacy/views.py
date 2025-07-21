@@ -361,9 +361,43 @@ def update_prescription_status(request, prescription_id):
 
 @login_required
 def order_management(request):
-    """View all orders for a pharmacy"""
+    """View all orders for a pharmacy with OCR results"""
     pharmacy = get_object_or_404(Pharmacy, user=request.user)
     orders = Order.objects.filter(pharmacy=pharmacy).select_related('customer', 'payment').prefetch_related('orderitem_set__medicine').order_by('-created_at')
+    
+    # Import CartItem to access OCR validation data
+    from customer.models import CartItem
+    
+    # Enhance orders with cart item OCR data
+    for order in orders:
+        for order_item in order.orderitem_set.all():
+            # Find corresponding cart item with OCR validation data
+            try:
+                cart_item = CartItem.objects.filter(
+                    cart__customer=order.customer,
+                    medicine=order_item.medicine,
+                    validation_data__isnull=False
+                ).first()
+                
+                if cart_item:
+                    order_item.cart_item = cart_item
+                    # Check if this item requires verification
+                    if cart_item.get_ocr_confidence() < 100:
+                        order_item.requires_verification = True
+                        # Mark cart item for pharmacy review if not already marked
+                        if not cart_item.pharmacy_review_required:
+                            cart_item.pharmacy_review_required = True
+                            cart_item.pharmacy_review_status = 'pending'
+                            cart_item.save()
+                    else:
+                        order_item.requires_verification = False
+                else:
+                    order_item.cart_item = None
+                    order_item.requires_verification = False
+            except Exception as e:
+                # If there's an error, default to no cart item
+                order_item.cart_item = None
+                order_item.requires_verification = False
     
     # Calculate order statistics
     pending_orders = orders.filter(status='pending').count()

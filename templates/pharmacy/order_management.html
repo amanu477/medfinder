@@ -97,6 +97,7 @@
                                     <th>Quantity</th>
                                     <th>Total Amount</th>
                                     <th>Prescription</th>
+                                    <th>OCR Results</th>
                                     <th>Order Date</th>
                                     <th>Status</th>
                                     <th>Actions</th>
@@ -149,6 +150,40 @@
                                             </span>
                                         {% endif %}
                                     </td>
+                                    <td>
+                                        {% for item in order.orderitem_set.all %}
+                                            {% if item.cart_item and item.cart_item.validation_data %}
+                                                {% with ocr_confidence=item.cart_item.get_ocr_confidence %}
+                                                    <div class="mb-2">
+                                                        <strong>{{ item.medicine.name }}:</strong><br>
+                                                        <span class="badge 
+                                                            {% if ocr_confidence == 100 %}bg-success
+                                                            {% elif ocr_confidence >= 80 %}bg-warning
+                                                            {% elif ocr_confidence >= 60 %}bg-warning
+                                                            {% else %}bg-danger{% endif %}">
+                                                            OCR: {{ ocr_confidence }}%
+                                                        </span>
+                                                        {% if ocr_confidence < 100 %}
+                                                            <br><small class="text-danger">
+                                                                <i class="fas fa-exclamation-triangle"></i> 
+                                                                Verification Required
+                                                            </small>
+                                                        {% else %}
+                                                            <br><small class="text-success">
+                                                                <i class="fas fa-check"></i> 
+                                                                Verified
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endwith %}
+                                            {% else %}
+                                                <div class="mb-2">
+                                                    <strong>{{ item.medicine.name }}:</strong><br>
+                                                    <span class="badge bg-secondary">No OCR</span>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
                                     <td>{{ order.created_at|date:"M d, Y H:i" }}</td>
                                     <td>
                                         {% if order.status == 'pending' %}
@@ -174,22 +209,54 @@
                                     </td>
                                     <td>
                                         {% if order.status == 'pending' %}
-                                            <div class="btn-group-vertical btn-group-sm" role="group">
-                                                <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline mb-1">
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="status" value="approved">
-                                                    <button type="submit" class="btn btn-success btn-sm">
-                                                        <i class="fas fa-check"></i> Approve
-                                                    </button>
-                                                </form>
-                                                <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
-                                                    {% csrf_token %}
-                                                    <input type="hidden" name="status" value="rejected">
-                                                    <button type="submit" class="btn btn-danger btn-sm">
-                                                        <i class="fas fa-times"></i> Reject
-                                                    </button>
-                                                </form>
-                                            </div>
+                                            {% comment %} Check if any order items require OCR verification {% endcomment %}
+                                            {% with requires_verification=False %}
+                                                {% for item in order.orderitem_set.all %}
+                                                    {% if item.cart_item and item.cart_item.validation_data and item.cart_item.get_ocr_confidence < 100 %}
+                                                        {% with requires_verification=True %}{% endwith %}
+                                                    {% endif %}
+                                                {% endfor %}
+                                                
+                                                {% if requires_verification %}
+                                                    <div class="btn-group-vertical btn-group-sm" role="group">
+                                                        <div class="alert alert-warning p-2 mb-2" style="font-size: 0.8rem;">
+                                                            <i class="fas fa-exclamation-triangle"></i>
+                                                            <strong>Verification Required</strong><br>
+                                                            OCR confidence below 100%. Review prescription photos before approval.
+                                                        </div>
+                                                        <a href="{% url 'prescription_review_list' %}" class="btn btn-warning btn-sm mb-1">
+                                                            <i class="fas fa-search"></i> Verify Prescriptions
+                                                        </a>
+                                                        <button type="button" class="btn btn-success btn-sm mb-1" disabled title="Complete prescription verification first">
+                                                            <i class="fas fa-lock"></i> Approve (Locked)
+                                                        </button>
+                                                        <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="status" value="rejected">
+                                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                                <i class="fas fa-times"></i> Reject
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                {% else %}
+                                                    <div class="btn-group-vertical btn-group-sm" role="group">
+                                                        <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline mb-1">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="status" value="approved">
+                                                            <button type="submit" class="btn btn-success btn-sm">
+                                                                <i class="fas fa-check"></i> Approve
+                                                            </button>
+                                                        </form>
+                                                        <form method="post" action="{% url 'update_order_status' order.id %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="status" value="rejected">
+                                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                                <i class="fas fa-times"></i> Reject
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                {% endif %}
+                                            {% endwith %}
                                         {% elif order.status == 'approved' %}
                                             {% with cash_payment=order.payment %}
                                                 {% if cash_payment and cash_payment.payment_type == 'cash_on_delivery' and cash_payment.status == 'cash_paid' %}
