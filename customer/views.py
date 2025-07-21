@@ -22,6 +22,9 @@ import os
 import base64
 import logging
 
+# Configure logger
+logger = logging.getLogger(__name__)
+
 def home(request):
     """Home page view with search functionality"""
     # Ensure no MoH notifications appear on main homepage
