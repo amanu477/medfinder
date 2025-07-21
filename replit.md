@@ -100,18 +100,19 @@ Preferred communication style: Simple, everyday language.
 - **Customer Notification**: Automatic notification sent to customer when delivery person arrives
 - **Database Migration**: Applied migration to add "arrived" status to delivery model
 
-### QR Code Scanner for Delivery Personnel (July 11, 2025)
-- **Completed**: Created comprehensive QR code scanner page for delivery personnel
-- **Scanner Technology**: Integrated QR-Scanner library with camera access for real-time scanning
-- **Manual Input**: Added manual QR code data input option as backup to camera scanning
+### QR Code Scanner for Delivery Personnel (July 21, 2025)
+- **Completed**: Enhanced QR code scanner with automatic startup and timeout functionality
+- **Auto-Start**: Scanner automatically starts when page loads with 500ms delay
+- **15-Second Timeout**: Scanning automatically stops after 15 seconds with countdown display
+- **Retry Functionality**: Shows retry button after timeout or manual stop for easy restart
+- **Status Updates**: Real-time status display with countdown and visual feedback
 - **Payment Verification**: Displays payment details, order information, and customer data from scanned QR codes
 - **Dual Payment Support**: Handles both cash on delivery and online payment verification workflows
 - **Smart Actions**: Provides context-sensitive action buttons based on payment type
 - **Access Control**: QR scanner only available when delivery status is "arrived"
-- **Dashboard Integration**: Added QR scanner buttons to delivery dashboard and status update pages
+- **Enhanced UX**: Removed testing section, improved user interface with clear status indicators
 - **URL Structure**: Accessible at /delivery/delivery/{delivery_id}/qr-scanner/
 - **Error Handling**: Comprehensive error handling for invalid QR codes and camera permissions
-- **File Upload Removed**: Eliminated file upload option per user request, keeping only camera scanning and manual input
 
 ### Server-Side QR Code Generation System (July 11, 2025)
 - **Completed**: Replaced problematic client-side QR code generation with robust server-side system

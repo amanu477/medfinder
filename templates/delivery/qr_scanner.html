@@ -266,13 +266,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Start 15-second scan timeout
     function startScanTimeout() {
         let countdown = 15;
+        updateStatus(`Scanning for QR code... (${countdown} seconds)`, 'success');
         
         scanTimeout = setInterval(() => {
             countdown--;
-            if (countdown > 0) {
+            if (countdown > 0 && scannerActive) {
                 updateStatus(`Scanning for QR code... (${countdown} seconds)`, 'warning');
             } else {
                 clearInterval(scanTimeout);
+                scanTimeout = null;
                 if (scannerActive) {
                     stopScanner();
                     updateStatus('No QR code found. Click retry to scan again.', 'warning');
@@ -292,6 +294,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!scannerActive) return;
         
         scanningInterval = setInterval(() => {
+            if (!scannerActive) {
+                clearInterval(scanningInterval);
+                scanningInterval = null;
+                return;
+            }
+            
             if (video.readyState === video.HAVE_ENOUGH_DATA) {
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
@@ -396,13 +404,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Process QR code data
     function processQRCode(qrData) {
         try {
-            // Stop scanner if active
-            if (scannerActive && qrScanner) {
-                qrScanner.stop();
-                scannerActive = false;
-                stopBtn.classList.add('d-none');
-                startBtn.classList.remove('d-none');
-            }
+            // Stop scanner completely
+            stopScanner();
 
             // Parse QR code data
             const data = JSON.parse(qrData);
@@ -414,9 +417,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             displayResults(data);
             hideError();
+            scannerStatus.classList.add('d-none');
         } catch (error) {
             console.error('QR processing error:', error);
             showError('Invalid QR code. Please scan a valid payment QR code.');
+            showRetryButton();
         }
     }
 
