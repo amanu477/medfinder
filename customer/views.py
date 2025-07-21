@@ -27,6 +27,15 @@ logger = logging.getLogger(__name__)
 
 def home(request):
     """Home page view with search functionality"""
+    # Redirect delivery personnel directly to their dashboard
+    if request.user.is_authenticated:
+        try:
+            from delivery.models import DeliveryPerson
+            delivery_person = DeliveryPerson.objects.get(user=request.user, is_active=True)
+            return redirect('delivery_dashboard')
+        except DeliveryPerson.DoesNotExist:
+            pass
+    
     # Ensure no MoH notifications appear on main homepage
     context = {
         'suppress_moh_notifications': True,
