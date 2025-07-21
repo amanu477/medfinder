@@ -205,12 +205,33 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize camera with better error handling
     async function initScanner() {
         try {
+            // Reset all states first
+            scannerActive = false;
+            if (scanningInterval) {
+                clearInterval(scanningInterval);
+                scanningInterval = null;
+            }
+            if (scanTimeout) {
+                clearInterval(scanTimeout);
+                scanTimeout = null;
+            }
+            
             hideError();
             updateStatus('Starting camera...', 'info');
             
             // Check if browser supports camera
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 throw new Error('Camera not supported by this browser. Please use manual input instead.');
+            }
+            
+            // Stop any existing streams
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
             }
             
             // Request camera permission
@@ -239,6 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update UI
             stopBtn.classList.remove('d-none');
+            retryBtn.classList.add('d-none');
             updateStatus('Scanning for QR code... (15 seconds)', 'success');
             
             console.log('Scanner initialized successfully');
@@ -352,7 +374,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Retry scanner
     retryBtn.addEventListener('click', async () => {
         retryBtn.classList.add('d-none');
-        await initScanner();
+        hideError();
+        
+        // Make sure scanner is completely stopped before restarting
+        if (scannerActive) {
+            stopScanner();
+        }
+        
+        // Wait a moment before restarting
+        setTimeout(async () => {
+            await initScanner();
+        }, 500);
     });
 
     // Stop scanner
