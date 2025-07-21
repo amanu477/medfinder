@@ -359,8 +359,8 @@ def delivery_confirm_payment(request, delivery_id):
         delivery = get_object_or_404(Delivery, id=delivery_id, delivery_person=delivery_person)
         
         # Check if delivery is ready for confirmation
-        if delivery.status != 'in_transit':
-            messages.error(request, 'Delivery must be in transit to confirm payment.')
+        if delivery.status not in ['in_transit', 'arrived']:
+            messages.error(request, 'Delivery must be in transit or arrived to confirm payment.')
             return redirect('delivery_dashboard')
         
         order = delivery.order
@@ -373,7 +373,78 @@ def delivery_confirm_payment(request, delivery_id):
             messages.error(request, 'No payment information found for this order.')
             return redirect('delivery_dashboard')
         
-        # Handle payment confirmation
+        # Handle QR scanner redirects with GET parameters
+        cash_received = request.GET.get('cash_received')
+        online_verified = request.GET.get('online_verified')
+        issue = request.GET.get('issue')
+        
+        if cash_received == 'true':
+            # Direct cash payment confirmation from QR scanner
+            if payment.payment_type == 'cash_on_delivery':
+                payment.confirm_cash_payment(delivery_person.user)
+                
+                # Complete delivery
+                delivery.status = 'delivered'
+                delivery.delivery_time = timezone.now()
+                delivery_person.total_deliveries += 1
+                delivery_person.save()
+                delivery.save()
+                
+                # Update order status
+                order.status = 'delivered'
+                order.save()
+                
+                # Create tracking entry
+                DeliveryTracking.objects.create(
+                    delivery=delivery,
+                    latitude=delivery_person.current_location_lat or 9.03,
+                    longitude=delivery_person.current_location_lon or 38.76,
+                    status='delivered',
+                    notes='Cash payment confirmed via QR scanner and delivery completed'
+                )
+                
+                messages.success(request, 'Cash payment confirmed and delivery completed successfully.')
+                return redirect('delivery_dashboard')
+            else:
+                messages.error(request, 'This order is not set for cash on delivery.')
+                return redirect('delivery_dashboard')
+        
+        elif online_verified == 'true':
+            # Direct online payment verification from QR scanner
+            if payment.status == 'success':
+                # Complete delivery
+                delivery.status = 'delivered'
+                delivery.delivery_time = timezone.now()
+                delivery_person.total_deliveries += 1
+                delivery_person.save()
+                delivery.save()
+                
+                # Update order status
+                order.status = 'delivered'
+                order.save()
+                
+                # Create tracking entry
+                DeliveryTracking.objects.create(
+                    delivery=delivery,
+                    latitude=delivery_person.current_location_lat or 9.03,
+                    longitude=delivery_person.current_location_lon or 38.76,
+                    status='delivered',
+                    notes='Online payment verified via QR scanner and delivery completed'
+                )
+                
+                messages.success(request, 'Online payment verified and delivery completed successfully.')
+                return redirect('delivery_dashboard')
+            else:
+                messages.error(request, 'Online payment has not been confirmed.')
+                return redirect('delivery_dashboard')
+        
+        elif issue:
+            # Handle issue report from QR scanner
+            messages.error(request, f'Payment issue reported: {issue}')
+            # Could add logic here to create issue tickets or notifications
+            return redirect('delivery_dashboard')
+        
+        # Handle payment confirmation via POST (form submission)
         if request.method == 'POST':
             confirmation_type = request.POST.get('confirmation_type')
             
