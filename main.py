@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Main entry point for the Ethiopian Pharmacy Connection Platform
-This file provides a Flask-compatible interface for the Django application
+This file provides a simple WSGI interface for the Django application
 """
 
 import os
@@ -18,17 +18,12 @@ import django
 django.setup()
 
 # Import Django WSGI application
-from pharmacy_finder.wsgi import application as django_app
+from pharmacy_finder.wsgi import application
 
-# For Flask compatibility, we can wrap the Django app
-from werkzeug.serving import run_simple
-from werkzeug.middleware.dispatcher import DispatcherMiddleware
-from flask import Flask
-
-# Create a simple Flask app that routes to Django
-app = Flask(__name__)
-app.wsgi_app = DispatcherMiddleware(django_app)
+# For Gunicorn compatibility, expose the Django app
+app = application
 
 if __name__ == '__main__':
-    # Run the Django application directly
-    run_simple('0.0.0.0', 5000, django_app, use_reloader=True, use_debugger=True)
+    # For development, use Django's built-in server
+    from django.core.management import execute_from_command_line
+    execute_from_command_line([sys.argv[0], 'runserver', '0.0.0.0:5000'])
