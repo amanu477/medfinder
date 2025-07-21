@@ -84,16 +84,14 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% if receipt.receipt_data.order_items %}
-                                        {% for item in receipt.receipt_data.order_items %}
-                                            <tr>
-                                                <td>{{ item.medicine_name }}</td>
-                                                <td class="text-center">{{ item.quantity }}</td>
-                                                <td class="text-end">ETB {{ item.price }}</td>
-                                                <td class="text-end">ETB {{ item.total }}</td>
-                                            </tr>
-                                        {% endfor %}
-                                    {% endif %}
+                                    {% for item in receipt.order.orderitem_set.all %}
+                                        <tr>
+                                            <td>{{ item.medicine.name }}</td>
+                                            <td class="text-center">{{ item.quantity }}</td>
+                                            <td class="text-end">ETB {{ item.price }}</td>
+                                            <td class="text-end">ETB {{ item.get_total_price }}</td>
+                                        </tr>
+                                    {% endfor %}
                                 </tbody>
                                 <tfoot class="table-light">
                                     <tr>
@@ -111,7 +109,7 @@
                         <div class="row">
                             <div class="col-6">
                                 <small><strong>Payment Method:</strong><br>
-                                {{ receipt.receipt_data.payment_method|default:"Chapa Payment Gateway" }}</small>
+                                {% if payment.payment_type == 'cash_on_delivery' %}Cash on Delivery{% else %}Chapa Payment Gateway{% endif %}</small>
                             </div>
                             <div class="col-6">
                                 <small><strong>Transaction ID:</strong><br>

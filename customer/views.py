@@ -694,20 +694,9 @@ def initiate_payment(request, order_id):
                         'order': payment.order,
                         'customer': payment.order.customer,
                         'pharmacy': payment.order.pharmacy,
-                        'receipt_data': {
-                            'order_items': [
-                                {
-                                    'medicine_name': item.medicine.name,
-                                    'quantity': item.quantity,
-                                    'price': str(item.price),
-                                    'total': str(item.get_total_price())
-                                }
-                                for item in payment.order.orderitem_set.all()
-                            ],
-                            'total_amount': str(payment.order.total_amount),
-                            'order_date': payment.order.created_at.isoformat(),
-                            'payment_method': 'Chapa Payment Gateway',
-                        }
+                        'receipt_number': f'RCP{payment.order.id:06d}',
+                        'total_amount': payment.order.total_amount,
+                        'notes': f'Payment processed via Chapa Payment Gateway on {timezone.now().strftime("%Y-%m-%d %H:%M:%S")}'
                     }
                 )
                 
@@ -766,20 +755,9 @@ def payment_callback(request):
                             'order': payment.order,
                             'customer': payment.order.customer,
                             'pharmacy': payment.order.pharmacy,
-                            'receipt_data': {
-                                'order_items': [
-                                    {
-                                        'medicine_name': item.medicine.name,
-                                        'quantity': item.quantity,
-                                        'price': str(item.price),
-                                        'total': str(item.get_total_price())
-                                    }
-                                    for item in payment.order.orderitem_set.all()
-                                ],
-                                'total_amount': str(payment.order.total_amount),
-                                'order_date': payment.order.created_at.isoformat(),
-                                'payment_method': 'Chapa Payment Gateway',
-                            }
+                            'receipt_number': f'RCP{payment.order.id:06d}',
+                            'total_amount': payment.order.total_amount,
+                            'notes': f'Payment verified via Chapa Payment Gateway. Transaction ID: {trx_ref}'
                         }
                     )
                     

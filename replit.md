@@ -12,7 +12,8 @@
 
 ## Enhanced Prescription Review System with Mandatory Verification (July 21, 2025)
 - **Completed**: Complete integration of OCR results with pharmacy order management and mandatory prescription verification workflow
-- **Order Management Integration**: Pharmacy order management now displays OCR confidence levels for each medicine with color-coded badges (green 100%, yellow 60-99%, red <60%)
+- **Payment System Fix**: Fixed invalid 'receipt_data' field error by updating Receipt model references to use actual order items and payment data
+- **Order Management Integration**: Pharmacy order management now displays OCR confidence percentages with color-coded badges (green 100%, yellow 60-99%, red <60%)
 - **Automatic Verification Triggers**: When customer places order with OCR confidence <100%, system automatically marks cart items for pharmacy review
 - **Blocked Approval Workflow**: Pharmacies cannot approve orders containing medicines with OCR confidence <100% until prescription photos are manually verified
 - **Visual Workflow Indicators**: Order management shows "Verification Required" warnings and locked approval buttons for unverified prescriptions

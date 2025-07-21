@@ -42,15 +42,15 @@
                                         </small>
                                     </div>
                                     
-                                    {% if receipt.receipt_data.order_items %}
+                                    {% if receipt.order.orderitem_set.all %}
                                         <div class="mb-3">
                                             <small class="text-muted fw-bold">Items:</small>
                                             <ul class="list-unstyled small">
-                                                {% for item in receipt.receipt_data.order_items|slice:":2" %}
-                                                    <li>• {{ item.medicine_name }} ({{ item.quantity }})</li>
+                                                {% for item in receipt.order.orderitem_set.all|slice:":2" %}
+                                                    <li>• {{ item.medicine.name }} ({{ item.quantity }})</li>
                                                 {% endfor %}
-                                                {% if receipt.receipt_data.order_items|length > 2 %}
-                                                    <li class="text-muted">... and {{ receipt.receipt_data.order_items|length|add:"-2" }} more</li>
+                                                {% if receipt.order.orderitem_set.all|length > 2 %}
+                                                    <li class="text-muted">... and {{ receipt.order.orderitem_set.all|length|add:"-2" }} more</li>
                                                 {% endif %}
                                             </ul>
                                         </div>
