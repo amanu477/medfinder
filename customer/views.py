@@ -1430,7 +1430,8 @@ def checkout_cart(request):
                         order=order,
                         medicine=cart_item.medicine,
                         quantity=cart_item.quantity,
-                        price=cart_item.medicine.price
+                        price=cart_item.medicine.price,
+                        cart_item=cart_item  # Link to original cart item for OCR data
                     )
                     
                     # Update stock

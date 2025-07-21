@@ -142,6 +142,7 @@ class OrderItem(models.Model):
     medicine = models.ForeignKey('pharmacy.Medicine', on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     price = models.DecimalField(max_digits=10, decimal_places=2)
+    cart_item = models.ForeignKey('CartItem', on_delete=models.SET_NULL, null=True, blank=True, help_text="Reference to original cart item for OCR data")
 
     def __str__(self):
         return f"{self.medicine.name} x {self.quantity}"
@@ -149,6 +150,12 @@ class OrderItem(models.Model):
     def get_total_price(self):
         """Get total price for this item"""
         return self.quantity * self.price
+    
+    def get_ocr_confidence(self):
+        """Get OCR confidence percentage from linked cart item"""
+        if self.cart_item:
+            return self.cart_item.get_ocr_confidence()
+        return 0
 
 class Payment(models.Model):
     """Model for tracking payments (online and cash-on-delivery)"""
