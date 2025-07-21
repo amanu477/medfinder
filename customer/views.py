@@ -1072,12 +1072,19 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
             
             # Create cart item with OCR validation data (for pharmacy visibility)
             cart, created = Cart.objects.get_or_create(customer=customer)
+            
+            # Determine if pharmacy review is required based on OCR confidence
+            ocr_confidence = ocr_result.get('confidence', 0) if ocr_result else 0
+            pharmacy_review_required = ocr_confidence < 100.0
+            
             cart_item, cart_item_created = CartItem.objects.get_or_create(
                 cart=cart,
                 medicine=medicine,
                 defaults={
                     'quantity': quantity,
-                    'validation_data': ocr_result
+                    'validation_data': ocr_result,
+                    'pharmacy_review_required': pharmacy_review_required,
+                    'pharmacy_review_status': 'pending' if pharmacy_review_required else 'not_required'
                 }
             )
             
@@ -1085,6 +1092,8 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
             if not cart_item_created:
                 cart_item.quantity = quantity  # Update quantity
                 cart_item.validation_data = ocr_result  # Update OCR data
+                cart_item.pharmacy_review_required = pharmacy_review_required
+                cart_item.pharmacy_review_status = 'pending' if pharmacy_review_required else 'not_required'
                 cart_item.save()
             
             # Create order item linked to cart item

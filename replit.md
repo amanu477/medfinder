@@ -68,6 +68,7 @@ Preferred communication style: Simple, everyday language.
 - **Cash Payment Collection**: Enhanced delivery confirmation to require cash collection confirmation when customer chose "pay on cash" - delivery person must confirm they collected money before completing order
 - **Logger Fix**: Fixed NameError in customer views by properly defining logger variable for error handling and debugging
 - **Cart Item UNIQUE Constraint Fix**: Fixed UNIQUE constraint error in cart item creation by using get_or_create pattern instead of create for duplicate cart_id/medicine_id combinations
+- **CRITICAL SAFETY FIX**: Fixed pharmacy approval bypass when OCR confidence < 100% - system now properly sets pharmacy_review_required=True and blocks approval until manual prescription verification is completed
 - **Login Credentials**: Pharmacy "Good health pharmacy" - Username: goodhealth, Password: testpass123
 
 ## Recent Changes
