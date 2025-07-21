@@ -77,7 +77,7 @@ class DeliveryAssignmentForm(forms.ModelForm):
             )
     
     def clean_estimated_delivery_time(self):
-        """Validate that estimated delivery time is in the future"""
+        """Validate that estimated delivery time is not in the past"""
         from django.utils import timezone
         import pytz
         estimated_time = self.cleaned_data.get('estimated_delivery_time')
@@ -87,22 +87,12 @@ class DeliveryAssignmentForm(forms.ModelForm):
             
             # Handle timezone conversion - assume input is in UTC to match server time
             if estimated_time.tzinfo is None:
-                # Make naive datetime timezone-aware using UTC (server timezone)
                 estimated_time = timezone.make_aware(estimated_time, pytz.UTC)
             
-            # Require at least 2 minutes in the future to account for processing time
-            buffer_time = now + timezone.timedelta(minutes=2)
-            
-            if estimated_time <= buffer_time:
-                # Display in user-friendly format  
-                now_display = now.strftime("%Y-%m-%d %H:%M UTC")
-                estimated_display = estimated_time.strftime("%Y-%m-%d %H:%M UTC")
-                
+            # Simply check if the time is in the past
+            if estimated_time <= now:
                 raise forms.ValidationError(
-                    f'Estimated delivery time must be at least 2 minutes in the future. '
-                    f'You selected: {estimated_display}. '
-                    f'Current time: {now_display}. '
-                    'Please select a future date and time.'
+                    'Please select a future date and time. You cannot schedule deliveries in the past.'
                 )
         
         return estimated_time
