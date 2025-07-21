@@ -161,7 +161,7 @@
                                                             {% elif ocr_confidence >= 80 %}bg-warning
                                                             {% elif ocr_confidence >= 60 %}bg-warning
                                                             {% else %}bg-danger{% endif %}">
-                                                            OCR: {{ ocr_confidence }}%
+                                                            {{ ocr_confidence }}%
                                                         </span>
                                                         {% if ocr_confidence < 100 %}
                                                             <br><small class="text-danger">
@@ -179,7 +179,11 @@
                                             {% else %}
                                                 <div class="mb-2">
                                                     <strong>{{ item.medicine.name }}:</strong><br>
-                                                    <span class="badge bg-secondary">No OCR</span>
+                                                    <span class="badge bg-secondary">0%</span>
+                                                    <br><small class="text-muted">
+                                                        <i class="fas fa-info-circle"></i> 
+                                                        No prescription scan
+                                                    </small>
                                                 </div>
                                             {% endif %}
                                         {% endfor %}

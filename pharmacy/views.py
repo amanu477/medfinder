@@ -371,18 +371,27 @@ def order_management(request):
     # Enhance orders with cart item OCR data
     for order in orders:
         for order_item in order.orderitem_set.all():
-            # Find corresponding cart item with OCR validation data
+            # Find corresponding cart item (with or without OCR validation data)
             try:
+                # First try to find cart item with validation data
                 cart_item = CartItem.objects.filter(
                     cart__customer=order.customer,
                     medicine=order_item.medicine,
                     validation_data__isnull=False
                 ).first()
                 
+                # If no cart item with validation data, try to find any cart item for this medicine
+                if not cart_item:
+                    cart_item = CartItem.objects.filter(
+                        cart__customer=order.customer,
+                        medicine=order_item.medicine
+                    ).first()
+                
                 if cart_item:
                     order_item.cart_item = cart_item
                     # Check if this item requires verification
-                    if cart_item.get_ocr_confidence() < 100:
+                    ocr_confidence = cart_item.get_ocr_confidence() if cart_item.validation_data else 0
+                    if ocr_confidence < 100:
                         order_item.requires_verification = True
                         # Mark cart item for pharmacy review if not already marked
                         if not cart_item.pharmacy_review_required:
