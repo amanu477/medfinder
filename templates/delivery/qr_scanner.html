@@ -47,8 +47,23 @@
 
                     <!-- Manual Input Methods -->
                     <div class="mt-4">
-                        <h6>Or enter QR code data manually:</h6>
+                        <h6>Alternative Options:</h6>
+                        
+                        <!-- Test QR Code Generator -->
+                        <div class="mb-3">
+                            <button id="generate-test-qr" class="btn btn-info me-2">
+                                <i class="fas fa-qrcode"></i> Generate Test QR Code
+                            </button>
+                            <div id="test-qr-display" class="mt-2 d-none text-center">
+                                <p><strong>Test QR Code:</strong></p>
+                                <div id="test-qr-code"></div>
+                                <small class="text-muted">Point camera at this QR code to test detection</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Manual Input -->
                         <div class="form-group">
+                            <label for="manual-qr-input">Or enter QR code data manually:</label>
                             <textarea id="manual-qr-input" class="form-control" rows="4" placeholder="Paste QR code data here..."></textarea>
                         </div>
                         <button id="process-manual" class="btn btn-primary mt-2">
@@ -166,6 +181,7 @@
 
 {% block extra_js %}
 <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const video = document.getElementById('qr-scanner-video');
@@ -367,9 +383,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         return; // Exit the scanning loop
                     }
                     
-                    // Log scanning attempts for debugging (every 10th scan)
-                    if (Math.random() < 0.1) {
-                        console.log('Scanning... video size:', canvas.width, 'x', canvas.height);
+                    // Log scanning attempts for debugging (every 20th scan)
+                    if (Math.random() < 0.05) {
+                        console.log('Scanning... video size:', canvas.width, 'x', canvas.height, 'video ready:', video.readyState);
                     }
                 } catch (error) {
                     console.error('Scanning error:', error);
@@ -399,6 +415,40 @@ document.addEventListener('DOMContentLoaded', function() {
             requestAnimationFrame(scanFrame);
         }
     }
+
+    // Generate test QR code
+    document.getElementById('generate-test-qr').addEventListener('click', function() {
+        const testData = JSON.stringify({
+            order_id: 22,
+            amount: "205.00",
+            currency: "ETB",
+            payment_type: "cash",
+            customer_name: "Test Customer",
+            test: true
+        });
+        
+        const qrContainer = document.getElementById('test-qr-code');
+        const displayDiv = document.getElementById('test-qr-display');
+        
+        // Generate QR code using QRCode.js library
+        qrContainer.innerHTML = '';
+        QRCode.toCanvas(qrContainer, testData, {
+            width: 200,
+            height: 200,
+            color: {
+                dark: '#000000',
+                light: '#ffffff'
+            }
+        }, function (error) {
+            if (error) {
+                console.error('QR generation error:', error);
+                qrContainer.innerHTML = '<p class="text-danger">Failed to generate QR code</p>';
+            }
+        });
+        
+        displayDiv.classList.remove('d-none');
+        console.log('Test QR code generated with data:', testData);
+    });
 
     // Auto-start scanner on page load
     setTimeout(() => {
