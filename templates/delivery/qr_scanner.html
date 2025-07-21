@@ -295,9 +295,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (countdown > 0 && scannerActive) {
                 updateStatus(`Scanning for QR code... (${countdown} seconds)`, 'warning');
             } else {
+                // Force stop scanning after timeout
                 clearInterval(scanTimeout);
                 scanTimeout = null;
+                
                 if (scannerActive) {
+                    console.log('Timeout reached, forcing scanner stop');
                     stopScanner();
                     updateStatus('No QR code found. Click retry to scan again.', 'warning');
                     showRetryButton();
@@ -313,35 +316,44 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Start scanning loop
     function startScanningLoop() {
-        if (!scannerActive) return;
+        if (!scannerActive) {
+            console.log('Scanner not active, not starting loop');
+            return;
+        }
         
+        console.log('Starting scanning loop');
         scanningInterval = setInterval(() => {
+            // Double check scanner is still active
             if (!scannerActive) {
+                console.log('Scanner deactivated, stopping loop');
                 clearInterval(scanningInterval);
                 scanningInterval = null;
                 return;
             }
             
-            if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
-                
-                if (qrCode) {
-                    console.log('QR code detected:', qrCode.data);
-                    updateStatus('QR code found! Processing...', 'success');
-                    processQRCode(qrCode.data);
-                    stopScanner();
+            if (video && video.readyState === video.HAVE_ENOUGH_DATA) {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                    const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+                    
+                    if (qrCode) {
+                        console.log('QR code detected:', qrCode.data);
+                        updateStatus('QR code found! Processing...', 'success');
+                        processQRCode(qrCode.data);
+                    }
+                } catch (error) {
+                    console.error('Scanning error:', error);
                 }
             }
-        }, 100);
+        }, 200);
     }
 
     // Frame scanning for fallback method
@@ -389,29 +401,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Stop scanner
     function stopScanner() {
+        console.log('Stopping scanner...');
         scannerActive = false;
         
+        // Clear all intervals and timeouts
         if (scanningInterval) {
             clearInterval(scanningInterval);
             scanningInterval = null;
+            console.log('Cleared scanning interval');
         }
         
         if (scanTimeout) {
             clearInterval(scanTimeout);
             scanTimeout = null;
+            console.log('Cleared scan timeout');
         }
         
+        // Stop video streams
         if (stream) {
-            stream.getTracks().forEach(track => track.stop());
+            stream.getTracks().forEach(track => {
+                track.stop();
+                console.log('Stopped stream track');
+            });
             stream = null;
         }
         
-        if (video.srcObject) {
-            video.srcObject.getTracks().forEach(track => track.stop());
+        if (video && video.srcObject) {
+            video.srcObject.getTracks().forEach(track => {
+                track.stop();
+                console.log('Stopped video track');
+            });
             video.srcObject = null;
         }
         
+        // Update UI
         stopBtn.classList.add('d-none');
+        console.log('Scanner stopped completely');
     }
 
     // Stop scanner button click
