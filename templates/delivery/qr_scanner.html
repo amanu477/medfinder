@@ -420,6 +420,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Generate test QR code
     document.getElementById('generate-test-qr').addEventListener('click', function() {
+        console.log('Generate Test QR button clicked');
+        
         const testData = JSON.stringify({
             order_id: 22,
             amount: "205.00",
@@ -432,21 +434,35 @@ document.addEventListener('DOMContentLoaded', function() {
         const qrContainer = document.getElementById('test-qr-code');
         const displayDiv = document.getElementById('test-qr-display');
         
-        // Generate QR code using QRCode.js library
-        qrContainer.innerHTML = '';
-        QRCode.toCanvas(qrContainer, testData, {
-            width: 200,
-            height: 200,
-            color: {
-                dark: '#000000',
-                light: '#ffffff'
-            }
-        }, function (error) {
-            if (error) {
-                console.error('QR generation error:', error);
-                qrContainer.innerHTML = '<p class="text-danger">Failed to generate QR code</p>';
-            }
-        });
+        console.log('QRCode library available:', typeof QRCode !== 'undefined');
+        
+        // Check if QRCode library is available
+        if (typeof QRCode !== 'undefined') {
+            // Generate QR code using QRCode.js library
+            qrContainer.innerHTML = '';
+            QRCode.toCanvas(qrContainer, testData, {
+                width: 150,
+                height: 150,
+                color: {
+                    dark: '#000000',
+                    light: '#ffffff'
+                }
+            }, function (error) {
+                if (error) {
+                    console.error('QR generation error:', error);
+                    qrContainer.innerHTML = '<p class="text-danger">Failed to generate QR code</p>';
+                } else {
+                    console.log('QR code generated successfully');
+                }
+            });
+        } else {
+            // Fallback: create a simple text display
+            console.log('QRCode library not available, using fallback');
+            qrContainer.innerHTML = '<div class="border p-3 text-center bg-light">' +
+                '<small>QR Library Loading...</small><br>' +
+                '<code style="font-size: 10px;">' + testData.substring(0, 50) + '...</code>' +
+                '</div>';
+        }
         
         displayDiv.classList.remove('d-none');
         console.log('Test QR code generated with data:', testData);
@@ -459,6 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Retry scanner
     retryBtn.addEventListener('click', async () => {
+        console.log('Retry button clicked');
         retryBtn.classList.add('d-none');
         hideError();
         
@@ -515,6 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Stop scanner button click
     stopBtn.addEventListener('click', () => {
+        console.log('Stop button clicked');
         stopScanner();
         updateStatus('Scanner stopped. Use retry or manual input.', 'secondary');
         showRetryButton();
@@ -522,7 +540,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Process manual input
     processBtn.addEventListener('click', () => {
+        console.log('Process manual input button clicked');
         const qrData = manualInput.value.trim();
+        console.log('Manual input data:', qrData);
         if (qrData) {
             processQRCode(qrData);
         } else {
