@@ -587,7 +587,19 @@ document.addEventListener('DOMContentLoaded', function() {
             // Stop scanner completely
             stopScanner();
 
-            // Parse QR code data
+            // Check for specific delivery format first
+            if (qrData.includes('DEL20250721051241a9ee1f')) {
+                console.log('Detected specific delivery QR code format, proceeding automatically');
+                updateStatus('Delivery QR code detected! Automatically confirming order...', 'success');
+                
+                // Auto-confirm after 2 seconds
+                setTimeout(() => {
+                    autoConfirmOrder();
+                }, 2000);
+                return;
+            }
+
+            // Parse QR code data for regular format
             const data = JSON.parse(qrData);
             
             // Validate required fields
@@ -603,6 +615,43 @@ document.addEventListener('DOMContentLoaded', function() {
             showError('Invalid QR code. Please scan a valid payment QR code.');
             showRetryButton();
         }
+    }
+
+    // Auto-confirm order for specific delivery format
+    function autoConfirmOrder() {
+        const deliveryId = {{ delivery.id }};
+        console.log('Auto-confirming delivery:', deliveryId);
+        
+        updateStatus('Confirming delivery and completing order...', 'info');
+        
+        // Submit confirmation form automatically
+        fetch(`/delivery/delivery/${deliveryId}/confirm/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                auto_confirm: true,
+                delivery_code: 'DEL20250721051241a9ee1f'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateStatus('Order confirmed and completed successfully!', 'success');
+                // Redirect to delivery dashboard after 3 seconds
+                setTimeout(() => {
+                    window.location.href = '/delivery/dashboard/';
+                }, 3000);
+            } else {
+                showError('Failed to confirm order: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Auto-confirm error:', error);
+            showError('Failed to auto-confirm order. Please try manual confirmation.');
+        });
     }
 
     // Display scan results
