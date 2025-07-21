@@ -1072,12 +1072,20 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
             
             # Create cart item with OCR validation data (for pharmacy visibility)
             cart, created = Cart.objects.get_or_create(customer=customer)
-            cart_item = CartItem.objects.create(
+            cart_item, cart_item_created = CartItem.objects.get_or_create(
                 cart=cart,
                 medicine=medicine,
-                quantity=quantity,
-                validation_data=ocr_result
+                defaults={
+                    'quantity': quantity,
+                    'validation_data': ocr_result
+                }
             )
+            
+            # If cart item already existed, update it with new validation data
+            if not cart_item_created:
+                cart_item.quantity = quantity  # Update quantity
+                cart_item.validation_data = ocr_result  # Update OCR data
+                cart_item.save()
             
             # Create order item linked to cart item
             OrderItem.objects.create(

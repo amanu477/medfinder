@@ -67,6 +67,7 @@ Preferred communication style: Simple, everyday language.
 - **Dual QR System**: QR scanner maintains priority scanning with manual delivery code fallback
 - **Cash Payment Collection**: Enhanced delivery confirmation to require cash collection confirmation when customer chose "pay on cash" - delivery person must confirm they collected money before completing order
 - **Logger Fix**: Fixed NameError in customer views by properly defining logger variable for error handling and debugging
+- **Cart Item UNIQUE Constraint Fix**: Fixed UNIQUE constraint error in cart item creation by using get_or_create pattern instead of create for duplicate cart_id/medicine_id combinations
 - **Login Credentials**: Pharmacy "Good health pharmacy" - Username: goodhealth, Password: testpass123
 
 ## Recent Changes
