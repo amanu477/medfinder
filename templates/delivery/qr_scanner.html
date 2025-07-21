@@ -186,6 +186,8 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - initializing QR scanner');
+    
     const video = document.getElementById('qr-scanner-video');
     const retryBtn = document.getElementById('retry-scanner');
     const stopBtn = document.getElementById('stop-scanner');
@@ -195,6 +197,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorDiv = document.getElementById('qr-error');
     const scannerStatus = document.getElementById('scanner-status');
     const statusText = document.getElementById('status-text');
+    
+    // Debug: Check if all elements are found
+    console.log('Elements found:', {
+        video: !!video,
+        retryBtn: !!retryBtn,
+        stopBtn: !!stopBtn,
+        manualInput: !!manualInput,
+        processBtn: !!processBtn,
+        generateTestBtn: !!document.getElementById('generate-test-qr')
+    });
     
     let stream = null;
     let scannerActive = false;
@@ -419,7 +431,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Generate test QR code
-    document.getElementById('generate-test-qr').addEventListener('click', function() {
+    const generateTestBtn = document.getElementById('generate-test-qr');
+    if (generateTestBtn) {
+        generateTestBtn.addEventListener('click', function() {
         console.log('Generate Test QR button clicked');
         
         const testData = JSON.stringify({
@@ -466,7 +480,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         displayDiv.classList.remove('d-none');
         console.log('Test QR code generated with data:', testData);
-    });
+        });
+    } else {
+        console.error('Generate test QR button not found!');
+    }
 
     // Auto-start scanner on page load
     setTimeout(() => {
@@ -474,21 +491,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500);
     
     // Retry scanner
-    retryBtn.addEventListener('click', async () => {
-        console.log('Retry button clicked');
-        retryBtn.classList.add('d-none');
-        hideError();
-        
-        // Make sure scanner is completely stopped before restarting
-        if (scannerActive) {
-            stopScanner();
-        }
-        
-        // Wait a moment before restarting
-        setTimeout(async () => {
-            await initScanner();
-        }, 500);
-    });
+    if (retryBtn) {
+        retryBtn.addEventListener('click', async () => {
+            console.log('Retry button clicked');
+            retryBtn.classList.add('d-none');
+            hideError();
+            
+            // Make sure scanner is completely stopped before restarting
+            if (scannerActive) {
+                stopScanner();
+            }
+            
+            // Wait a moment before restarting
+            setTimeout(async () => {
+                await initScanner();
+            }, 500);
+        });
+    } else {
+        console.error('Retry button not found!');
+    }
 
     // Stop scanner
     function stopScanner() {
@@ -531,24 +552,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Stop scanner button click
-    stopBtn.addEventListener('click', () => {
-        console.log('Stop button clicked');
-        stopScanner();
-        updateStatus('Scanner stopped. Use retry or manual input.', 'secondary');
-        showRetryButton();
-    });
+    if (stopBtn) {
+        stopBtn.addEventListener('click', () => {
+            console.log('Stop button clicked');
+            stopScanner();
+            updateStatus('Scanner stopped. Use retry or manual input.', 'secondary');
+            showRetryButton();
+        });
+    } else {
+        console.error('Stop button not found!');
+    }
 
     // Process manual input
-    processBtn.addEventListener('click', () => {
-        console.log('Process manual input button clicked');
-        const qrData = manualInput.value.trim();
-        console.log('Manual input data:', qrData);
-        if (qrData) {
-            processQRCode(qrData);
-        } else {
-            showError('Please enter QR code data');
-        }
-    });
+    if (processBtn) {
+        processBtn.addEventListener('click', () => {
+            console.log('Process manual input button clicked');
+            const qrData = manualInput.value.trim();
+            console.log('Manual input data:', qrData);
+            if (qrData) {
+                processQRCode(qrData);
+            } else {
+                showError('Please enter QR code data');
+            }
+        });
+    } else {
+        console.error('Process button not found!');
+    }
 
 
 
