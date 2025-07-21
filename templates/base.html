@@ -26,7 +26,7 @@
         {% elif user.pharmacy %}
             <link rel="stylesheet" href="{% static 'css/pharmacy-theme.css' %}">
         {% elif user.deliveryperson %}
-            <link rel="stylesheet" href="{% static 'css/delivery-theme.css' %}">
+            <link rel="stylesheet" href="{% static 'css/delivery-theme.css' %}?v=orange-2025">
         {% elif user.is_staff or user.is_superuser %}
             <link rel="stylesheet" href="{% static 'css/admin-theme.css' %}">
         {% endif %}
