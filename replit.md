@@ -17,7 +17,7 @@
 - **Automatic Verification Triggers**: When customer places order with OCR confidence <100%, system automatically marks cart items for pharmacy review
 - **Blocked Approval Workflow**: Pharmacies cannot approve orders containing medicines with OCR confidence <100% until prescription photos are manually verified
 - **Visual Workflow Indicators**: Order management shows "Verification Required" warnings and locked approval buttons for unverified prescriptions
-- **Mandatory Steps**: Pharmacies must complete 5 verification steps: confirm image review, assess medicine visibility, indicate confidence level, make decision, provide detailed notes
+- **Mandatory Steps**: Pharmacies must complete 4 verification steps: confirm image review, assess medicine visibility, indicate confidence level, make final decision
 - **Photo Verification Required**: System now requires explicit confirmation that pharmacy has examined prescription image before allowing approval/rejection
 - **Enhanced Form Validation**: Added server-side and client-side validation with logical consistency checks (cannot approve if medicine not visible, cannot approve with low confidence)
 - **Visual Step Progression**: Step-by-step verification interface with visual feedback and progress indicators

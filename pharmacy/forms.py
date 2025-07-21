@@ -346,8 +346,8 @@ class PrescriptionReviewForm(forms.ModelForm):
             ('rejected', 'REJECTED - Medicine does not match prescription')
         ]
         
-        # Make all fields required for proper verification
-        self.fields['pharmacy_review_notes'].required = True
+        # Make critical fields required for proper verification
+        self.fields['pharmacy_review_notes'].required = False  # Optional - decision is sufficient
         self.fields['pharmacy_review_status'].required = True
 
     def clean(self):
@@ -379,9 +379,11 @@ class PrescriptionReviewForm(forms.ModelForm):
             self.add_error('pharmacy_review_status', 
                           'You must make a decision to approve or reject.')
         
-        if not notes or len(notes.strip()) < 20:
+        # Notes are now optional since final decision is sufficient
+        # Only validate notes if they are provided
+        if notes and len(notes.strip()) < 10:
             self.add_error('pharmacy_review_notes', 
-                          'Detailed notes (minimum 20 characters) are required explaining your verification findings.')
+                          'If providing notes, please write at least 10 characters.')
         
         # Logic validation: ensure consistency between assessments and decision
         if status == 'approved':
@@ -397,10 +399,9 @@ class PrescriptionReviewForm(forms.ModelForm):
                 self.add_error('pharmacy_review_status', 
                               'Inconsistent: Cannot reject if medicine is clearly visible with high confidence.')
         
-        # Additional safety check for approval
+        # Additional safety check for approval - but notes are optional
         if status == 'approved' and (medicine_visible != 'yes' or confidence != 'high'):
-            if 'clear justification' not in notes.lower() and 'certain' not in notes.lower():
-                self.add_error('pharmacy_review_notes', 
-                              'For approvals with medium/partial visibility, provide clear justification in notes.')
+            # Warning but not blocking - final decision is sufficient
+            pass
         
         return cleaned_data
