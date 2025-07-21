@@ -79,18 +79,14 @@ class DeliveryAssignmentForm(forms.ModelForm):
     def clean_estimated_delivery_time(self):
         """Validate that estimated delivery time is not in the past"""
         from django.utils import timezone
-        import pytz
+        
         estimated_time = self.cleaned_data.get('estimated_delivery_time')
         
         if estimated_time:
             now = timezone.now()
             
-            # Handle timezone conversion - assume input is in UTC to match server time
-            if estimated_time.tzinfo is None:
-                estimated_time = timezone.make_aware(estimated_time, pytz.UTC)
-            
-            # Simply check if the time is in the past
-            if estimated_time <= now:
+            # Only prevent selecting past dates - be generous with time validation
+            if estimated_time.date() < now.date():
                 raise forms.ValidationError(
                     'Please select a future date and time. You cannot schedule deliveries in the past.'
                 )
