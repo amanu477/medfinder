@@ -49,13 +49,15 @@ This is a comprehensive digital pharmacy ecosystem for Ethiopian users that revo
 Preferred communication style: Simple, everyday language.
 ```
 
-## Recent OCR Confidence Display Fix (July 21, 2025)
-- **Completed**: Fixed OCR confidence percentages not displaying in pharmacy order management interface
+## OCR Data Transfer Fix for Pharmacy Display (July 21, 2025)
+- **Completed**: Fixed OCR confidence percentages from customer prescription validation showing in pharmacy order management
+- **Root Cause**: Direct order creation bypassed cart system, losing OCR validation data from customer prescription validation
+- **Solution**: Modified `create_order_with_prescription()` to create CartItems with OCR data and link OrderItems to them
 - **Database Enhancement**: Added cart_item foreign key relationship to OrderItem model for preserving OCR validation data
 - **Migration Applied**: Successfully migrated database to support cart_item links in order items
-- **Order Creation Update**: Modified checkout process to link CartItems with OrderItems during order creation
+- **Order Creation Update**: Both direct and cart-based ordering now preserve OCR validation data for pharmacy visibility
 - **Template Logic**: Confirmed OCR confidence display template works correctly with color-coded badges
-- **Test Data**: Created Order #35 with 85% OCR confidence for Aspirin demonstrating proper functionality
+- **Test Results**: Order #35 (85% OCR), Order #37 (75% OCR) now display correctly in pharmacy interface
 - **Dual QR System**: QR scanner maintains priority scanning with manual delivery code fallback
 - **Login Credentials**: Pharmacy "Good health pharmacy" - Username: goodhealth, Password: testpass123
 

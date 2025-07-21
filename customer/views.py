@@ -1067,12 +1067,22 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
             
             # Order created successfully - no email notifications needed
             
-            # Create order item
+            # Create cart item with OCR validation data (for pharmacy visibility)
+            cart, created = Cart.objects.get_or_create(customer=customer)
+            cart_item = CartItem.objects.create(
+                cart=cart,
+                medicine=medicine,
+                quantity=quantity,
+                validation_data=ocr_result
+            )
+            
+            # Create order item linked to cart item
             OrderItem.objects.create(
                 order=order,
                 medicine=medicine,
                 quantity=quantity,
-                price=medicine.price
+                price=medicine.price,
+                cart_item=cart_item  # Link to preserve OCR data
             )
             
             # Save prescription image if available
