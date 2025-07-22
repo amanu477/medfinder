@@ -143,6 +143,43 @@
                             
                             <!-- Location Information -->
                             <h5 class="mb-3">Location Information</h5>
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-map-marker-alt"></i> <strong>Location coordinates are required</strong> for customers to see distances to your pharmacy and find you on maps.
+                            </div>
+                            <div class="row mb-4">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ pharmacy_form.latitude.id_for_label }}" class="form-label">Latitude <span class="text-danger">*</span></label>
+                                    {{ pharmacy_form.latitude }}
+                                    {% if pharmacy_form.latitude.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ pharmacy_form.latitude.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">Example: 9.0260 (Addis Ababa area)</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ pharmacy_form.longitude.id_for_label }}" class="form-label">Longitude <span class="text-danger">*</span></label>
+                                    {{ pharmacy_form.longitude }}
+                                    {% if pharmacy_form.longitude.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ pharmacy_form.longitude.errors }}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">Example: 38.7578 (Addis Ababa area)</div>
+                                </div>
+                            </div>
+                            
+                            <!-- How to Find Coordinates -->
+                            <div class="alert alert-light mb-4">
+                                <h6><i class="fas fa-question-circle"></i> How to find your coordinates:</h6>
+                                <ol class="mb-0">
+                                    <li>Go to <a href="https://www.google.com/maps" target="_blank">Google Maps</a></li>
+                                    <li>Search for your pharmacy address</li>
+                                    <li>Right-click on your location</li>
+                                    <li>Click the coordinates to copy them</li>
+                                    <li>Paste latitude (first number) and longitude (second number) above</li>
+                                </ol>
+                            </div>
                             <div class="mb-4">
                                 <p class="mb-3">Your pharmacy's location is used to help customers find medicines near them.</p>
                                 
