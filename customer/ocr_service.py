@@ -3,8 +3,14 @@ OCR Service for Prescription Medicine Validation
 Extracts text from prescription images and validates medicine names
 """
 
-import pytesseract
-from PIL import Image, ImageEnhance, ImageFilter
+try:
+    import pytesseract
+    from PIL import Image, ImageEnhance, ImageFilter
+    TESSERACT_AVAILABLE = True
+except ImportError as e:
+    TESSERACT_AVAILABLE = False
+    print(f"Tesseract not available: {e}")
+
 import re
 from fuzzywuzzy import fuzz, process
 from django.conf import settings
@@ -17,6 +23,24 @@ class PrescriptionOCRService:
     """Service for extracting and validating medicine names from prescription images"""
     
     def __init__(self):
+        # Check if Tesseract is available
+        self.tesseract_available = TESSERACT_AVAILABLE
+        
+        # Try to configure Tesseract path for Windows
+        if self.tesseract_available:
+            import platform
+            if platform.system() == 'Windows':
+                # Common Windows installation paths
+                windows_paths = [
+                    r'C:\Program Files\Tesseract-OCR\tesseract.exe',
+                    r'C:\Program Files (x86)\Tesseract-OCR\tesseract.exe',
+                    r'C:\Tesseract-OCR\tesseract.exe',
+                ]
+                for path in windows_paths:
+                    if os.path.exists(path):
+                        pytesseract.pytesseract.tesseract_cmd = path
+                        break
+        
         # Common medicine name patterns and variations
         self.medicine_keywords = [
             'tablet', 'capsule', 'syrup', 'injection', 'drops', 'cream', 'ointment',
@@ -90,6 +114,10 @@ class PrescriptionOCRService:
         """
         Extract text from prescription image using OCR
         """
+        if not self.tesseract_available:
+            logger.error("Tesseract OCR is not available. Please install Tesseract OCR.")
+            return "Tesseract OCR not installed. Please install Tesseract OCR to use prescription validation."
+            
         try:
             # Preprocess the image
             processed_img = self.preprocess_image(image_path)
