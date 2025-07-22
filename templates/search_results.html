@@ -2,6 +2,10 @@
 
 {% block title %}Search Results for "{{ query }}" - MedFinder{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/customer-theme.css' %}">
+{% endblock %}
+
 {% block content %}
 <section class="py-5 bg-light">
     <div class="container">
@@ -44,15 +48,14 @@
                 <div id="location-status-results" class="mt-2 small text-muted"></div>
             </div>
             {% endif %}
-            </div>
         </div>
         
         <!-- Results -->
-        <div class="row">
+        <div class="row mt-4">
             {% if medicines %}
                 {% for medicine in medicines %}
                 <div class="col-md-6 col-lg-4 mb-4 slide-up">
-                    <div class="search-result-item h-100">
+                    <div class="card search-result-item h-100">
                         <div class="card-body">
                             <div class="text-center mb-3">
                                 {% if medicine.medicine_image %}
