@@ -483,3 +483,70 @@ class MoHPharmacyRegistrationForm(forms.Form):
                     "Only PDF, DOC, DOCX, JPG, JPEG, and PNG files are allowed"
                 )
         return file
+    
+    def clean_issue_date(self):
+        """Validate issue date"""
+        issue_date = self.cleaned_data.get('issue_date')
+        if issue_date:
+            from datetime import date
+            today = date.today()
+            
+            # Issue date can't be in the future (more than today)
+            if issue_date > today:
+                raise forms.ValidationError(
+                    "License issue date cannot be in the future."
+                )
+            
+            # Issue date shouldn't be too old (more than 10 years ago)
+            from datetime import timedelta
+            ten_years_ago = today - timedelta(days=10*365)
+            if issue_date < ten_years_ago:
+                raise forms.ValidationError(
+                    "License issue date cannot be more than 10 years ago."
+                )
+        return issue_date
+    
+    def clean_expiry_date(self):
+        """Validate expiry date - cannot be in the past"""
+        expiry_date = self.cleaned_data.get('expiry_date')
+        if expiry_date:
+            from datetime import date
+            today = date.today()
+            
+            # Expiry date cannot be in the past
+            if expiry_date < today:
+                raise forms.ValidationError(
+                    "License expiry date cannot be in the past. Please enter a valid future date."
+                )
+            
+            # Expiry date shouldn't be too far in the future (more than 20 years)
+            from datetime import timedelta
+            twenty_years_future = today + timedelta(days=20*365)
+            if expiry_date > twenty_years_future:
+                raise forms.ValidationError(
+                    "License expiry date cannot be more than 20 years in the future."
+                )
+        return expiry_date
+    
+    def clean(self):
+        """Cross-field validation"""
+        cleaned_data = super().clean()
+        issue_date = cleaned_data.get('issue_date')
+        expiry_date = cleaned_data.get('expiry_date')
+        
+        # Validate that expiry date is after issue date
+        if issue_date and expiry_date:
+            if expiry_date <= issue_date:
+                raise forms.ValidationError({
+                    'expiry_date': 'License expiry date must be after the issue date.'
+                })
+            
+            # Check minimum license validity (at least 1 year)
+            from datetime import timedelta
+            min_validity = issue_date + timedelta(days=365)
+            if expiry_date < min_validity:
+                raise forms.ValidationError({
+                    'expiry_date': 'License must be valid for at least 1 year from issue date.'
+                })
+        
+        return cleaned_data

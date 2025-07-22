@@ -208,8 +208,8 @@ MESSAGE_TAGS = {
 }
 
 # Chapa Payment Settings
-CHAPA_SECRET_KEY = 'CHASECK_TEST-your-secret-key-here'  # Replace with your actual Chapa secret key
-CHAPA_PUBLIC_KEY = 'CHAPUBK_TEST-your-public-key-here'  # Replace with your actual Chapa public key
+CHAPA_SECRET_KEY = 'CHASECK_TEST-Z1cfTcYZhs9wjQKWS63a5VxFKTuKgsij'  
+CHAPA_PUBLIC_KEY = 'CHAPUBK_TEST-R8UUM2g3K2pY8gJSMsoH8TandtD1HBtk'  
 SITE_URL = 'http://localhost:8000'
 
 # Import local settings if they exist (for local development)

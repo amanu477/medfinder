@@ -207,7 +207,7 @@
                         <i class="fas fa-truck me-2"></i>Go to Delivery Dashboard
                     </a>
                 {% elif user.is_staff %}
-                    <a href="{% url 'platform_admin:dashboard' %}" class="btn btn-outline-light">
+                    <a href="{% url 'platform_admin:admin_dashboard' %}" class="btn btn-outline-light">
                         <i class="fas fa-user-shield me-2"></i>Go to Admin Dashboard
                     </a>
                 {% endif %}

@@ -1,22 +1,27 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 from .models import Pharmacy, Medicine
 from customer.models import CartItem
 import re
 
-class PharmacyUserForm(forms.ModelForm):
+class PharmacyUserForm(UserCreationForm):
     """Form for creating pharmacy user account"""
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     
     class Meta:
         model = User
-        fields = ['username', 'email', 'password']
+        fields = ['username', 'email', 'password1', 'password2']
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to password fields
+        self.fields['password1'].widget.attrs.update({'class': 'form-control'})
+        self.fields['password2'].widget.attrs.update({'class': 'form-control'})
 
     def clean_username(self):
         username = self.cleaned_data.get('username')
@@ -30,14 +35,6 @@ class PharmacyUserForm(forms.ModelForm):
             raise ValidationError("This email address is already registered.")
         return email
 
-    def clean_confirm_password(self):
-        password = self.cleaned_data.get('password')
-        confirm_password = self.cleaned_data.get('confirm_password')
-        
-        if password and confirm_password and password != confirm_password:
-            raise ValidationError("Passwords do not match.")
-        return confirm_password
-
 class PharmacyVerificationForm(forms.ModelForm):
     """Form for pharmacy verification updates"""
     
@@ -50,8 +47,6 @@ class PharmacyVerificationForm(forms.ModelForm):
 
 class PharmacyRegistrationForm(forms.ModelForm):
     """Form for pharmacy registration"""
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}))
     
     class Meta:
         model = Pharmacy
@@ -128,26 +123,7 @@ class PharmacyRegistrationForm(forms.ModelForm):
                 raise ValidationError("License number must be at least 5 characters long.")
         return license_number
 
-    def clean_confirm_password(self):
-        """Validate password confirmation"""
-        password = self.cleaned_data.get('password')
-        confirm_password = self.cleaned_data.get('confirm_password')
-        
-        if password and confirm_password:
-            if password != confirm_password:
-                raise ValidationError("Passwords do not match.")
-            
-            # Password strength validation
-            if len(password) < 8:
-                raise ValidationError("Password must be at least 8 characters long.")
-            if not re.search(r'[A-Z]', password):
-                raise ValidationError("Password must contain at least one uppercase letter.")
-            if not re.search(r'[a-z]', password):
-                raise ValidationError("Password must contain at least one lowercase letter.")
-            if not re.search(r'\d', password):
-                raise ValidationError("Password must contain at least one number.")
-        
-        return confirm_password
+
 
     def clean(self):
         """Custom clean method for 24-hour pharmacy validation"""

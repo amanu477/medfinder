@@ -319,7 +319,7 @@ class Receipt(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
     pharmacy = models.ForeignKey('pharmacy.Pharmacy', on_delete=models.CASCADE)
     payment = models.ForeignKey(Payment, on_delete=models.CASCADE, null=True, blank=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     generated_at = models.DateTimeField(auto_now_add=True)
     is_printed = models.BooleanField(default=False)
     print_count = models.IntegerField(default=0)

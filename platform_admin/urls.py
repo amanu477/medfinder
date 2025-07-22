@@ -25,15 +25,7 @@ urlpatterns = [
     path('orders/', views.admin_order_list, name='admin_order_list'),
     path('prescriptions/', views.admin_prescription_list, name='admin_prescription_list'),
     
-    # Admin reporting system
+    # Incident management
     path('incidents/', views.admin_incident_reports, name='admin_incident_reports'),
-    path('incidents/create/', views.admin_create_incident, name='admin_create_incident'),
-    path('incidents/<int:incident_id>/', views.admin_incident_detail, name='admin_incident_detail'),
-    path('security-alerts/', views.admin_security_alerts, name='admin_security_alerts'),
-    path('security-alerts/create/', views.admin_create_security_alert, name='admin_create_security_alert'),
-    path('notifications/', views.admin_notifications, name='admin_notifications'),
-    path('system-health/', views.admin_system_health, name='admin_system_health'),
-    
-    # Quick reporting
-    path('report-incident/', views.quick_report_incident, name='quick_report_incident'),
+    path('incidents/resolve/<int:incident_id>/', views.admin_resolve_incident, name='admin_resolve_incident'),
 ]
