@@ -436,23 +436,28 @@ def admin_verify_moh(request):
                     'status_updated': True
                 }
             
-        except Exception as e:
-            logger.error(f"Error during MoH verification: {e}")
+        except Exception as moh_error:
+            import traceback
+            logger.error(f"Error during MoH verification: {moh_error}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             response_data = {
                 'valid': False,
-                'message': 'Error accessing MoH registry. Please try again later.',
+                'message': f'Error accessing MoH registry: {str(moh_error)}',
                 'status': 'error',
                 'status_updated': False
             }
         
-        # Create admin notification about the verification - FIXED
-        AdminNotification.objects.create(
-            user=request.user,  # ✅ Changed from 'recipient' to 'user'
-            title=f'MoH Verification: {pharmacy.name}',
-            message=f'MoH verification {"successful" if response_data["valid"] else "failed"} for {pharmacy.name} (License: {license_number})',
-            notification_type='verification',
-            is_read=False
-        )
+        # Create admin notification about the verification
+        try:
+            AdminNotification.objects.create(
+                title=f'MoH Verification: {pharmacy.name}',
+                message=f'MoH verification {"successful" if response_data["valid"] else "failed"} for {pharmacy.name} (License: {license_number}) by {request.user.username}',
+                notification_type='system_alert',
+                is_read=False
+            )
+        except Exception as notification_error:
+            # Don't fail the whole verification if notification creation fails
+            logger.warning(f"Failed to create notification: {notification_error}")
         
         return JsonResponse(response_data)
         

@@ -20,6 +20,7 @@
 - **Replit Migration Complete (July 22, 2025)**: Successfully migrated project from Replit Agent to Replit environment with all dependencies installed and Django server running on port 5000
 - **Medicine Form Fix (July 22, 2025)**: Fixed pharmacy medicine addition form by adding missing checkboxes for "Available" and "Prescription Required" fields, plus added expiration date validation to prevent adding expired medicines
 - **PostgreSQL Database Setup (July 22, 2025)**: Successfully configured and migrated project to use PostgreSQL database with all 52 migrations applied, replacing SQLite for production-ready scalability
+- **MoH Verification Fix (July 22, 2025)**: Fixed HTTP 500 error in Ministry of Health verification system by correcting AdminNotification model usage - removed incorrect 'user' field reference and improved error handling with detailed logging for debugging
 
 ## Overview
 
