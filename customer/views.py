@@ -74,6 +74,8 @@ def search_medicines(request):
             user_lat = float(user_lat)
             user_lon = float(user_lon)
             
+            print(f"DEBUG: User location - Lat: {user_lat}, Lon: {user_lon}")  # Debug log
+            
             medicines_with_distance = []
             for medicine in medicines:
                 pharmacy = medicine.pharmacy
@@ -85,19 +87,26 @@ def search_medicines(request):
                     # Attach distance to medicine object for template display
                     medicine.distance = round(distance, 1)
                     medicines_with_distance.append((medicine, distance))
+                    print(f"DEBUG DISTANCE: {medicine.name} at {pharmacy.name} = {distance:.1f} km")  # Debug log
                     logger.info(f"Medicine: {medicine.name}, Pharmacy: {pharmacy.name}, Distance: {distance:.2f} km")
                 else:
                     medicine.distance = None
                     medicines_with_distance.append((medicine, float('inf')))
+                    print(f"DEBUG: No coordinates for {pharmacy.name}")  # Debug log
             
             # Sort by distance (closest first)
             medicines_with_distance.sort(key=lambda x: x[1])
             medicines = [medicine for medicine, distance in medicines_with_distance]
             
+            print(f"DEBUG: Total medicines with distances: {len([m for m in medicines if hasattr(m, 'distance') and m.distance is not None])}")  # Debug log
+            
         except (ValueError, TypeError) as e:
+            print(f"DEBUG ERROR: {e}")  # Debug log
             logger.error(f"Error calculating distances: {e}")
             # Continue without distance sorting
             pass
+    else:
+        print("DEBUG: No user location provided")  # Debug log
     
     context = {
         'query': query,

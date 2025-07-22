@@ -5,6 +5,49 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/customer-theme.css' %}">
+    <style>
+    .distance-badge {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: 600;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+        border: 2px solid #ffffff;
+    }
+
+    .pharmacy-distance-header {
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        border-left: 4px solid #007bff;
+        margin-bottom: 15px;
+    }
+
+    .medicine-card {
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .medicine-card:hover {
+        border-color: #007bff;
+        box-shadow: 0 4px 12px rgba(0,123,255,0.15);
+        transform: translateY(-2px);
+    }
+
+    .distance-large {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .no-distance {
+        color: #6c757d;
+        font-style: italic;
+    }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -17,11 +60,11 @@
                     {{ medicines|length }} medicines found
                     {% if user_has_location %}
                         <span class="text-success ms-2">
-                            <i class="fas fa-map-marker-alt me-1"></i> Sorted by distance
+                            <i class="fas fa-map-marker-alt me-1"></i> Sorted by distance from your location
                         </span>
                     {% else %}
                         <span class="text-warning ms-2">
-                            <i class="fas fa-info-circle me-1"></i> Enable location for distance sorting
+                            <i class="fas fa-info-circle me-1"></i> Enable location to see distances
                         </span>
                     {% endif %}
                 </p>
@@ -31,145 +74,173 @@
             </a>
         </div>
         
-        <!-- Search Bar -->
-        <div class="customer-card fade-in">
-            <form method="get" action="{% url 'search_medicines' %}" class="d-flex" id="results-search-form">
+        <!-- Location Controls -->
+        <div class="customer-card fade-in mb-4">
+            <form method="get" action="{% url 'search_medicines' %}" class="d-flex mb-3" id="results-search-form">
                 <input type="text" name="query" value="{{ query }}" class="form-control me-2" placeholder="Search for medicines..." required>
-                <input type="hidden" name="lat" id="results-lat">
-                <input type="hidden" name="lon" id="results-lon">
+                <input type="hidden" name="lat" id="results-lat" value="{{ user_location.lat|default:'' }}">
+                <input type="hidden" name="lon" id="results-lon" value="{{ user_location.lon|default:'' }}">
                 <button type="submit" class="btn btn-customer-primary">
                     <i class="fas fa-search me-2"></i> Search
                 </button>
             </form>
+            
             {% if not user_has_location %}
-            <div class="text-center mt-3">
-                <button type="button" class="btn btn-customer-secondary btn-sm" id="enable-location-btn">
-                    <i class="fas fa-map-marker-alt me-1"></i> Enable Location for Distance Sorting
+            <div class="text-center">
+                <button type="button" class="btn btn-success btn-sm me-2" id="enable-location-btn">
+                    <i class="fas fa-crosshairs me-1"></i> Get My Location
                 </button>
-                <div id="location-status-results" class="mt-2 small text-muted"></div>
+                <button type="button" class="btn btn-info btn-sm" id="use-addis-location-btn">
+                    <i class="fas fa-flag me-1"></i> Use Addis Ababa
+                </button>
+                <div id="location-status" class="mt-2 small"></div>
+            </div>
+            {% else %}
+            <div class="alert alert-success text-center py-2 mb-0">
+                <i class="fas fa-check-circle me-1"></i>
+                Location enabled - results sorted by distance
             </div>
             {% endif %}
         </div>
         
         <!-- Results -->
-        <div class="row mt-4">
+        <div class="row">
             {% if medicines %}
                 {% for medicine in medicines %}
-                <div class="col-md-6 col-lg-4 mb-4 slide-up">
-                    <div class="card search-result-item h-100">
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card medicine-card h-100">
                         <div class="card-body">
+                            <!-- Distance Header (Most Prominent) -->
+                            {% if medicine.distance %}
+                            <div class="pharmacy-distance-header text-center">
+                                <div class="distance-large">
+                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                    {{ medicine.distance }} km from you
+                                </div>
+                                <small class="text-muted">Distance to {{ medicine.pharmacy.name }}</small>
+                            </div>
+                            {% elif user_has_location %}
+                            <div class="pharmacy-distance-header text-center">
+                                <div class="no-distance">
+                                    <i class="fas fa-question-circle me-2"></i>
+                                    Distance not available
+                                </div>
+                                <small class="text-muted">{{ medicine.pharmacy.name }}</small>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Medicine Image -->
                             <div class="text-center mb-3">
                                 {% if medicine.medicine_image %}
-                                <img src="{{ medicine.medicine_image.url }}" alt="{{ medicine.name }}" class="medicine-image">
+                                <img src="{{ medicine.medicine_image.url }}" alt="{{ medicine.name }}" class="img-fluid" style="max-height: 80px; border-radius: 8px;">
                                 {% else %}
-                                <div class="d-flex align-items-center justify-content-center medicine-image">
-                                    <i class="fas fa-pills fa-3x text-primary"></i>
+                                <div class="text-primary" style="font-size: 3rem;">
+                                    <i class="fas fa-pills"></i>
                                 </div>
                                 {% endif %}
                             </div>
                             
-                            <h5 class="card-title mb-2">{{ medicine.name }}</h5>
-                            <p class="card-text text-primary mb-2"><strong class="fs-5">{{ medicine.price }} ETB</strong></p>
-                            <div class="mb-3">
-                                <span class="badge bg-info me-2">Stock: {{ medicine.stock_quantity }}</span>
+                            <!-- Medicine Details -->
+                            <h5 class="card-title text-center">{{ medicine.name }}</h5>
+                            <p class="text-center text-primary mb-3">
+                                <strong class="fs-4">{{ medicine.price }} ETB</strong>
+                            </p>
+                            
+                            <!-- Badges -->
+                            <div class="text-center mb-3">
+                                <span class="badge bg-info me-2">
+                                    <i class="fas fa-box me-1"></i>
+                                    Stock: {{ medicine.stock_quantity }}
+                                </span>
                                 {% if medicine.prescription_required %}
                                 <span class="badge bg-warning">
-                                    <i class="fas fa-file-prescription me-1"></i> Prescription Required
+                                    <i class="fas fa-file-prescription me-1"></i>
+                                    Prescription Required
                                 </span>
                                 {% else %}
                                 <span class="badge bg-success">
-                                    <i class="fas fa-check me-1"></i> No Prescription Needed
+                                    <i class="fas fa-check me-1"></i>
+                                    No Prescription
                                 </span>
                                 {% endif %}
                             </div>
-                            <p class="card-text small mb-3">{{ medicine.description|truncatewords:15 }}</p>
                             
-                            <div class="pharmacy-location">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-store text-primary me-2"></i>
-                                        <strong>{{ medicine.pharmacy.name }}</strong>
-                                    </div>
+                            <!-- Description -->
+                            <p class="card-text small text-muted text-center mb-3">
+                                {{ medicine.description|truncatewords:12 }}
+                            </p>
+                            
+                            <!-- Pharmacy Info -->
+                            <div class="border-top pt-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <strong>
+                                        <i class="fas fa-store text-primary me-1"></i>
+                                        {{ medicine.pharmacy.name }}
+                                    </strong>
                                     {% if medicine.distance %}
                                     <span class="distance-badge">
-                                        <i class="fas fa-map-marker-alt me-1"></i>
                                         {{ medicine.distance }} km
                                     </span>
                                     {% endif %}
                                 </div>
+                                
                                 <div class="small text-muted mb-2">
-                                    <i class="fas fa-map-marker-alt me-2"></i>
-                                    <strong>Address:</strong> {{ medicine.pharmacy.address }}
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    {{ medicine.pharmacy.address }}
                                 </div>
+                                
                                 {% if medicine.pharmacy.latitude and medicine.pharmacy.longitude %}
-                                <div class="small text-muted mb-2">
-                                    <i class="fas fa-map me-2"></i>
+                                <div class="mb-2">
                                     <a href="https://www.google.com/maps?q={{ medicine.pharmacy.latitude }},{{ medicine.pharmacy.longitude }}" 
-                                       target="_blank" class="text-decoration-none">
-                                        <strong>View on Map</strong> <i class="fas fa-external-link-alt ms-1"></i>
+                                       target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                                        <i class="fas fa-map me-1"></i>
+                                        View on Google Maps
                                     </a>
                                 </div>
                                 {% endif %}
+                                
                                 <div class="small text-muted mb-2">
-                                    <i class="fas fa-clock me-2"></i>
-                                    <strong>Hours:</strong> 
+                                    <i class="fas fa-phone me-1"></i>
+                                    {{ medicine.pharmacy.phone }}
+                                </div>
+                                
+                                <!-- Store Hours -->
+                                <div class="small mb-2">
+                                    <i class="fas fa-clock me-1"></i>
                                     {% if medicine.pharmacy.is_24_hour %}
-                                        24/7 Open
+                                        <span class="badge bg-success">24/7 Open</span>
                                     {% else %}
                                         {{ medicine.pharmacy.opening_time|time:"g:i A" }} - {{ medicine.pharmacy.closing_time|time:"g:i A" }}
-                                    {% endif %}
-                                </div>
-                                <div class="mb-2">
-                                    {% if medicine.pharmacy.is_open_now %}
-                                        <span class="badge bg-success">
-                                            <i class="fas fa-check-circle me-1"></i> 
-                                            {% if medicine.pharmacy.is_24_hour %}
-                                                24/7 Open
-                                            {% else %}
-                                                Open Now
-                                            {% endif %}
-                                        </span>
-                                    {% else %}
-                                        <span class="badge bg-danger">
-                                            <i class="fas fa-times-circle me-1"></i> Closed
-                                        </span>
-                                        {% if medicine.pharmacy.get_next_opening_time %}
-                                            <small class="text-muted ms-2">{{ medicine.pharmacy.get_next_opening_time }}</small>
+                                        {% if medicine.pharmacy.is_open_now %}
+                                            <span class="badge bg-success ms-1">Open Now</span>
+                                        {% else %}
+                                            <span class="badge bg-danger ms-1">Closed</span>
                                         {% endif %}
                                     {% endif %}
                                 </div>
-                                <div class="small text-muted">
-                                    <i class="fas fa-phone me-2"></i>
-                                    <strong>Phone:</strong> {{ medicine.pharmacy.phone }}
-                                </div>
                             </div>
                             
-                            <div class="d-grid gap-2">
+                            <!-- Action Buttons -->
+                            <div class="d-grid gap-2 mt-3">
                                 {% if user.is_authenticated %}
-                                    <div class="btn-group w-100" role="group">
-                                        <form method="post" action="{% url 'add_to_cart' medicine.id %}" class="flex-grow-1">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="quantity" value="1">
-                                            <input type="hidden" name="skip_prescription" value="true">
-                                            <button type="submit" class="btn btn-customer-primary btn-sm w-100">
-                                                <i class="fas fa-cart-plus me-2"></i> Add to Cart
-                                            </button>
-                                        </form>
-                                    </div>
-                                    <a href="{% url 'prescription_validation' medicine.id %}" class="btn btn-customer-primary btn-sm">
-                                        <i class="fas fa-prescription me-2"></i> Order with Prescription
-                                    </a>
-                                {% else %}
-                                    <a href="{% url 'customer_login' %}?next={% url 'prescription_validation' medicine.id %}" class="btn btn-customer-primary btn-sm">
-                                        <i class="fas fa-sign-in-alt me-2"></i> Login to Order
-                                    </a>
-                                {% endif %}
-                                <a href="tel:{{ medicine.pharmacy.phone }}" class="btn btn-customer-secondary btn-sm">
-                                    <i class="fas fa-phone me-2"></i> {{ medicine.pharmacy.phone }}
+                                <form method="post" action="{% url 'add_to_cart' medicine.id %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn btn-customer-primary w-100">
+                                        <i class="fas fa-cart-plus me-2"></i> Add to Cart
+                                    </button>
+                                </form>
+                                <a href="{% url 'prescription_validation' medicine.id %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-prescription me-2"></i> Order with Prescription
                                 </a>
-                                <button type="button" class="btn btn-customer-secondary btn-sm upload-rx-btn" data-bs-toggle="modal" data-bs-target="#prescriptionModal" data-pharmacy-id="{{ medicine.pharmacy.id }}" data-pharmacy-name="{{ medicine.pharmacy.name }}">
-                                    <i class="fas fa-file-prescription me-2"></i> Send Prescription
-                                </button>
+                                {% else %}
+                                <a href="{% url 'customer_login' %}" class="btn btn-customer-primary">
+                                    <i class="fas fa-sign-in-alt me-2"></i> Login to Order
+                                </a>
+                                {% endif %}
+                                <a href="tel:{{ medicine.pharmacy.phone }}" class="btn btn-outline-success">
+                                    <i class="fas fa-phone me-2"></i> Call Pharmacy
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -177,12 +248,12 @@
                 {% endfor %}
             {% else %}
                 <div class="col-12">
-                    <div class="card shadow-sm">
+                    <div class="card">
                         <div class="card-body text-center py-5">
                             <i class="fas fa-search fa-3x text-secondary mb-3"></i>
-                            <h3 class="h4">No medicines found</h3>
-                            <p class="text-muted mb-4">We couldn't find any medicines matching "{{ query }}"</p>
-                            <p>Try a different search term or <a href="{% url 'upload_prescription' %}" class="text-decoration-none">upload your prescription</a> instead.</p>
+                            <h3>No medicines found</h3>
+                            <p class="text-muted">We couldn't find any medicines matching "{{ query }}"</p>
+                            <a href="{% url 'home' %}" class="btn btn-primary">Try Another Search</a>
                         </div>
                     </div>
                 </div>
@@ -190,123 +261,67 @@
         </div>
     </div>
 </section>
-
-<!-- Prescription Upload Modal -->
-<div class="modal fade" id="prescriptionModal" tabindex="-1" aria-labelledby="prescriptionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="prescriptionModalLabel">Upload Prescription</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="pharmacy-info" class="alert alert-info mb-4 d-flex align-items-center">
-                    <i class="fas fa-store fa-2x me-3"></i>
-                    <div>
-                        <h5 class="mb-1">Sending to:</h5>
-                        <h4 id="selected-pharmacy-name"></h4>
-                    </div>
-                </div>
-                
-                <form method="post" action="{% url 'upload_prescription' %}" enctype="multipart/form-data" class="needs-validation" novalidate>
-                    {% csrf_token %}
-                    <input type="hidden" name="pharmacy_id" id="selected-pharmacy-id">
-                    
-                    <div class="mb-3">
-                        <label for="customer_name" class="form-label">Your Name</label>
-                        <input type="text" name="customer_name" id="customer_name" class="form-control" required>
-                    </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="customer_email" class="form-label">Email Address</label>
-                            <input type="email" name="customer_email" id="customer_email" class="form-control" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="customer_phone" class="form-label">Phone Number</label>
-                            <input type="tel" name="customer_phone" id="customer_phone" class="form-control" required>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="prescription_image" class="form-label">Prescription Image</label>
-                        <input type="file" name="prescription_image" id="prescription_image" class="form-control" accept="image/*" required>
-                        <div class="form-text">Upload a clear photo or scan of your prescription</div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Additional Notes (Optional)</label>
-                        <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
-                    </div>
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane me-2"></i> Submit Prescription
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Distance display script loaded');
+    
     const enableLocationBtn = document.getElementById('enable-location-btn');
-    const locationStatusResults = document.getElementById('location-status-results');
+    const useAddisLocationBtn = document.getElementById('use-addis-location-btn');
+    const locationStatus = document.getElementById('location-status');
     const resultsLatInput = document.getElementById('results-lat');
     const resultsLonInput = document.getElementById('results-lon');
+    const searchForm = document.getElementById('results-search-form');
     
-    // Check if location is already stored
-    const savedLat = localStorage.getItem('customer_lat');
-    const savedLon = localStorage.getItem('customer_lon');
+    // Check for saved location
+    const savedLat = localStorage.getItem('user_lat');
+    const savedLon = localStorage.getItem('user_lon');
     
     if (savedLat && savedLon) {
-        if (resultsLatInput) resultsLatInput.value = savedLat;
-        if (resultsLonInput) resultsLonInput.value = savedLon;
+        resultsLatInput.value = savedLat;
+        resultsLonInput.value = savedLon;
+        console.log('Applied saved location:', savedLat, savedLon);
     }
     
+    // Enable location button
     if (enableLocationBtn) {
         enableLocationBtn.addEventListener('click', function() {
+            console.log('Getting user location...');
+            enableLocationBtn.disabled = true;
+            enableLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Getting Location...';
+            locationStatus.innerHTML = '<span class="text-info">Requesting location access...</span>';
+            
             if (navigator.geolocation) {
-                locationStatusResults.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Getting your location...';
-                enableLocationBtn.disabled = true;
-                
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
                         const lat = position.coords.latitude;
                         const lon = position.coords.longitude;
                         
-                        // Store location
-                        localStorage.setItem('customer_lat', lat);
-                        localStorage.setItem('customer_lon', lon);
+                        console.log('Location obtained:', lat, lon);
                         
-                        // Update form and reload with location
-                        const form = document.getElementById('results-search-form');
-                        const queryInput = form.querySelector('input[name="query"]');
-                        const newUrl = `{% url 'search_medicines' %}?query=${encodeURIComponent(queryInput.value)}&lat=${lat}&lon=${lon}`;
-                        window.location.href = newUrl;
+                        // Save location
+                        localStorage.setItem('user_lat', lat);
+                        localStorage.setItem('user_lon', lon);
+                        
+                        // Update form
+                        resultsLatInput.value = lat;
+                        resultsLonInput.value = lon;
+                        
+                        // Update UI
+                        locationStatus.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>Location enabled! Refreshing search...</span>';
+                        
+                        // Refresh search
+                        setTimeout(() => {
+                            searchForm.submit();
+                        }, 1500);
                     },
                     function(error) {
-                        let errorMsg = 'Unable to get location. ';
-                        switch(error.code) {
-                            case error.PERMISSION_DENIED:
-                                errorMsg += 'Please allow location access for better results.';
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                errorMsg += 'Location information unavailable.';
-                                break;
-                            case error.TIMEOUT:
-                                errorMsg += 'Location request timed out.';
-                                break;
-                            default:
-                                errorMsg += 'An unknown error occurred.';
-                                break;
-                        }
-                        locationStatusResults.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> ' + errorMsg;
+                        console.error('Location error:', error);
                         enableLocationBtn.disabled = false;
+                        enableLocationBtn.innerHTML = '<i class="fas fa-crosshairs me-1"></i> Get My Location';
+                        locationStatus.innerHTML = '<span class="text-danger">Location access failed. Try "Use Addis Ababa" instead.</span>';
                     },
                     {
                         enableHighAccuracy: true,
@@ -315,8 +330,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 );
             } else {
-                locationStatusResults.innerHTML = '<i class="fas fa-exclamation-circle me-1"></i> Geolocation is not supported by this browser.';
+                enableLocationBtn.disabled = false;
+                enableLocationBtn.innerHTML = '<i class="fas fa-crosshairs me-1"></i> Get My Location';
+                locationStatus.innerHTML = '<span class="text-danger">Location not supported by this browser.</span>';
             }
+        });
+    }
+    
+    // Use Addis Ababa location button
+    if (useAddisLocationBtn) {
+        useAddisLocationBtn.addEventListener('click', function() {
+            console.log('Using Addis Ababa location');
+            
+            // Addis Ababa coordinates
+            const addisLat = 9.031401;
+            const addisLon = 38.761015;
+            
+            // Save location
+            localStorage.setItem('user_lat', addisLat);
+            localStorage.setItem('user_lon', addisLon);
+            
+            // Update form
+            resultsLatInput.value = addisLat;
+            resultsLonInput.value = addisLon;
+            
+            // Update UI
+            locationStatus.innerHTML = '<span class="text-success"><i class="fas fa-check me-1"></i>Using Addis Ababa location. Refreshing search...</span>';
+            
+            // Refresh search
+            setTimeout(() => {
+                searchForm.submit();
+            }, 1000);
         });
     }
 });
