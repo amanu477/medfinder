@@ -226,13 +226,16 @@ class MedicineForm(forms.ModelForm):
     
     class Meta:
         model = Medicine
-        fields = ['name', 'description', 'price', 'stock_quantity', 'expiry_date']
+        fields = ['name', 'description', 'price', 'stock_quantity', 'expiry_date', 'is_available', 'prescription_required', 'medicine_image']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0.01'}),
             'stock_quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
             'expiry_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'is_available': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'prescription_required': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'medicine_image': forms.FileInput(attrs={'class': 'form-control'}),
         }
 
     def clean_name(self):
@@ -265,6 +268,25 @@ class MedicineForm(forms.ModelForm):
         if quantity is not None and quantity < 0:
             raise ValidationError("Stock quantity cannot be negative.")
         return quantity
+    
+    def clean_expiry_date(self):
+        """Validate expiry date to prevent adding expired medicines"""
+        expiry_date = self.cleaned_data.get('expiry_date')
+        if expiry_date:
+            from django.utils import timezone
+            today = timezone.now().date()
+            
+            # Check if medicine is already expired
+            if expiry_date < today:
+                raise ValidationError("Cannot add expired medicine. Please check the expiry date.")
+            
+            # Warn if medicine expires very soon (within 7 days)
+            from datetime import timedelta
+            warning_date = today + timedelta(days=7)
+            if expiry_date <= warning_date:
+                raise ValidationError("This medicine expires very soon (within 7 days). Please verify the expiry date.")
+        
+        return expiry_date
 
 class PrescriptionReviewForm(forms.ModelForm):
     """Form for pharmacy to review prescription images and validate medicines"""
