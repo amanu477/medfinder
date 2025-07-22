@@ -52,19 +52,28 @@ def search_medicines(request):
     user_lat = request.GET.get('lat')
     user_lon = request.GET.get('lon')
     
+    print(f"DEBUG SEARCH: Query='{query}', User_lat={user_lat}, User_lon={user_lon}")  # Debug log
+    
     if not query:
-        return render(request, 'search_results.html', {'query': query, 'medicines': []})
+        return render(request, 'search_results.html', {
+            'query': query, 
+            'medicines': [],
+            'user_has_location': bool(user_lat and user_lon)
+        })
     
     # Search for medicines that match the query and are available
     medicines = Medicine.objects.filter(
         Q(name__icontains=query) | Q(description__icontains=query),
         is_available=True,
         pharmacy__is_active=True,
+        pharmacy__verification_status='verified',  # Only verified pharmacies
         stock_quantity__gt=0,
         expiry_date__gt=timezone.now().date()
     ).select_related('pharmacy')
     
-    # If user location is provided, sort by proximity
+    print(f"DEBUG SEARCH: Found {len(medicines)} medicines")  # Debug log
+    
+    # If user location is provided, calculate distances and sort by proximity
     if user_lat and user_lon:
         try:
             from .utils import haversine_distance
@@ -74,39 +83,55 @@ def search_medicines(request):
             user_lat = float(user_lat)
             user_lon = float(user_lon)
             
-            print(f"DEBUG: User location - Lat: {user_lat}, Lon: {user_lon}")  # Debug log
+            print(f"DEBUG LOCATION: User coordinates - Lat: {user_lat}, Lon: {user_lon}")  # Debug log
             
             medicines_with_distance = []
+            total_with_distance = 0
+            total_without_distance = 0
+            
             for medicine in medicines:
                 pharmacy = medicine.pharmacy
+                print(f"DEBUG PHARMACY: {pharmacy.name} - Lat: {pharmacy.latitude}, Lon: {pharmacy.longitude}")  # Debug log
+                
                 if pharmacy.latitude and pharmacy.longitude:
-                    distance = haversine_distance(
-                        user_lat, user_lon,
-                        float(pharmacy.latitude), float(pharmacy.longitude)
-                    )
-                    # Attach distance to medicine object for template display
-                    medicine.distance = round(distance, 1)
-                    medicines_with_distance.append((medicine, distance))
-                    print(f"DEBUG DISTANCE: {medicine.name} at {pharmacy.name} = {distance:.1f} km")  # Debug log
-                    logger.info(f"Medicine: {medicine.name}, Pharmacy: {pharmacy.name}, Distance: {distance:.2f} km")
+                    try:
+                        distance = haversine_distance(
+                            user_lat, user_lon,
+                            float(pharmacy.latitude), float(pharmacy.longitude)
+                        )
+                        # Attach distance to medicine object for template display
+                        medicine.distance = round(distance, 1)
+                        medicines_with_distance.append((medicine, distance))
+                        total_with_distance += 1
+                        print(f"DEBUG DISTANCE: {medicine.name} at {pharmacy.name} = {distance:.1f} km")  # Debug log
+                        logger.info(f"Distance calculated: {medicine.name} at {pharmacy.name} = {distance:.2f} km")
+                    except Exception as calc_error:
+                        print(f"DEBUG CALC ERROR for {pharmacy.name}: {calc_error}")  # Debug log
+                        medicine.distance = None
+                        medicines_with_distance.append((medicine, float('inf')))
+                        total_without_distance += 1
                 else:
                     medicine.distance = None
                     medicines_with_distance.append((medicine, float('inf')))
-                    print(f"DEBUG: No coordinates for {pharmacy.name}")  # Debug log
+                    total_without_distance += 1
+                    print(f"DEBUG NO COORDS: {pharmacy.name} has no coordinates")  # Debug log
             
             # Sort by distance (closest first)
             medicines_with_distance.sort(key=lambda x: x[1])
             medicines = [medicine for medicine, distance in medicines_with_distance]
             
-            print(f"DEBUG: Total medicines with distances: {len([m for m in medicines if hasattr(m, 'distance') and m.distance is not None])}")  # Debug log
+            print(f"DEBUG SUMMARY: {total_with_distance} with distance, {total_without_distance} without distance")  # Debug log
             
         except (ValueError, TypeError) as e:
-            print(f"DEBUG ERROR: {e}")  # Debug log
-            logger.error(f"Error calculating distances: {e}")
-            # Continue without distance sorting
-            pass
+            print(f"DEBUG MAIN ERROR: {e}")  # Debug log
+            logger.error(f"Error in distance calculation: {e}")
+            # Continue without distance sorting but mark all as no distance
+            for medicine in medicines:
+                medicine.distance = None
     else:
-        print("DEBUG: No user location provided")  # Debug log
+        print("DEBUG: No user location provided - distances not calculated")  # Debug log
+        for medicine in medicines:
+            medicine.distance = None
     
     context = {
         'query': query,
