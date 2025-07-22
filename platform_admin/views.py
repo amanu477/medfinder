@@ -404,6 +404,7 @@ def admin_verify_moh(request):
             if moh_record:
                 # License found in MoH registry - approve automatically
                 pharmacy.verification_status = 'verified'
+                pharmacy.moh_verification_status = 'verified'  # ✅ Update MoH verification status
                 pharmacy.verified_at = timezone.now()
                 pharmacy.save()
                 
@@ -427,6 +428,7 @@ def admin_verify_moh(request):
             else:
                 # License not found in MoH registry - reject automatically
                 pharmacy.verification_status = 'rejected'
+                pharmacy.moh_verification_status = 'failed'  # ✅ Update MoH verification status
                 pharmacy.save()
                 
                 response_data = {
