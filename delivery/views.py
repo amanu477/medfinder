@@ -770,7 +770,7 @@ def cash_payment_qr_scanner(request, delivery_id):
 
 @login_required
 def qr_scanner(request, delivery_id):
-    """QR code scanner page for delivery personnel"""
+    """Enhanced QR code scanner page for delivery personnel"""
     try:
         delivery_person = request.user.deliveryperson
     except DeliveryPerson.DoesNotExist:
@@ -784,13 +784,161 @@ def qr_scanner(request, delivery_id):
         messages.error(request, 'QR scanner is only available when delivery status is "arrived".')
         return redirect('delivery_dashboard')
     
+    # Get payment information
+    payment = delivery.order.payment if hasattr(delivery.order, 'payment') else None
+    
     context = {
         'delivery': delivery,
         'order': delivery.order,
-        'payment': delivery.order.payment if hasattr(delivery.order, 'payment') else None,
+        'payment': payment,
+        'payment_type': payment.payment_type if payment else 'unknown',
+        'payment_amount': payment.amount if payment else 0,
+        'is_cash_payment': payment.payment_type == 'cash_on_delivery' if payment else False,
+        'is_online_payment': payment.payment_type == 'online' if payment else False,
     }
     
     return render(request, 'delivery/qr_scanner.html', context)
+
+
+@csrf_exempt
+@login_required
+def process_qr_code(request, delivery_id):
+    """Process QR code data and automatically complete delivery based on payment type"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Only POST method allowed'})
+    
+    try:
+        delivery_person = request.user.deliveryperson
+        delivery = get_object_or_404(Delivery, id=delivery_id, delivery_person=delivery_person)
+        
+        # Parse QR code data
+        data = json.loads(request.body)
+        qr_data = data.get('qr_data', '')
+        
+        if not qr_data:
+            return JsonResponse({'success': False, 'error': 'QR code data required'})
+        
+        # Check if delivery is ready for confirmation
+        if delivery.status not in ['in_transit', 'arrived']:
+            return JsonResponse({'success': False, 'error': 'Delivery must be in transit or arrived'})
+        
+        order = delivery.order
+        payment = order.payment if hasattr(order, 'payment') else None
+        
+        if not payment:
+            return JsonResponse({'success': False, 'error': 'No payment information found'})
+        
+        # Parse QR code data (expecting JSON format)
+        try:
+            qr_info = json.loads(qr_data)
+        except:
+            # Try to handle simple string format
+            qr_info = {'order_id': order.id, 'data': qr_data}
+        
+        # Verify this QR code belongs to this order
+        expected_order_id = str(order.id)
+        qr_order_id = str(qr_info.get('order_id', ''))
+        
+        if qr_order_id != expected_order_id:
+            return JsonResponse({
+                'success': False, 
+                'error': f'QR code mismatch. Expected order {expected_order_id}, got {qr_order_id}'
+            })
+        
+        # Handle based on payment type
+        if payment.payment_type == 'cash_on_delivery':
+            # For cash payments, confirm cash collection
+            cash_amount = float(qr_info.get('amount', payment.amount))
+            
+            if cash_amount != float(payment.amount):
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Amount mismatch. Expected {payment.amount} ETB, QR shows {cash_amount} ETB'
+                })
+            
+            # Confirm cash payment
+            payment.confirm_cash_payment(delivery_person.user)
+            
+            # Complete delivery
+            delivery.status = 'delivered'
+            delivery.delivery_time = timezone.now()
+            delivery.save()
+            
+            # Update order status
+            order.status = 'delivered'
+            order.save()
+            
+            # Update delivery person stats
+            delivery_person.total_deliveries += 1
+            delivery_person.save()
+            
+            # Create tracking entry
+            DeliveryTracking.objects.create(
+                delivery=delivery,
+                latitude=delivery_person.current_location_lat or 9.03,
+                longitude=delivery_person.current_location_lon or 38.76,
+                status='delivered',
+                notes=f'Cash payment of {cash_amount} ETB confirmed via QR scanner'
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Cash payment of {cash_amount} ETB confirmed. Delivery completed!',
+                'payment_type': 'cash',
+                'amount': cash_amount,
+                'order_status': 'delivered'
+            })
+            
+        elif payment.payment_type == 'online':
+            # For online payments, verify payment was successful
+            if payment.status != 'success':
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Online payment not completed. Status: {payment.status}'
+                })
+            
+            # Complete delivery (payment already confirmed)
+            delivery.status = 'delivered'
+            delivery.delivery_time = timezone.now()
+            delivery.save()
+            
+            # Update order status
+            order.status = 'delivered'
+            order.save()
+            
+            # Update delivery person stats
+            delivery_person.total_deliveries += 1
+            delivery_person.save()
+            
+            # Create tracking entry
+            DeliveryTracking.objects.create(
+                delivery=delivery,
+                latitude=delivery_person.current_location_lat or 9.03,
+                longitude=delivery_person.current_location_lon or 38.76,
+                status='delivered',
+                notes='Online payment verified via QR scanner. Delivery completed'
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Online payment verified. Delivery completed!',
+                'payment_type': 'online',
+                'amount': float(payment.amount),
+                'order_status': 'delivered'
+            })
+        
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': f'Unknown payment type: {payment.payment_type}'
+            })
+    
+    except Exception as e:
+        logger.error(f"Error processing QR code: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Error processing QR code: {str(e)}'
+        })
 
 
 @csrf_exempt

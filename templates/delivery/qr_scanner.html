@@ -37,15 +37,25 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <!-- Instructions and alternative options -->
+                            <!-- Payment type and automatic processing info -->
                             <div class="mt-2">
+                                <div class="alert alert-{% if is_cash_payment %}warning{% elif is_online_payment %}success{% else %}info{% endif %}">
+                                    <h6><i class="fas fa-{% if is_cash_payment %}money-bill-wave{% elif is_online_payment %}credit-card{% else %}info-circle{% endif %}"></i> Payment Type: 
+                                    {% if is_cash_payment %}Cash on Delivery{% elif is_online_payment %}Online Payment{% else %}Unknown{% endif %}</h6>
+                                    {% if is_cash_payment %}
+                                    <p class="mb-2"><strong>Amount:</strong> {{ payment_amount }} ETB</p>
+                                    <p class="mb-0 small">QR scanner will automatically confirm cash collection and complete delivery.</p>
+                                    {% elif is_online_payment %}
+                                    <p class="mb-0 small">QR scanner will automatically verify online payment and complete delivery.</p>
+                                    {% endif %}
+                                </div>
                                 <div class="alert alert-info">
                                     <h6><i class="fas fa-info-circle"></i> Quick Guide:</h6>
                                     <ul class="mb-0 small">
                                         <li><strong>Allow camera access</strong> when prompted</li>
                                         <li><strong>Point at QR code</strong> in green frame</li>
-                                        <li><strong>Good lighting</strong> helps detection</li>
-                                        <li><strong>Use alternatives below</strong> if camera fails</li>
+                                        <li><strong>Order completes automatically</strong> when QR is scanned</li>
+                                        <li><strong>Use manual options below</strong> if camera fails</li>
                                     </ul>
                                 </div>
                             </div>
@@ -415,8 +425,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.log('QR code detected successfully:', qrCode.data);
                         // Stop scanner immediately when QR found
                         stopScanner();
-                        updateStatus('QR code found! Processing...', 'success');
-                        processQRCode(qrCode.data);
+                        updateStatus('QR code found! Processing automatically...', 'success');
+                        processQRCodeAutomatically(qrCode.data);
                         return; // Exit the scanning loop
                     }
                     
@@ -795,6 +805,52 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Enhanced automatic processing function
+    function processQRCodeAutomatically(qrData) {
+        console.log('Processing QR code automatically:', qrData);
+        updateStatus('Processing QR code automatically...', 'info');
+        
+        const deliveryId = {{ delivery.id }};
+        const paymentType = '{{ payment_type }}';
+        const isOnlinePayment = {{ is_online_payment|yesno:"true,false" }};
+        const isCashPayment = {{ is_cash_payment|yesno:"true,false" }};
+        
+        // Send QR data to backend for automatic processing
+        fetch(`/delivery/api/process-qr/${deliveryId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                qr_data: qrData
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (data.payment_type === 'cash') {
+                    updateStatus(`✓ Cash payment of ${data.amount} ETB confirmed! Order completed.`, 'success');
+                } else if (data.payment_type === 'online') {
+                    updateStatus(`✓ Online payment verified! Order completed.`, 'success');
+                }
+                
+                // Show success message and redirect
+                setTimeout(() => {
+                    window.location.href = '/delivery/dashboard/';
+                }, 3000);
+            } else {
+                updateStatus('Error: ' + data.error, 'danger');
+                showRetryButton();
+            }
+        })
+        .catch(error => {
+            console.error('Automatic processing error:', error);
+            updateStatus('Failed to process QR code automatically. Please try manual confirmation.', 'warning');
+            showRetryButton();
+        });
+    }
+
     // Show cash payment confirmation dialog
     function showCashPaymentDialog(message, amount, currency, deliveryCode) {
         const dialogHtml = `

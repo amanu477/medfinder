@@ -21,6 +21,7 @@
 - **Medicine Form Fix (July 22, 2025)**: Fixed pharmacy medicine addition form by adding missing checkboxes for "Available" and "Prescription Required" fields, plus added expiration date validation to prevent adding expired medicines
 - **PostgreSQL Database Setup (July 22, 2025)**: Successfully configured and migrated project to use PostgreSQL database with all 52 migrations applied, replacing SQLite for production-ready scalability
 - **MoH Verification Fix (July 22, 2025)**: Fixed HTTP 500 error in Ministry of Health verification system by correcting AdminNotification model usage - removed incorrect 'user' field reference and improved error handling with detailed logging for debugging
+- **Enhanced QR Code Scanner (July 22, 2025)**: Implemented automatic order completion system - QR scanner now automatically processes both online and cash payments, confirms delivery person received cash for COD orders, verifies online payment status, and completes orders without manual intervention
 
 ## Overview
 
