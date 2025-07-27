@@ -18,7 +18,7 @@
 
 /* Customer Body Styling */
 .customer-theme {
-    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #f0f9ff 100%);
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 25%, #93c5fd 50%, #dbeafe 75%, #f0f9ff 100%);
     min-height: 100vh;
     font-family: 'Inter', 'Roboto', sans-serif;
 }

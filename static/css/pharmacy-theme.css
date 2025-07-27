@@ -17,7 +17,7 @@
 
 /* Pharmacy Body Styling */
 .pharmacy-theme {
-    background: var(--pharmacy-gradient);
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 25%, #6ee7b7 50%, #d1fae5 75%, #ecfdf5 100%);
     min-height: 100vh;
     font-family: 'Inter', 'Roboto', sans-serif;
 }

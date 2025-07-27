@@ -14,7 +14,7 @@
 
 /* Delivery Body Styling */
 .delivery-theme {
-    background: linear-gradient(135deg, #fb923c 0%, #ea580c 100%);
+    background: linear-gradient(135deg, #fed7aa 0%, #fdba74 25%, #fb923c 50%, #fed7aa 75%, #fff7ed 100%);
     min-height: 100vh;
     font-family: 'Inter', 'Roboto', sans-serif;
 }
