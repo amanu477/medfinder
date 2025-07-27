@@ -50,12 +50,10 @@ def register(request):
             pharmacy = pharmacy_form.save(commit=False)
             pharmacy.user = user
             
-            # Get coordinates if provided
-            lat = request.POST.get('latitude')
-            lng = request.POST.get('longitude')
-            if lat and lng:
-                pharmacy.latitude = float(lat)
-                pharmacy.longitude = float(lng)
+            # Get coordinates from form (hidden fields)
+            if pharmacy_form.cleaned_data.get('latitude') and pharmacy_form.cleaned_data.get('longitude'):
+                pharmacy.latitude = pharmacy_form.cleaned_data['latitude']
+                pharmacy.longitude = pharmacy_form.cleaned_data['longitude']
             
             # Platform registration is completely separate from MoH
             # No MoH validation during registration - admin will verify later

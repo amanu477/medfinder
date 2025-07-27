@@ -46,13 +46,17 @@ class PharmacyVerificationForm(forms.ModelForm):
         }
 
 class PharmacyRegistrationForm(forms.ModelForm):
-    """Form for pharmacy registration"""
+    """Form for pharmacy registration with automatic location capture"""
+    
+    # Add hidden fields for coordinates
+    latitude = forms.FloatField(required=False, widget=forms.HiddenInput())
+    longitude = forms.FloatField(required=False, widget=forms.HiddenInput())
     
     class Meta:
         model = Pharmacy
-        fields = ['name', 'license_number', 'license_type', 'address', 'phone', 'email', 
-                 'opening_time', 'closing_time', 'is_24_hour', 'verification_documents', 
-                 'business_license', 'pharmacist_certificate']
+        fields = ['name', 'license_number', 'license_type', 'address', 'latitude', 'longitude',
+                 'phone', 'email', 'opening_time', 'closing_time', 'is_24_hour', 
+                 'verification_documents', 'business_license', 'pharmacist_certificate']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'license_number': forms.TextInput(attrs={'class': 'form-control'}),

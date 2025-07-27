@@ -24,6 +24,7 @@
 - **Enhanced QR Code Scanner (July 22, 2025)**: Implemented automatic order completion system - QR scanner now automatically processes both online and cash payments, confirms delivery person received cash for COD orders, verifies online payment status, and completes orders without manual intervention
 - **Performance Optimization (July 27, 2025)**: Optimized distance calculation system with database indexing, result caching, and streamlined queries - removed debug logging, enhanced haversine algorithm, and added automatic coordinate management for all registered pharmacies
 - **Pharmacy Coordinate Management (July 27, 2025)**: All registered pharmacies now automatically have location coordinates for accurate distance calculations - system supports 5 active pharmacies (Good Health, Ambassador, Novel, Evan, Amin) with precise Addis Ababa locations
+- **Automatic Location Capture (July 27, 2025)**: Implemented automatic geolocation capture during pharmacy registration to prevent future coordinate issues - new pharmacies must provide location during registration using browser geolocation or manual coordinate entry, ensuring all future registrations have distance calculation capability
 
 ## Overview
 
