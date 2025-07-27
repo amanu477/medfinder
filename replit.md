@@ -22,6 +22,8 @@
 - **PostgreSQL Database Setup (July 22, 2025)**: Successfully configured and migrated project to use PostgreSQL database with all 52 migrations applied, replacing SQLite for production-ready scalability
 - **MoH Verification Fix (July 22, 2025)**: Fixed HTTP 500 error in Ministry of Health verification system by correcting AdminNotification model usage - removed incorrect 'user' field reference and improved error handling with detailed logging for debugging
 - **Enhanced QR Code Scanner (July 22, 2025)**: Implemented automatic order completion system - QR scanner now automatically processes both online and cash payments, confirms delivery person received cash for COD orders, verifies online payment status, and completes orders without manual intervention
+- **Performance Optimization (July 27, 2025)**: Optimized distance calculation system with database indexing, result caching, and streamlined queries - removed debug logging, enhanced haversine algorithm, and added automatic coordinate management for all registered pharmacies
+- **Pharmacy Coordinate Management (July 27, 2025)**: All registered pharmacies now automatically have location coordinates for accurate distance calculations - system supports 5 active pharmacies (Good Health, Ambassador, Novel, Evan, Amin) with precise Addis Ababa locations
 
 ## Overview
 
