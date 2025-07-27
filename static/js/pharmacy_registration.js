@@ -1,23 +1,26 @@
-// Automatic location capture for pharmacy registration
+// Enhanced pharmacy registration with location capture
 document.addEventListener('DOMContentLoaded', function() {
-    const getLocationBtn = document.querySelector('.get-location-btn');
-    const manualLocationBtn = document.querySelector('.toggle-manual-location');
-    const manualLocationSection = document.getElementById('manual-location-section');
-    const latitudeField = document.getElementById('id_latitude');
-    const longitudeField = document.getElementById('id_longitude');
-    const manualLatField = document.getElementById('manual-latitude');
-    const manualLonField = document.getElementById('manual-longitude');
-    const locationStatus = document.getElementById('location-status');
-    const locationMessage = document.getElementById('location-message');
+    // Wait for other scripts to load first
+    setTimeout(function() {
+        console.log('Enhanced pharmacy registration script loaded');
+        
+        const getLocationBtn = document.querySelector('.get-location-btn');
+        const manualLocationBtn = document.querySelector('.toggle-manual-location');
+        const manualLocationSection = document.getElementById('manual-location-section');
+        const latitudeField = document.getElementById('id_latitude');
+        const longitudeField = document.getElementById('id_longitude');
+        const manualLatField = document.getElementById('manual-latitude');
+        const manualLonField = document.getElementById('manual-longitude');
+        const locationStatus = document.getElementById('location-status');
+        const locationMessage = document.getElementById('location-message');
 
-    console.log('Pharmacy registration script loaded');
-    console.log('Found elements:', {
-        getLocationBtn: !!getLocationBtn,
-        manualLocationBtn: !!manualLocationBtn,
-        manualLocationSection: !!manualLocationSection,
-        latitudeField: !!latitudeField,
-        longitudeField: !!longitudeField
-    });
+        console.log('Found elements:', {
+            getLocationBtn: !!getLocationBtn,
+            manualLocationBtn: !!manualLocationBtn,
+            manualLocationSection: !!manualLocationSection,
+            latitudeField: !!latitudeField,
+            longitudeField: !!longitudeField
+        });
 
     // Automatic location detection
     if (getLocationBtn) {
@@ -84,34 +87,36 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Manual location entry
-    if (manualLocationBtn) {
-        manualLocationBtn.addEventListener('click', function() {
-            console.log('Manual location button clicked');
-            if (manualLocationSection) {
-                manualLocationSection.classList.toggle('d-none');
-                const isVisible = !manualLocationSection.classList.contains('d-none');
+        // Override/enhance the existing manual location functionality
+        if (manualLocationBtn && manualLocationSection) {
+            // Remove existing event listeners by cloning the button
+            const newBtn = manualLocationBtn.cloneNode(true);
+            manualLocationBtn.parentNode.replaceChild(newBtn, manualLocationBtn);
+            
+            newBtn.addEventListener('click', function() {
+                console.log('Enhanced manual location button clicked');
                 
-                manualLocationBtn.innerHTML = isVisible 
-                    ? '<i class="fas fa-eye-slash me-2"></i> Hide Manual Entry'
-                    : '<i class="fas fa-edit me-2"></i> Enter Location Manually';
-                
-                if (isVisible) {
+                // Toggle visibility
+                if (manualLocationSection.classList.contains('d-none')) {
+                    manualLocationSection.classList.remove('d-none');
+                    newBtn.innerHTML = '<i class="fas fa-eye-slash me-2"></i> Hide Manual Entry';
+                    newBtn.classList.remove('btn-outline-secondary');
+                    newBtn.classList.add('btn-outline-warning');
                     showLocationStatus('info', 'Enter your pharmacy coordinates manually.');
+                    
                     // Focus on latitude field
                     if (manualLatField) {
                         setTimeout(() => manualLatField.focus(), 100);
                     }
                 } else {
-                    showLocationStatus('info', 'Click "Get Current Location" to automatically capture your pharmacy\'s coordinates, or enter them manually.');
+                    manualLocationSection.classList.add('d-none');
+                    newBtn.innerHTML = '<i class="fas fa-edit me-2"></i> Enter Location Manually';
+                    newBtn.classList.remove('btn-outline-warning');
+                    newBtn.classList.add('btn-outline-secondary');
+                    showLocationStatus('info', 'Click "Get Current Location" to automatically capture your coordinates.');
                 }
-            } else {
-                console.log('Manual location section not found');
-            }
-        });
-    } else {
-        console.log('Manual location button not found');
-    }
+            });
+        }
 
     // Manual coordinate input handlers
     if (manualLatField && manualLonField) {
@@ -184,6 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Show initial message
-    showLocationStatus('info', 'Click "Get Current Location" to automatically capture your pharmacy\'s coordinates, or enter them manually.');
+        // Show initial message
+        showLocationStatus('info', 'Click "Get Current Location" to automatically capture your pharmacy\'s coordinates, or enter them manually.');
+        
+    }, 500); // Wait 500ms for other scripts to load
 });
