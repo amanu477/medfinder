@@ -25,13 +25,13 @@
                             <a class="nav-link" href="{% url 'pharmacy_dashboard' %}">
                                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                             </a>
-                            <a class="nav-link active" href="{% url 'pharmacy_medicines' %}">
+                            <a class="nav-link active" href="{% url 'medicine_list' %}">
                                 <i class="fas fa-pills me-2"></i> Medicines
                             </a>
-                            <a class="nav-link" href="{% url 'pharmacy_orders' %}">
+                            <a class="nav-link" href="{% url 'order_management' %}">
                                 <i class="fas fa-shopping-cart me-2"></i> Orders
                             </a>
-                            <a class="nav-link" href="{% url 'pharmacy_prescriptions' %}">
+                            <a class="nav-link" href="{% url 'prescription_list' %}">
                                 <i class="fas fa-prescription me-2"></i> Prescriptions
                             </a>
                         </nav>
@@ -123,7 +123,7 @@
                         </button>
                     </form>
                     
-                    <a href="{% url 'pharmacy_medicines' %}" class="btn btn-secondary">
+                    <a href="{% url 'medicine_list' %}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i>
                         Cancel
                     </a>
