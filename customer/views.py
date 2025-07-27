@@ -47,12 +47,10 @@ def login_selector(request):
     return render(request, 'login_selector.html')
 
 def search_medicines(request):
-    """Search medicines and return results sorted by proximity"""
-    query = request.GET.get('query', '')
+    """Fast medicine search with caching and proximity sorting"""
+    query = request.GET.get('query', '').strip()
     user_lat = request.GET.get('lat')
     user_lon = request.GET.get('lon')
-    
-    print(f"DEBUG SEARCH: Query='{query}', User_lat={user_lat}, User_lon={user_lon}")  # Debug log
     
     if not query:
         return render(request, 'search_results.html', {
@@ -61,77 +59,69 @@ def search_medicines(request):
             'user_has_location': bool(user_lat and user_lon)
         })
     
-    # Search for medicines that match the query and are available
+    # Try cache first for speed
+    from .cache import get_search_cache_key, get_cached_search_results, cache_search_results
+    cache_key = get_search_cache_key(query, user_lat, user_lon)
+    cached_medicines = get_cached_search_results(cache_key)
+    
+    if cached_medicines is not None:
+        return render(request, 'search_results.html', {
+            'query': query,
+            'medicines': cached_medicines,
+            'user_location': {'lat': user_lat, 'lon': user_lon} if user_lat and user_lon else None,
+            'user_has_location': bool(user_lat and user_lon),
+        })
+    
+    # Search for medicines with optimized query
     medicines = Medicine.objects.filter(
         Q(name__icontains=query) | Q(description__icontains=query),
         is_available=True,
         pharmacy__is_active=True,
-        pharmacy__verification_status='verified',  # Only verified pharmacies
+        pharmacy__verification_status='verified',
         stock_quantity__gt=0,
         expiry_date__gt=timezone.now().date()
-    ).select_related('pharmacy')
+    ).select_related('pharmacy').only(
+        'id', 'name', 'description', 'price', 'stock_quantity',
+        'pharmacy__id', 'pharmacy__name', 'pharmacy__latitude', 
+        'pharmacy__longitude', 'pharmacy__address', 'pharmacy__phone'
+    )
     
-    print(f"DEBUG SEARCH: Found {len(medicines)} medicines")  # Debug log
-    
-    # If user location is provided, calculate distances and sort by proximity
+    # Fast distance calculation if user location provided
     if user_lat and user_lon:
         try:
             from .utils import haversine_distance
-            import logging
-            logger = logging.getLogger(__name__)
+            user_lat, user_lon = float(user_lat), float(user_lon)
             
-            user_lat = float(user_lat)
-            user_lon = float(user_lon)
-            
-            print(f"DEBUG LOCATION: User coordinates - Lat: {user_lat}, Lon: {user_lon}")  # Debug log
-            
+            # Bulk calculate distances
             medicines_with_distance = []
-            total_with_distance = 0
-            total_without_distance = 0
-            
             for medicine in medicines:
                 pharmacy = medicine.pharmacy
-                print(f"DEBUG PHARMACY: {pharmacy.name} - Lat: {pharmacy.latitude}, Lon: {pharmacy.longitude}")  # Debug log
-                
                 if pharmacy.latitude and pharmacy.longitude:
-                    try:
-                        distance = haversine_distance(
-                            user_lat, user_lon,
-                            float(pharmacy.latitude), float(pharmacy.longitude)
-                        )
-                        # Attach distance to medicine object for template display
-                        medicine.distance = round(distance, 1)
-                        medicines_with_distance.append((medicine, distance))
-                        total_with_distance += 1
-                        print(f"DEBUG DISTANCE: {medicine.name} at {pharmacy.name} = {distance:.1f} km")  # Debug log
-                        logger.info(f"Distance calculated: {medicine.name} at {pharmacy.name} = {distance:.2f} km")
-                    except Exception as calc_error:
-                        print(f"DEBUG CALC ERROR for {pharmacy.name}: {calc_error}")  # Debug log
-                        medicine.distance = None
-                        medicines_with_distance.append((medicine, float('inf')))
-                        total_without_distance += 1
+                    distance = haversine_distance(
+                        user_lat, user_lon,
+                        float(pharmacy.latitude), float(pharmacy.longitude)
+                    )
+                    medicine.distance = round(distance, 1)
+                    medicines_with_distance.append((medicine, distance))
                 else:
                     medicine.distance = None
                     medicines_with_distance.append((medicine, float('inf')))
-                    total_without_distance += 1
-                    print(f"DEBUG NO COORDS: {pharmacy.name} has no coordinates")  # Debug log
             
-            # Sort by distance (closest first)
+            # Fast sort by distance
             medicines_with_distance.sort(key=lambda x: x[1])
-            medicines = [medicine for medicine, distance in medicines_with_distance]
+            medicines = [medicine for medicine, _ in medicines_with_distance]
             
-            print(f"DEBUG SUMMARY: {total_with_distance} with distance, {total_without_distance} without distance")  # Debug log
-            
-        except (ValueError, TypeError) as e:
-            print(f"DEBUG MAIN ERROR: {e}")  # Debug log
-            logger.error(f"Error in distance calculation: {e}")
-            # Continue without distance sorting but mark all as no distance
+        except (ValueError, TypeError):
+            # Fallback without distance sorting
             for medicine in medicines:
                 medicine.distance = None
     else:
-        print("DEBUG: No user location provided - distances not calculated")  # Debug log
+        # No location - set all distances to None
         for medicine in medicines:
             medicine.distance = None
+    
+    # Cache results for faster subsequent searches
+    cache_search_results(cache_key, medicines)
     
     context = {
         'query': query,

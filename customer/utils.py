@@ -2,24 +2,17 @@ import math
 from django.db.models import Q
 
 def haversine_distance(lat1, lon1, lat2, lon2):
-    """
-    Calculate the great circle distance between two points 
-    on the earth (specified in decimal degrees)
-    Returns distance in kilometers
-    """
-    # Convert decimal degrees to radians
+    """Fast distance calculation between two points in kilometers"""
+    # Convert to radians once
     lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
     
-    # Haversine formula
+    # Optimized haversine formula
     dlat = lat2 - lat1
     dlon = lon2 - lon1
-    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
-    c = 2 * math.asin(math.sqrt(a))
+    a = math.sin(dlat*0.5)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon*0.5)**2
     
-    # Radius of earth in kilometers
-    r = 6371
-    
-    return c * r
+    # Earth radius in km
+    return 6371 * 2 * math.asin(math.sqrt(a))
 
 def get_nearby_pharmacies_with_medicine(user_lat, user_lon, medicine_query, max_distance_km=50):
     """
