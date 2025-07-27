@@ -10,6 +10,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const locationStatus = document.getElementById('location-status');
     const locationMessage = document.getElementById('location-message');
 
+    console.log('Pharmacy registration script loaded');
+    console.log('Found elements:', {
+        getLocationBtn: !!getLocationBtn,
+        manualLocationBtn: !!manualLocationBtn,
+        manualLocationSection: !!manualLocationSection,
+        latitudeField: !!latitudeField,
+        longitudeField: !!longitudeField
+    });
+
     // Automatic location detection
     if (getLocationBtn) {
         getLocationBtn.addEventListener('click', function() {
@@ -78,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Manual location entry
     if (manualLocationBtn) {
         manualLocationBtn.addEventListener('click', function() {
+            console.log('Manual location button clicked');
             if (manualLocationSection) {
                 manualLocationSection.classList.toggle('d-none');
                 const isVisible = !manualLocationSection.classList.contains('d-none');
@@ -88,9 +98,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (isVisible) {
                     showLocationStatus('info', 'Enter your pharmacy coordinates manually.');
+                    // Focus on latitude field
+                    if (manualLatField) {
+                        setTimeout(() => manualLatField.focus(), 100);
+                    }
+                } else {
+                    showLocationStatus('info', 'Click "Get Current Location" to automatically capture your pharmacy\'s coordinates, or enter them manually.');
                 }
+            } else {
+                console.log('Manual location section not found');
             }
         });
+    } else {
+        console.log('Manual location button not found');
     }
 
     // Manual coordinate input handlers
@@ -99,17 +119,28 @@ document.addEventListener('DOMContentLoaded', function() {
             const lat = parseFloat(manualLatField.value);
             const lon = parseFloat(manualLonField.value);
             
+            console.log('Manual coordinates entered:', lat, lon);
+            
             if (!isNaN(lat) && !isNaN(lon)) {
                 if (latitudeField) latitudeField.value = lat;
                 if (longitudeField) longitudeField.value = lon;
                 
                 showLocationStatus('success', `Manual coordinates set: Latitude: ${lat}, Longitude: ${lon}`);
                 console.log('Manual pharmacy coordinates set:', lat, lon);
+            } else if (manualLatField.value || manualLonField.value) {
+                showLocationStatus('info', 'Please enter both latitude and longitude coordinates.');
             }
         }
         
         manualLatField.addEventListener('input', updateFromManualEntry);
         manualLonField.addEventListener('input', updateFromManualEntry);
+        manualLatField.addEventListener('blur', updateFromManualEntry);
+        manualLonField.addEventListener('blur', updateFromManualEntry);
+    } else {
+        console.log('Manual coordinate fields not found:', {
+            manualLatField: !!manualLatField,
+            manualLonField: !!manualLonField
+        });
     }
 
     // Form submission validation
