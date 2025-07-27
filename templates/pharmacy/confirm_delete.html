@@ -1,0 +1,100 @@
+{% extends 'pharmacy/base.html' %}
+
+{% block title %}Delete Medicine - {{ medicine.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trash-alt me-2"></i>
+                        Delete Medicine
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning!</strong> This action cannot be undone.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-3">
+                            {% if medicine.medicine_image %}
+                            <img src="{{ medicine.medicine_image.url }}" alt="{{ medicine.name }}" 
+                                 class="img-fluid rounded shadow-sm">
+                            {% else %}
+                            <div class="bg-light rounded p-4 text-center">
+                                <i class="fas fa-pills fa-3x text-muted"></i>
+                                <p class="text-muted mt-2 mb-0">No Image</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-9">
+                            <h4>{{ medicine.name }}</h4>
+                            <p class="text-muted mb-3">{{ medicine.description|default:"No description available" }}</p>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-6">
+                                    <strong>Price:</strong> {{ medicine.price }} ETB
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Stock:</strong> {{ medicine.stock_quantity }} units
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-sm-6">
+                                    <strong>Status:</strong> 
+                                    {% if medicine.is_available %}
+                                        <span class="badge bg-success">Available</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Not Available</span>
+                                    {% endif %}
+                                </div>
+                                <div class="col-sm-6">
+                                    <strong>Prescription:</strong>
+                                    {% if medicine.prescription_required %}
+                                        <span class="badge bg-warning">Required</span>
+                                    {% else %}
+                                        <span class="badge bg-info">Not Required</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if medicine.expiry_date %}
+                            <div class="row mb-3">
+                                <div class="col-sm-6">
+                                    <strong>Expiry Date:</strong> {{ medicine.expiry_date|date:"F d, Y" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <p class="text-danger mb-4">
+                        <strong>Are you sure you want to delete "{{ medicine.name }}"?</strong><br>
+                        This will permanently remove the medicine from your inventory and cannot be reversed.
+                    </p>
+                    
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger me-2">
+                            <i class="fas fa-trash-alt me-1"></i>
+                            Yes, Delete Medicine
+                        </button>
+                    </form>
+                    
+                    <a href="{% url 'pharmacy_medicines' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
