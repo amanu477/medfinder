@@ -1,18 +1,53 @@
-{% extends 'pharmacy/base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Delete Medicine - {{ medicine.name }}{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-trash-alt me-2"></i>
-                        Delete Medicine
-                    </h5>
+<section class="py-4">
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="pharmacy-avatar me-3">
+                                <i class="fas fa-store fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">{{ request.user.pharmacy.name }}</h6>
+                                <small class="text-muted">Pharmacy Dashboard</small>
+                            </div>
+                        </div>
+                        
+                        <nav class="nav flex-column">
+                            <a class="nav-link" href="{% url 'pharmacy_dashboard' %}">
+                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                            </a>
+                            <a class="nav-link active" href="{% url 'pharmacy_medicines' %}">
+                                <i class="fas fa-pills me-2"></i> Medicines
+                            </a>
+                            <a class="nav-link" href="{% url 'pharmacy_orders' %}">
+                                <i class="fas fa-shopping-cart me-2"></i> Orders
+                            </a>
+                            <a class="nav-link" href="{% url 'pharmacy_prescriptions' %}">
+                                <i class="fas fa-prescription me-2"></i> Prescriptions
+                            </a>
+                        </nav>
+                    </div>
                 </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-trash-alt me-2"></i>
+                            Delete Medicine
+                        </h5>
+                    </div>
                 <div class="card-body">
                     <div class="alert alert-warning">
                         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -96,5 +131,5 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}
