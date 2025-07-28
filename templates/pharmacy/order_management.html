@@ -157,13 +157,13 @@
                                                     <div class="mb-2">
                                                         <strong>{{ item.medicine.name }}:</strong><br>
                                                         <span class="badge 
-                                                            {% if ocr_confidence == 100 %}bg-success
+                                                            {% if ocr_confidence >= 91 %}bg-success
                                                             {% elif ocr_confidence >= 80 %}bg-warning
                                                             {% elif ocr_confidence >= 60 %}bg-warning
                                                             {% else %}bg-danger{% endif %}">
                                                             {{ ocr_confidence }}%
                                                         </span>
-                                                        {% if ocr_confidence < 100 %}
+                                                        {% if ocr_confidence < 91 %}
                                                             <br><small class="text-danger">
                                                                 <i class="fas fa-exclamation-triangle"></i> 
                                                                 Verification Required
@@ -216,7 +216,7 @@
                                             {% comment %} Check if any order items require OCR verification {% endcomment %}
                                             {% with requires_verification=False %}
                                                 {% for item in order.orderitem_set.all %}
-                                                    {% if item.cart_item and item.cart_item.validation_data and item.cart_item.get_ocr_confidence < 100 %}
+                                                    {% if item.cart_item and item.cart_item.validation_data and item.cart_item.get_ocr_confidence < 91 %}
                                                         {% with requires_verification=True %}{% endwith %}
                                                     {% endif %}
                                                 {% endfor %}
@@ -226,7 +226,7 @@
                                                         <div class="alert alert-warning p-2 mb-2" style="font-size: 0.8rem;">
                                                             <i class="fas fa-exclamation-triangle"></i>
                                                             <strong>Verification Required</strong><br>
-                                                            OCR confidence below 100%. Review prescription photos before approval.
+                                                            OCR confidence below 91%. Review prescription photos before approval.
                                                         </div>
                                                         <a href="{% url 'prescription_review_list' %}" class="btn btn-warning btn-sm mb-1">
                                                             <i class="fas fa-search"></i> Verify Prescriptions

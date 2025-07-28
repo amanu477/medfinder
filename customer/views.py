@@ -1117,7 +1117,7 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
             
             # Determine if pharmacy review is required based on OCR confidence
             ocr_confidence = ocr_result.get('confidence', 0) if ocr_result else 0
-            pharmacy_review_required = ocr_confidence < 100.0
+            pharmacy_review_required = ocr_confidence < 91.0
             
             cart_item, cart_item_created = CartItem.objects.get_or_create(
                 cart=cart,
@@ -1546,9 +1546,9 @@ def bulk_ocr_verification(request):
                         cart_item.prescription_image = prescription_image
                         cart_item.validation_data = ocr_result
                         
-                        # Check if pharmacy review is required (OCR confidence < 100%)
+                        # Check if pharmacy review is required (OCR confidence < 91%)
                         confidence = ocr_result.get('confidence', 0)
-                        if confidence < 100 and confidence > 0:
+                        if confidence < 91 and confidence > 0:
                             cart_item.pharmacy_review_required = True
                             cart_item.pharmacy_review_status = 'pending'
                         else:
