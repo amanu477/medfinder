@@ -1413,29 +1413,18 @@ def checkout_cart(request):
                         notes=f'Order created from cart - {len(items)} items{"" if not prescription_image else " (with prescription)"}'
                     )
                 
-                # Create order items
+                # Create order items and preserve OCR data
                 for cart_item in items:
                     # Check stock availability
                     if cart_item.quantity > cart_item.medicine.stock_quantity:
                         raise Exception(f'Only {cart_item.medicine.stock_quantity} units of {cart_item.medicine.name} available.')
-                    
-                    # Create a copy of the cart item to preserve OCR data
-                    preserved_cart_item = CartItem.objects.create(
-                        cart=cart,  # Keep reference to cart
-                        medicine=cart_item.medicine,
-                        quantity=cart_item.quantity,
-                        prescription_image=cart_item.prescription_image,
-                        validation_data=cart_item.validation_data,
-                        pharmacy_review_required=cart_item.pharmacy_review_required,
-                        pharmacy_review_status=cart_item.pharmacy_review_status
-                    )
                     
                     OrderItem.objects.create(
                         order=order,
                         medicine=cart_item.medicine,
                         quantity=cart_item.quantity,
                         price=cart_item.medicine.price,
-                        cart_item=preserved_cart_item  # Link to preserved cart item for OCR data
+                        cart_item=cart_item  # Link to original cart item for OCR data
                     )
                     
                     # Update stock
@@ -1446,10 +1435,11 @@ def checkout_cart(request):
                 
                 # Order created successfully - no email notifications needed
             
-            # Clear only the original cart items (not the preserved ones)
-            # The preserved cart items will keep the OCR data for pharmacy review
+            # Mark cart items as ordered but don't delete them to preserve OCR data
+            # Set quantity to 0 to hide from cart view while preserving validation data
             for cart_item in cart_items:
-                cart_item.delete()
+                cart_item.quantity = 0  # Hide from cart but preserve OCR data
+                cart_item.save()
         
         if len(created_orders) == 1:
             order = created_orders[0]
