@@ -243,12 +243,28 @@ class PrescriptionOCRService:
                             clean_name = re.sub(r'mg|ml|gm|mcg', '', clean_name, flags=re.IGNORECASE).strip()
                             
                             if len(clean_name) >= 4:
+                                # Also add the original word without cleaning for better matching
                                 potential_medicines.append(clean_name)
+                                if word_clean != clean_name and len(word_clean) >= 4:
+                                    potential_medicines.append(word_clean)
         
-        # Also try to find medicine names from the common list
+        # Also try to find medicine names from the common list using fuzzy matching
+        text_lower = text.lower()
+        text_words = text_lower.split()
+        
         for medicine in self.common_ethiopian_medicines:
-            if medicine.lower() in text.lower():
+            # Direct substring search
+            if medicine.lower() in text_lower:
                 potential_medicines.append(medicine)
+            else:
+                # Fuzzy matching with individual words
+                for word in text_words:
+                    clean_word = re.sub(r'[^\w]', '', word)
+                    if len(clean_word) >= 4:
+                        similarity = fuzz.ratio(medicine.lower(), clean_word)
+                        if similarity >= 85:  # High similarity for common medicines
+                            potential_medicines.append(medicine)
+                            break
         
         # Remove duplicates and return
         return list(set(potential_medicines))
@@ -323,9 +339,11 @@ class PrescriptionOCRService:
             logger.info(f"Variations to check: {medicine_to_check}")
             logger.info(f"Extracted medicines: {extracted_medicines}")
             logger.info(f"Extracted text length: {len(extracted_text)} characters")
+            logger.info(f"First 200 chars of extracted text: {extracted_text[:200]}")
             
-            # Strategy 1: Direct text search (highest confidence)
+            # Strategy 1: Direct text search (highest confidence) - Enhanced for better partial matching
             for med_variation in medicine_to_check:
+                # Check for exact substring match (case-insensitive)
                 if med_variation.lower() in extracted_text.lower():
                     # Direct match found, set high confidence
                     direct_confidence = 95
@@ -333,18 +351,37 @@ class PrescriptionOCRService:
                         best_match = (med_variation, direct_confidence)
                         best_confidence = direct_confidence
                         logger.info(f"Found direct text match for '{med_variation}' with confidence {direct_confidence}")
-            
-            # Strategy 2: Exact word matching in extracted medicines list
-            if best_confidence == 0:  # Only if no direct match found
-                for med_variation in medicine_to_check:
-                    for extracted_med in extracted_medicines:
-                        # Use strict ratio matching for exact medicine names
-                        similarity = fuzz.ratio(med_variation.lower(), extracted_med.lower())
-                        if similarity >= 85:  # High threshold for medicine name matching
+                
+                # Also check with fuzzy matching for partial words in the full text
+                # Split extracted text into words and check each word
+                text_words = extracted_text.lower().split()
+                for word in text_words:
+                    clean_word = re.sub(r'[^\w]', '', word)
+                    if len(clean_word) >= 4:  # Skip very short words
+                        # Use fuzzy matching for better partial matching
+                        similarity = fuzz.ratio(med_variation.lower(), clean_word)
+                        if similarity >= 80:  # Lower threshold for direct text matching
                             if similarity > best_confidence:
-                                best_match = (extracted_med, similarity)
+                                best_match = (clean_word, similarity)
                                 best_confidence = similarity
-                                logger.info(f"Found exact medicine match: '{extracted_med}' for '{med_variation}' with confidence {similarity}")
+                                logger.info(f"Found fuzzy text match: '{clean_word}' for '{med_variation}' with confidence {similarity}")
+            
+            # Strategy 2: Enhanced word matching in extracted medicines list
+            for med_variation in medicine_to_check:
+                for extracted_med in extracted_medicines:
+                    # Multiple fuzzy matching techniques for better accuracy
+                    ratio_score = fuzz.ratio(med_variation.lower(), extracted_med.lower())
+                    partial_score = fuzz.partial_ratio(med_variation.lower(), extracted_med.lower())
+                    token_score = fuzz.token_set_ratio(med_variation.lower(), extracted_med.lower())
+                    
+                    # Use the highest score from different matching methods
+                    similarity = max(ratio_score, partial_score, token_score)
+                    
+                    if similarity >= 75:  # Reduced threshold for better matching
+                        if similarity > best_confidence:
+                            best_match = (extracted_med, similarity)
+                            best_confidence = similarity
+                            logger.info(f"Found medicine match: '{extracted_med}' for '{med_variation}' with confidence {similarity} (ratio:{ratio_score}, partial:{partial_score}, token:{token_score})")
             
             # Strategy 3: Word-by-word matching in text (more conservative)
             if best_confidence == 0:  # Only if no good match found yet
@@ -362,9 +399,9 @@ class PrescriptionOCRService:
                                     best_confidence = similarity
                                     logger.info(f"Found word match: '{clean_word}' for '{med_variation}' with confidence {similarity}")
             
-            # Strategy 4: If still no match, medicine is not in prescription
-            if best_confidence < 70:  # If no strong match found, consider it not found
-                logger.info(f"No strong match found for '{manual_medicine_name}' in prescription. Best confidence: {best_confidence}%")
+            # Strategy 4: Enhanced final validation - Allow lower confidence matches but still filter out very low ones
+            if best_confidence < 50:  # Lowered threshold - if no decent match found, consider it not found
+                logger.info(f"No decent match found for '{manual_medicine_name}' in prescription. Best confidence: {best_confidence}%")
                 best_confidence = 0
                 best_match = None
             
