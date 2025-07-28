@@ -53,7 +53,8 @@ class PrescriptionOCRService:
             'metronidazole', 'chloramphenicol', 'tetracycline', 'erythromycin',
             'cotrimoxazole', 'doxycycline', 'fluconazole', 'nystatin', 'albendazole',
             'mebendazole', 'iron', 'folic acid', 'vitamin', 'omeprazole', 'ranitidine',
-            'diclofenac', 'prednisolone', 'hydrocortisone', 'salbutamol', 'theophylline'
+            'diclofenac', 'prednisolone', 'hydrocortisone', 'salbutamol', 'theophylline',
+            'terbinafine', 'terbonile', 'ketoconazole', 'clotrimazole', 'miconazole'
         ]
         
         # Medicine name variations and common misspellings
@@ -66,6 +67,10 @@ class PrescriptionOCRService:
             'metronidazole': ['flagyl', 'metronidazol', 'metronidazole'],
             'omeprazole': ['losec', 'prilosec', 'omeprazol', 'omeprazole'],
             'diclofenac': ['voltaren', 'diclofenac', 'diclofen', 'diclofenac'],
+            'terbinafine': ['terbonile', 'lamisil', 'terbinafin', 'terbinafine'],
+            'fluconazole': ['diflucan', 'fluconazol', 'flucanazole'],
+            'ketoconazole': ['nizoral', 'ketoconazol', 'ketaconazole'],
+            'clotrimazole': ['canesten', 'clotrimazol', 'clotrimezole'],
         }
     
     def preprocess_image(self, image_path):

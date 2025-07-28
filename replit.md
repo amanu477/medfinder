@@ -26,6 +26,7 @@
 - **Pharmacy Coordinate Management (July 27, 2025)**: All registered pharmacies now automatically have location coordinates for accurate distance calculations - system supports 5 active pharmacies (Good Health, Ambassador, Novel, Evan, Amin) with precise Addis Ababa locations
 - **Automatic Location Capture (July 27, 2025)**: Implemented automatic geolocation capture during pharmacy registration to prevent future coordinate issues - new pharmacies must provide location during registration using browser geolocation or manual coordinate entry, ensuring all future registrations have distance calculation capability
 - **Live Delivery Tracking (July 28, 2025)**: Implemented real-time location tracking for delivery personnel - customers can now see delivery person's live location on an interactive map when order status is "in_transit", with automatic location updates every 30 seconds, destination markers, and delivery person info popups
+- **OCR Case-Insensitive Matching Fix (July 28, 2025)**: Fixed critical OCR medicine matching issue where case sensitivity caused 0% confidence scores - enhanced fuzzy matching algorithms with multiple techniques (ratio, partial_ratio, token_set_ratio), added medicine brand name variations (terbinafine/terbonile, etc.), and lowered confidence thresholds for better medicine detection accuracy
 
 ## Overview
 
