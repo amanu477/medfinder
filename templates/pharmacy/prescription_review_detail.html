@@ -232,6 +232,30 @@
                             {% endif %}
                         </div>
                         
+                        <!-- Optional Notes Section -->
+                        <div class="verification-step mb-4 p-3 border rounded bg-light">
+                            <h6 class="fw-bold mb-3 text-secondary">
+                                <i class="fas fa-sticky-note me-2"></i>Additional Notes (Optional)
+                            </h6>
+                            <label for="{{ form.pharmacy_review_notes.id_for_label }}" class="form-label">
+                                <i class="fas fa-pen me-2"></i>{{ form.pharmacy_review_notes.label }}
+                            </label>
+                            {{ form.pharmacy_review_notes }}
+                            {% if form.pharmacy_review_notes.errors %}
+                                <div class="text-danger mt-2">
+                                    {% for error in form.pharmacy_review_notes.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Add any additional observations or concerns about this prescription verification.
+                                </small>
+                            </div>
+                        </div>
+                        
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                             <a href="{% url 'prescription_review_list' %}" 
                                class="btn btn-outline-secondary animate-hover-scale">
@@ -276,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const medicineVisibleSelect = document.getElementById('{{ form.medicine_clearly_visible.id_for_label }}');
     const confidenceSelect = document.getElementById('{{ form.verification_confidence.id_for_label }}');
     const statusSelect = document.getElementById('{{ form.pharmacy_review_status.id_for_label }}');
-    const notesTextarea = document.getElementById('{{ form.pharmacy_review_notes.id_for_label }}');
+    const notesTextarea = document.getElementById('{{ form.pharmacy_review_notes.id_for_label }}') || null;
     
     // Function to validate completion of all steps
     function validateAllSteps() {
@@ -284,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const medicineVisible = medicineVisibleSelect.value;
         const confidence = confidenceSelect.value;
         const status = statusSelect.value;
-        const notes = notesTextarea.value.trim();
+        const notes = notesTextarea ? notesTextarea.value.trim() : '';
         
         // Enable/disable status dropdown based on previous steps
         if (imageReviewed && medicineVisible && confidence) {
@@ -340,13 +364,15 @@ document.addEventListener('DOMContentLoaded', function() {
             steps[3].classList.remove('border-success');
         }
         
-        // Step 5 styling (notes)
-        if (notesTextarea.value.trim().length >= 20) {
-            steps[4].classList.add('border-success');
-            steps[4].style.backgroundColor = '#d1edff';
-        } else {
-            steps[4].classList.remove('border-success');
-            steps[4].style.backgroundColor = '';
+        // Step 5 styling (notes) - only if notes field exists
+        if (notesTextarea && steps[4]) {
+            if (notesTextarea.value.trim().length >= 10) {
+                steps[4].classList.add('border-success');
+                steps[4].style.backgroundColor = '#d1edff';
+            } else {
+                steps[4].classList.remove('border-success');
+                steps[4].style.backgroundColor = '';
+            }
         }
     }
     
@@ -355,7 +381,9 @@ document.addEventListener('DOMContentLoaded', function() {
     medicineVisibleSelect.addEventListener('change', validateAllSteps);
     confidenceSelect.addEventListener('change', validateAllSteps);
     statusSelect.addEventListener('change', updateStepStyling);
-    notesTextarea.addEventListener('input', updateStepStyling);
+    if (notesTextarea) {
+        notesTextarea.addEventListener('input', updateStepStyling);
+    }
     
     // Form submission validation
     form.addEventListener('submit', function(e) {
@@ -383,9 +411,10 @@ document.addEventListener('DOMContentLoaded', function() {
             errorMessage += '• You must make a decision to approve or reject\n';
         }
         
-        if (notesTextarea.value.trim().length < 20) {
+        // Notes are optional - only validate if notes field exists
+        if (notesTextarea && notesTextarea.value.trim().length > 0 && notesTextarea.value.trim().length < 10) {
             isValid = false;
-            errorMessage += '• You must provide detailed notes (minimum 20 characters)\n';
+            errorMessage += '• If providing notes, please write at least 10 characters\n';
         }
         
         // Logic validation
