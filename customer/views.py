@@ -1190,7 +1190,7 @@ def create_order_with_prescription(request, medicine, quantity, ocr_result):
 
 @login_required
 def add_to_cart(request, medicine_id):
-    """Add medicine to cart with or without prescription"""
+    """Add medicine to cart directly without OCR validation"""
     try:
         customer = request.user.customer
     except Customer.DoesNotExist:
@@ -1199,130 +1199,45 @@ def add_to_cart(request, medicine_id):
     
     medicine = get_object_or_404(Medicine, id=medicine_id)
     
+    # Get quantity from request (default to 1)
+    quantity = 1
     if request.method == 'POST':
         quantity = int(request.POST.get('quantity', 1))
-        prescription_uploaded = request.POST.get('prescription_uploaded')
-        skip_prescription = request.POST.get('skip_prescription')
-        
-        # Get or create cart
-        cart, created = Cart.objects.get_or_create(customer=customer)
-        
-        # Check if coming from prescription validation flow
-        if prescription_uploaded == 'true':
-            # Use data from session (already validated)
-            validation_data = request.session.get('prescription_validation')
-            prescription_image_data = request.session.get('prescription_image_data')
-            prescription_image_name = request.session.get('prescription_image_name')
-            
-            if validation_data and prescription_image_data:
-                ocr_result = validation_data.get('ocr_result')
-                
-                # Recreate prescription image file
-                from django.core.files.base import ContentFile
-                image_data = base64.b64decode(prescription_image_data)
-                prescription_image = ContentFile(image_data, name=prescription_image_name)
-                
-                # Check if medicine already in cart
-                cart_item, created = CartItem.objects.get_or_create(
-                    cart=cart,
-                    medicine=medicine,
-                    defaults={
-                        'quantity': quantity,
-                        'prescription_image': prescription_image,
-                        'validation_data': ocr_result
-                    }
-                )
-                
-                if not created:
-                    # Update existing cart item
-                    cart_item.quantity += quantity
-                    cart_item.prescription_image = prescription_image
-                    cart_item.validation_data = ocr_result
-                    cart_item.save()
-                    messages.success(request, f'Updated {medicine.name} quantity in cart.')
-                else:
-                    messages.success(request, f'Added {medicine.name} to cart.')
-                
-                return redirect('cart_view')
-            else:
-                messages.error(request, 'Please complete prescription validation first.')
-                return redirect('prescription_validation', medicine_id=medicine_id)
-        
-        elif skip_prescription == 'true':
-            # Add to cart without prescription (for bulk OCR later)
-            cart_item, created = CartItem.objects.get_or_create(
-                cart=cart,
-                medicine=medicine,
-                defaults={
-                    'quantity': quantity,
-                    'prescription_image': None,
-                    'validation_data': None
-                }
-            )
-            
-            if not created:
-                # Update existing cart item
-                cart_item.quantity += quantity
-                cart_item.save()
-                messages.success(request, f'Updated {medicine.name} quantity in cart.')
-            else:
-                messages.success(request, f'Added {medicine.name} to cart. You can upload prescriptions later.')
-            
-            return redirect('cart_view')
-        
-        else:
-            # Direct add to cart (need to process prescription)
-            prescription_image = request.FILES.get('prescription_image')
-            
-            if not prescription_image:
-                messages.error(request, 'Please upload a prescription image.')
-                return redirect('prescription_validation', medicine_id=medicine_id)
-            
-            # Process OCR validation first
-            try:
-                with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as temp_file:
-                    for chunk in prescription_image.chunks():
-                        temp_file.write(chunk)
-                    temp_image_path = temp_file.name
-                
-                ocr_service = PrescriptionOCRService()
-                ocr_result = ocr_service.validate_medicine_name(
-                    medicine.name, 
-                    temp_image_path, 
-                    threshold=60
-                )
-                
-                os.unlink(temp_image_path)
-                
-                # Check if medicine already in cart
-                cart_item, created = CartItem.objects.get_or_create(
-                    cart=cart,
-                    medicine=medicine,
-                    defaults={
-                        'quantity': quantity,
-                        'prescription_image': prescription_image,
-                        'validation_data': ocr_result
-                    }
-                )
-                
-                if not created:
-                    # Update existing cart item
-                    cart_item.quantity += quantity
-                    cart_item.prescription_image = prescription_image
-                    cart_item.validation_data = ocr_result
-                    cart_item.save()
-                    messages.success(request, f'Updated {medicine.name} quantity in cart.')
-                else:
-                    messages.success(request, f'Added {medicine.name} to cart.')
-                
-                return redirect('cart_view')
-                
-            except Exception as e:
-                logger.error(f"Error adding to cart: {str(e)}")
-                messages.error(request, f'Error adding to cart: {str(e)}')
-                return redirect('prescription_validation', medicine_id=medicine_id)
+    elif request.method == 'GET':
+        quantity = int(request.GET.get('quantity', 1))
     
-    return redirect('prescription_validation', medicine_id=medicine_id)
+    # Check stock availability
+    if quantity > medicine.stock_quantity:
+        messages.error(request, f'Only {medicine.stock_quantity} units of {medicine.name} available in stock.')
+        return redirect('search')
+    
+    # Get or create cart
+    cart, created = Cart.objects.get_or_create(customer=customer)
+    
+    # Check if medicine already in cart
+    cart_item, created = CartItem.objects.get_or_create(
+        cart=cart,
+        medicine=medicine,
+        defaults={
+            'quantity': quantity,
+            'prescription_image': None,
+            'validation_data': None
+        }
+    )
+    
+    if not created:
+        # Update existing cart item
+        new_quantity = cart_item.quantity + quantity
+        if new_quantity > medicine.stock_quantity:
+            messages.error(request, f'Cannot add more. Only {medicine.stock_quantity} units available and you already have {cart_item.quantity} in cart.')
+            return redirect('cart_view')
+        cart_item.quantity = new_quantity
+        cart_item.save()
+        messages.success(request, f'Updated {medicine.name} quantity to {cart_item.quantity} in cart.')
+    else:
+        messages.success(request, f'Added {medicine.name} to cart. {f"Prescription required for checkout." if medicine.prescription_required else ""}')
+    
+    return redirect('cart_view')
 
 @login_required
 def cart_view(request):
