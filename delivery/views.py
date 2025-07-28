@@ -688,6 +688,59 @@ def get_delivery_tracking_data(request, delivery_id):
     
     return JsonResponse(data)
 
+
+@csrf_exempt
+def get_delivery_live_location(request, delivery_id):
+    """API endpoint to get delivery person's live location for customer tracking"""
+    try:
+        delivery = get_object_or_404(Delivery, id=delivery_id)
+        
+        # Verify the delivery is in a trackable status
+        if delivery.status not in ['assigned', 'picked_up', 'in_transit', 'arrived']:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Delivery is not in trackable status'
+            })
+        
+        if not delivery.delivery_person:
+            return JsonResponse({
+                'success': False, 
+                'error': 'No delivery person assigned'
+            })
+        
+        # Get delivery person's current location
+        delivery_person = delivery.delivery_person
+        
+        if not delivery_person.current_location_lat or not delivery_person.current_location_lon:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Delivery person location not available'
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'delivery_status': delivery.status,
+            'delivery_person': {
+                'name': delivery_person.user.get_full_name(),
+                'phone': delivery_person.phone,
+                'vehicle_type': delivery_person.get_vehicle_type_display(),
+                'rating': float(delivery_person.rating)
+            },
+            'location': {
+                'latitude': float(delivery_person.current_location_lat),
+                'longitude': float(delivery_person.current_location_lon),
+                'last_update': delivery_person.last_location_update.isoformat() if delivery_person.last_location_update else None
+            },
+            'estimated_delivery': delivery.estimated_delivery_time.isoformat() if delivery.estimated_delivery_time else None
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting delivery live location: {str(e)}")
+        return JsonResponse({
+            'success': False, 
+            'error': 'Unable to retrieve location data'
+        })
+
 @login_required
 def confirm_cash_payment(request, delivery_id):
     """Confirm cash payment received by delivery person"""

@@ -25,6 +25,7 @@
 - **Performance Optimization (July 27, 2025)**: Optimized distance calculation system with database indexing, result caching, and streamlined queries - removed debug logging, enhanced haversine algorithm, and added automatic coordinate management for all registered pharmacies
 - **Pharmacy Coordinate Management (July 27, 2025)**: All registered pharmacies now automatically have location coordinates for accurate distance calculations - system supports 5 active pharmacies (Good Health, Ambassador, Novel, Evan, Amin) with precise Addis Ababa locations
 - **Automatic Location Capture (July 27, 2025)**: Implemented automatic geolocation capture during pharmacy registration to prevent future coordinate issues - new pharmacies must provide location during registration using browser geolocation or manual coordinate entry, ensuring all future registrations have distance calculation capability
+- **Live Delivery Tracking (July 28, 2025)**: Implemented real-time location tracking for delivery personnel - customers can now see delivery person's live location on an interactive map when order status is "in_transit", with automatic location updates every 30 seconds, destination markers, and delivery person info popups
 
 ## Overview
 
