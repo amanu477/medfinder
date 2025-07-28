@@ -259,8 +259,7 @@ class MedicineForm(forms.ModelForm):
         if price is not None:
             if price <= 0:
                 raise ValidationError("Price must be greater than 0.")
-            if price > 10000:
-                raise ValidationError("Price cannot exceed 10,000 ETB.")
+            # Remove price limit - pharmacy can set any price they want
             # Check for maximum 2 decimal places
             if len(str(price).split('.')[-1]) > 2:
                 raise ValidationError("Price can have maximum 2 decimal places.")

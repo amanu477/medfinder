@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from .models import DeliveryPerson, Delivery, DeliveryTracking, DeliveryZone
+import re
 
 
 class DeliveryPersonCreationForm(UserCreationForm):
@@ -30,11 +31,48 @@ class DeliveryPersonCreationForm(UserCreationForm):
             field.widget.attrs['class'] = 'form-control'
     
     def clean_national_id(self):
-        """Validate that national_id is unique"""
+        """Validate national ID format and uniqueness"""
         national_id = self.cleaned_data.get('national_id')
-        if national_id and DeliveryPerson.objects.filter(national_id=national_id).exists():
-            raise forms.ValidationError(f'A delivery person with National ID {national_id} already exists. Please use a different National ID.')
+        if national_id:
+            # Remove any spaces or special characters
+            cleaned_id = re.sub(r'[^\d]', '', national_id)
+            
+            # Check if it contains exactly 12 digits
+            if len(cleaned_id) != 12:
+                raise forms.ValidationError('National ID must contain exactly 12 numbers.')
+            
+            # Check if it contains only digits
+            if not cleaned_id.isdigit():
+                raise forms.ValidationError('National ID must contain only numbers.')
+            
+            # Check uniqueness
+            if DeliveryPerson.objects.filter(national_id=cleaned_id).exists():
+                raise forms.ValidationError(f'A delivery person with National ID {cleaned_id} already exists. Please use a different National ID.')
+            
+            return cleaned_id
         return national_id
+    
+    def clean_phone(self):
+        """Validate phone number format"""
+        phone = self.cleaned_data.get('phone')
+        if phone:
+            # Remove any spaces or special characters
+            cleaned_phone = re.sub(r'[^\d+]', '', phone)
+            
+            # Check if it starts with +251 or convert local number
+            if cleaned_phone.startswith('0'):
+                cleaned_phone = '+251' + cleaned_phone[1:]
+            elif cleaned_phone.startswith('9') and len(cleaned_phone) == 9:
+                cleaned_phone = '+251' + cleaned_phone
+            elif not cleaned_phone.startswith('+251'):
+                raise forms.ValidationError("Phone number must be in Ethiopian format (+251XXXXXXXXX)")
+            
+            # Validate length and format - should be +251 + 1 digit + 8 digits (total 10 digits after +251)
+            if not re.match(r'^\+251[1-9]\d{8}$', cleaned_phone):
+                raise forms.ValidationError("Invalid Ethiopian phone number format. Use +251XXXXXXXXX (1 digit + 8 digits)")
+            
+            return cleaned_phone
+        return phone
     
     def clean_email(self):
         """Validate that email is unique"""
