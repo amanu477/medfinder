@@ -18,7 +18,7 @@ class DeliveryPersonCreationForm(UserCreationForm):
         ('car', 'Car'),
         ('on_foot', 'On Foot'),
     ], required=True)
-    vehicle_plate = forms.CharField(max_length=20, required=False)
+    vehicle_plate = forms.CharField(max_length=20, required=False, help_text="Format: 1 letter + 5 digits (e.g., A12345)")
 
     class Meta:
         model = User
@@ -67,12 +67,26 @@ class DeliveryPersonCreationForm(UserCreationForm):
             elif not cleaned_phone.startswith('+251'):
                 raise forms.ValidationError("Phone number must be in Ethiopian format (+251XXXXXXXXX)")
             
-            # Validate length and format - should be +251 + 1 digit + 8 digits (total 10 digits after +251)
-            if not re.match(r'^\+251[1-9]\d{8}$', cleaned_phone):
-                raise forms.ValidationError("Invalid Ethiopian phone number format. Use +251XXXXXXXXX (1 digit + 8 digits)")
+            # Validate length and format - Ethiopian phone numbers
+            if not re.match(r'^\+251[79]\d{8}$', cleaned_phone):
+                raise forms.ValidationError("Invalid Ethiopian phone number format. Use +251XXXXXXXXX")
             
             return cleaned_phone
         return phone
+    
+    def clean_vehicle_plate(self):
+        """Validate vehicle plate number format"""
+        vehicle_plate = self.cleaned_data.get('vehicle_plate')
+        if vehicle_plate:
+            # Remove any spaces or special characters
+            cleaned_plate = re.sub(r'[^\w]', '', vehicle_plate).upper()
+            
+            # Check if it matches 1 letter + 5 digits format
+            if not re.match(r'^[A-Z]\d{5}$', cleaned_plate):
+                raise forms.ValidationError('Vehicle plate must be 1 letter followed by 5 digits (e.g., A12345)')
+            
+            return cleaned_plate
+        return vehicle_plate
     
     def clean_email(self):
         """Validate that email is unique"""
@@ -90,9 +104,23 @@ class DeliveryPersonForm(forms.ModelForm):
         widgets = {
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'vehicle_type': forms.Select(attrs={'class': 'form-control'}),
-            'vehicle_plate': forms.TextInput(attrs={'class': 'form-control'}),
+            'vehicle_plate': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '1 letter + 5 digits (e.g., A12345)'}),
             'is_available': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+    
+    def clean_vehicle_plate(self):
+        """Validate vehicle plate number format"""
+        vehicle_plate = self.cleaned_data.get('vehicle_plate')
+        if vehicle_plate:
+            # Remove any spaces or special characters
+            cleaned_plate = re.sub(r'[^\w]', '', vehicle_plate).upper()
+            
+            # Check if it matches 1 letter + 5 digits format
+            if not re.match(r'^[A-Z]\d{5}$', cleaned_plate):
+                raise forms.ValidationError('Vehicle plate must be 1 letter followed by 5 digits (e.g., A12345)')
+            
+            return cleaned_plate
+        return vehicle_plate
 
 
 class DeliveryAssignmentForm(forms.ModelForm):
